@@ -1,16 +1,30 @@
+.ThumbList{
+  display: flex;
+  justify-content: center;
+}
 .Thumb{
   display: flex;
-  //background: #ffffff;
+  flex-basis: 250px;
+  flex-direction: column;
   border: 2px solid #2be506;
-  flex-wrap: wrap;
-  width: 600px;
-  height: 140px;
+  margin: 5px;
 
+  -moz-transition: all 0.3s;
+  -webkit-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.Thumb:hover{
+  cursor: pointer;
+  -moz-transform: scale(1.1);
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
+}
+.Thumb ul {
+  padding: 0;
 }
 .Thumb-img{
-  width:140px;
-  margin:10px;
-  border: 2px solid #2be506;
+  height: 210px;
+  margin: 10px;
 
 }
 .Thumb-title{
@@ -23,11 +37,15 @@
   background-color:black;
 }
 .Thumb-content {
-
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
   padding: 20px;
 }
 .Thumb-judgment{
   display: flex;
+  flex-grow: 1;
+  align-items: flex-end;
   justify-content: space-between;
   margin-top: 20px;
 }

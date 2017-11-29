@@ -20,14 +20,30 @@ const Navigation = props => (
     </Navbar.Collapse>
   </Navbar>
 );
+const Header = props => (
+  <div className="retro-header">
+    <div className="header-menu">
+      <p>Vigooth : Home</p>
+      <p>Vigooth : CV </p>
+      <p>Ok je pars j'ai compris</p>
 
-Navigation.defaultProps = {
+    </div>
+    <div className="header-menu">
+      <p>GAME : TETRIS</p>
+      <p>GAME : MEMORY </p>
+      <p>GAME : </p>
+
+    </div>
+  </div>
+);
+
+Header.defaultProps = {
   name: '',
 };
 
-Navigation.propTypes = {
+Header.propTypes = {
   authenticated: PropTypes.bool.isRequired,
   name: PropTypes.string,
 };
 
-export default Navigation;
+export default Header;

@@ -4,3 +4,33 @@
   border-right: none;
   border-top: none;
 }
+.retro-header{
+  background-color: rgb(168, 168, 168);
+  display: flex;
+  flex-basis: 80px;
+  flex-wrap: wrap;
+  border: 2px solid #2be506;
+
+  h1{
+    margin:0;
+  }
+  .header-menu{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    border: 2px solid #2be506;
+
+    p{
+      display: flex;
+      flex-basis: 24px;
+      margin-bottom: 0;
+      font-weight: bold;
+      border: 1px solid #2be506;
+      align-items: center;
+  }
+    p:hover{
+      background-color: black;
+    }
+  }
+}

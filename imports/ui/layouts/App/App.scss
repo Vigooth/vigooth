@@ -2,6 +2,12 @@
 
 .App > .container {
   margin-bottom: 20px;
+  border:2px blue solid;
+}
+.App > .container .container-title{
+  width:30px;
+  margin-top:-20px;
+  margin-left:5px;
 }
 .App {
   display: flex;

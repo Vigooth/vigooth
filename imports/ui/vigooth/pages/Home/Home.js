@@ -14,7 +14,8 @@ class Home extends React.Component {
 
   componentDidMount() {
   }
-
+  componentWillMount(){
+  }
   handleSubmit() {
     Meteor.loginWithPassword(this.emailAddress.value, this.password.value, (error) => {
       if (error) {
@@ -24,47 +25,21 @@ class Home extends React.Component {
       }
     });
   }
-  smiley(){
-    const arr=
-      "XYYOOOYYOOOYYX/"+
-      "XXXOXOXXOXOXXX/"+
-      "XXXOOOXXOOOXXX/"+
-      "XXXXXX|XXXXXXX/"+
-      "XXXOOXXXXOOXXX/"+
-      "XXXXOOXXOOXXXX/"+
-      "XXXXXOOOOXXXXX/";
-    let results=[];
-    for(let i=0;i<=arr.length;i++){
-      if(arr[i]==='O'){results.push(['button','blue','O'])}
-      if(arr[i]==='X'){results.push(['button','red','X'])}
-      if(arr[i]==='Y'){results.push(['button','blue','Y'])}
-      if(arr[i]==='/'){results.push(['br','',''])}
-      if(arr[i]==='|'){results.push(['button','blue','|'])}
-    }
-    console.log(results)
-    results.map( result => React.createElement(result[0],{className:result[1]},result[2]))
-    return React.createElement('div',{},
-      results.map( result => {
-        if(result[0]===('br')){return React.createElement(result[0],{})}
-        return React.createElement(result[0],{className:result[1]},result[2])
-      })
-    )
-  }
   render() {
     return (
       <div className="Home crt">
+        <center><h1 className="container-title">Home</h1></center>
         <Row>
           <h1>Gauth</h1>
           <div>
-            {this.smiley()}
           </div>
           <ul className="scanlines">
-            <li id="jpg"><div className="jpg">       <TypeWriter
+            <li id="jpg"><div className="jpg">      {/* <TypeWriter
               speed={88}
               tag="h1"
               text={"Voici la liste des criminelles les plus recherchés"}
               randomSpeed={true}
-            /></div></li>
+            />*/}</div></li>
           </ul>
           <Thumb/>
         </Row>

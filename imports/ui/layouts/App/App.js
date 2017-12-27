@@ -18,6 +18,7 @@ import EditDocument from '../../pages/EditDocument/EditDocument';
 import Signup from '../../pages/Signup/Signup';
 import Login from '../../pages/Login/Login';
 import Home from '../../vigooth/pages/Home/Home';
+import Goot from '../../vigooth/pages/Goot/Goot';
 import Logout from '../../pages/Logout/Logout';
 import VerifyEmail from '../../pages/VerifyEmail/VerifyEmail';
 import RecoverPassword from '../../pages/RecoverPassword/RecoverPassword';
@@ -30,13 +31,14 @@ import Privacy from '../../pages/Privacy/Privacy';
 import ExamplePage from '../../pages/ExamplePage/ExamplePage';
 import VerifyEmailAlert from '../../components/VerifyEmailAlert/VerifyEmailAlert';
 import getUserName from '../../../modules/get-user-name';
-
+import routes from '../routes.json';
 import './App.scss';
 
 const App = props => (
   <Router>
     {!props.loading ? (
       <div className="App">
+
         {props.authenticated ?
           <VerifyEmailAlert
             userId={props.userId}
@@ -45,8 +47,10 @@ const App = props => (
           />
           : ''}
         <Navigation {...props} />
+
         <Grid>
           <Switch>
+
             <Route exact name="index" path="/" component={Index} />
             <Authenticated exact path="/documents" component={Documents} {...props} />
             <Authenticated exact path="/documents/new" component={NewDocument} {...props} />
@@ -55,7 +59,8 @@ const App = props => (
             <Authenticated exact path="/profile" component={Profile} {...props} />
             <Public path="/signup" component={Signup} {...props} />
             <Public path="/login" component={Login} {...props} />
-            <Public path="/home" component={Home} {...props} />
+            <Public path={routes.game} component={Home} {...props} />
+            <Public path={routes.game.goot} component={Goot} {...props} />
             <Route path="/logout" component={Logout} {...props} />
             <Route name="verify-email" path="/verify-email/:token" component={VerifyEmail} />
             <Route name="recover-password" path="/recover-password" component={RecoverPassword} />

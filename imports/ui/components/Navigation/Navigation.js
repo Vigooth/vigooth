@@ -25,14 +25,11 @@ const Header = props => (
     <div className="header-menu">
       <p>Vigooth : Home</p>
       <p>Vigooth : CV </p>
-      <p>Ok je pars j'ai compris</p>
 
     </div>
     <div className="header-menu">
       <p>GAME : TETRIS</p>
       <p>GAME : MEMORY </p>
-      <p>GAME : </p>
-
     </div>
   </div>
 );

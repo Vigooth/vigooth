@@ -1,0 +1,38 @@
+@font-face {
+font-family: "fixedsys_excelsior_3";
+src: url("fontquirrels/fsex300-webfont.eot?#iefix") format('embedded-opentype'),
+url("fontquirrels/fsex300-webfont.woff") format('woff'),
+url("fontquirrels/fsex300-webfont.ttf") format('truetype'),
+url("fontquirrels/fsex300-webfont.svg#fixedsys_excelsior_3.01Rg") format('svg');
+font-weight: normal;
+font-style: normal;
+}
+#canvas-goot{border: 1px green solid;}
+.red{
+  color:black;
+  background-color:black;
+}.blue{
+  color:green;
+   background-color:green;
+}.yellow{
+  color:yellow;
+    background-color:yellow;
+}
+ .green{
+   color:green;
+   background-color:green;
+ }
+.black{
+  color:black;
+  background-color:black;
+}
+.smiley{
+}
+ button{
+   height: 5px!important;
+   width: 4px!important;
+   border: 0px;
+ }
+ button:hover{
+   background-color: black;
+ }

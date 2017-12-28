@@ -1,36 +1,40 @@
-import React from 'react';
-import { Row, Col, FormGroup, ControlLabel, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { Meteor } from 'meteor/meteor';
-import { Bert } from 'meteor/themeteorchef:bert';
-import ReactDOM from "react-dom";
 import _ from 'lodash';
-import './Goot.scss'
-let c = createjs;
-class PrisonGuard {
+import './Goot.scss';
+import Gun from './Guns';
+const c = createjs;
 
-  constructor(x, y, options = {}){
+class PrisonGuard {
+  constructor(x, y, options = {}) {
     this.x = x;
     this.y = y;
+    this.status = 'alive';
     const defaults = {
-      color:"red",
-      width:10,
-      height:10
+      color: 'red',
+      width: 10,
+      height: 10,
+      gun: new Gun('pistolet'),
+      awards: 2,
     };
     this.settings = _.assign({}, defaults, options);
   }
 
-  paint(){
-    let circle = new c.Shape();
-    circle.graphics.beginFill(this.settings.color).drawRect(this.x, this.y, this.settings.width, this.settings.height);
-    return circle}
-
-  move(direction){
-    this.x = this.x + this.settings.width *direction[0];
-    this.y = this.y + this.settings.height*direction[1];
+  paint() {
+    const circle = new c.Shape();
+    circle.graphics
+      .beginFill(this.settings.color)
+      .drawRect(this.x, this.y, this.settings.width, this.settings.height);
+    return circle;
   }
-
+  move(direction) {
+    this.x = this.x + (this.settings.width * direction[0]);
+    this.y = this.y + (this.settings.height * direction[1]);
+  }
+  shoot() {
+    return this.settings.gun.shoot(this.x, this.y);
+  }
+  dead() {
+    this.status = 'dead';
+  }
 }
-
 
 export default PrisonGuard;

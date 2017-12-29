@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
+import _ from 'lodash';
 import { Row, Button } from 'react-bootstrap';
 import Snake from './Snake';
 import PrisonGuard from './PrisonGuard';
+import Wall from './Wall';
 import './Goot.scss';
-import _ from 'lodash';
 
 const c = createjs;
 function multArray(arr1, arr2) {
@@ -30,12 +31,16 @@ class Goot extends Component {
     this.snake = new Snake(200, 150, { color: 'yellow' });
     this.prisonGuard = new PrisonGuard(250, 150, { color: 'red' });
     this.prisonGuard2 = new PrisonGuard(200, 50, { color: 'red' });
+    this.wall = this.generateMap();
   }
   componentDidMount() {
     this.stage = new c.Stage(this.canvas);
   }
   setDirection(arr) {
     this.setState({ direction: arr });
+  }
+  generateMap() {
+    return new Wall([{ x: 2, y: 3 }, { x: 50, y: 3 }, { x: 1, y: 100 }]);
   }
   keyPush(event) {
     if (event.keyCode === 37) { console.log('SNAKE MOVED LEFT'); this.setDirection([-1, 0]); }
@@ -84,9 +89,9 @@ class Goot extends Component {
   game() {
     this.stage.removeAllChildren();
     this.rules();
-
     this.snake.move(this.state.direction);
     this.stage.addChild(this.snake.paint());
+    this.stage.addChild( this.wall.paint());
     this.stage.addChild(this.prisonGuard2.shoot());
     this.stage.addChild(this.prisonGuard2.paint());
 

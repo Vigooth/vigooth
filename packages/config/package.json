@@ -1,0 +1,14 @@
+{
+  "name": "@vigooth/config",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./apps.ts",
+  "types": "./apps.ts",
+  "exports": {
+    ".": "./apps.ts",
+    "./apps": "./apps.ts",
+    "./tailwind": "./tailwind.config.cjs",
+    "./tsconfig/base": "./tsconfig.base.json",
+    "./tsconfig/react": "./tsconfig.react.json"
+  }
+}

@@ -1,0 +1,1 @@
+// Global TypeScript type definitions

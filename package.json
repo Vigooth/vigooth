@@ -1,0 +1,27 @@
+{
+  "name": "vigooth",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev": "pnpm --filter @vigooth/portal dev",
+    "dev:all": "pnpm --filter './apps/*' --parallel dev",
+    "dev:portal": "pnpm --filter @vigooth/portal dev",
+    "dev:crypt-lock": "pnpm --filter @vigooth/crypt-lock dev",
+    "build": "pnpm -r build",
+    "build:portal": "pnpm --filter @vigooth/portal build",
+    "build:crypt-lock": "pnpm --filter @vigooth/crypt-lock build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "type-check": "pnpm -r type-check",
+    "prepare": "husky install",
+    "storybook": "pnpm --filter @vigooth/storybook dev",
+    "build-storybook": "pnpm --filter @vigooth/storybook build"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "prettier": "^3.2.5",
+    "typescript": "~5.8.3"
+  }
+}

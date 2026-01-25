@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import tw from 'twin.macro'
 import { cpcCursor } from '@vigooth/styles'
 
@@ -7,7 +7,6 @@ interface CpcInputProps {
   onChange: (value: string) => void;
   onEnter?: () => void;
   placeholder?: string;
-  cursorColor?: string;
 }
 
 const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(({
@@ -15,17 +14,7 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(({
   onChange,
   onEnter,
   placeholder = '',
-  cursorColor = 'cpc-green-500'
 }, ref) => {
-  const [showCursor, setShowCursor] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursor(prev => !prev);
-    }, 530); // Authentic CPC cursor blink rate
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && onEnter) {

@@ -17,15 +17,7 @@ export function Terminal({ onCommand, prompt = 'READY' }: TerminalProps) {
     '',
     'READY'
   ]);
-  const [showCursor, setShowCursor] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursor(prev => !prev);
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (inputRef.current) {

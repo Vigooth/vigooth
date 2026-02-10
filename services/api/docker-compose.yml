@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vigooth-postgres
+    environment:
+      POSTGRES_USER: vigooth
+      POSTGRES_PASSWORD: vigooth
+      POSTGRES_DB: vigooth
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:

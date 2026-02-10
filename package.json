@@ -9,6 +9,7 @@
     "dev:all": "pnpm --filter './apps/*' --parallel dev",
     "dev:portal": "pnpm --filter @vigooth/portal dev",
     "dev:crypt-lock": "pnpm --filter @vigooth/crypt-lock dev",
+    "dev:api": "cd services/api && PORT=8090 go run ./cmd/server",
     "build": "pnpm -r build",
     "build:portal": "pnpm --filter @vigooth/portal build",
     "build:crypt-lock": "pnpm --filter @vigooth/crypt-lock build",

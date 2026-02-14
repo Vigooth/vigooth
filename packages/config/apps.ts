@@ -6,6 +6,7 @@ export interface AppDefinition {
   color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
   devPort: number
   prodPath: string
+  prodSubdomain?: string
 }
 
 export const apps: AppDefinition[] = [
@@ -26,6 +27,7 @@ export const apps: AppDefinition[] = [
     color: 'red',
     devPort: 5174,
     prodPath: '/crypt-lock',
+    prodSubdomain: 'app-cryptlock',
   },
   // Future apps:
   // {
@@ -44,6 +46,17 @@ function isDev(): boolean {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 }
 
+function getRootDomain(): string {
+  if (typeof window === 'undefined') return ''
+  const hostname = window.location.hostname
+  // Extract root domain: "app-cryptlock.vigooth.com" → "vigooth.com"
+  const parts = hostname.split('.')
+  if (parts.length >= 2) {
+    return parts.slice(-2).join('.')
+  }
+  return hostname
+}
+
 export function getAppUrl(appId: string, baseUrl?: string): string {
   const app = apps.find((a) => a.id === appId)
   if (!app) return '/'
@@ -52,9 +65,18 @@ export function getAppUrl(appId: string, baseUrl?: string): string {
     return `http://localhost:${app.devPort}`
   }
 
-  // In production, use the base URL + path
-  const base = baseUrl || ''
-  return `${base}${app.prodPath}`
+  // In production, use subdomain if defined
+  if (app.prodSubdomain) {
+    const domain = baseUrl || getRootDomain()
+    return `https://${app.prodSubdomain}.${domain}`
+  }
+
+  // Portal (root domain) or fallback to path-based
+  if (baseUrl) {
+    return `${baseUrl}${app.prodPath}`
+  }
+
+  return `https://${getRootDomain()}${app.prodPath}`
 }
 
 export function getAppsConfig(currentAppId?: string) {

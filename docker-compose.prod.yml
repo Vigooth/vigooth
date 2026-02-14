@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: "8090"
+      GIN_MODE: release
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  frontend-build:
+    image: node:20-alpine
+    profiles: [build]
+    working_dir: /app
+    environment:
+      VITE_API_URL: https://api.${DOMAIN}
+    volumes:
+      - .:/app
+      - frontend_portal:/app/apps/portal/dist
+      - frontend_cryptlock:/app/apps/crypt-lock/dist
+      - pnpm_store:/app/.pnpm-store
+    command: >
+      sh -c "
+        corepack enable &&
+        corepack prepare pnpm@10.14.0 --activate &&
+        pnpm install --frozen-lockfile &&
+        pnpm build:portal &&
+        pnpm build:crypt-lock
+      "
+    networks: []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - frontend_portal:/srv/portal:ro
+      - frontend_cryptlock:/srv/cryptlock:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  frontend_portal:
+  frontend_cryptlock:
+  pnpm_store:
+  caddy_data:
+  caddy_config:
+
+networks:
+  backend:

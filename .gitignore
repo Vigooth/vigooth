@@ -26,5 +26,11 @@ dist-ssr
 *storybook.log
 storybook-static
 
+# Production secrets
+.env
+
+# Database backups
+backups/
+
 # Claude Code
 .claude/

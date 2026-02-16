@@ -1,5 +1,6 @@
 import { useState, useCallback, ReactNode } from 'react'
 import { AuthContext, AuthState, User, getInitialAuthState } from './auth'
+import { clearEncryptedVaultCache } from '@/lib/storage/encryptedVault'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -22,6 +23,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(() => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    // Clear encrypted vault cache on logout
+    clearEncryptedVaultCache()
     setState({
       user: null,
       token: null,

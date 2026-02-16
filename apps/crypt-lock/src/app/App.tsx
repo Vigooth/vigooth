@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '../stores/AuthProvider'
 import { useAuth } from '../stores/auth'
+import { QueryProvider } from './providers'
 import { LoginPage } from './pages/LoginPage'
 import { UnlockPage } from './pages/UnlockPage'
 import { VaultPage } from './pages/VaultPage'
@@ -56,10 +57,12 @@ function AppRoutes() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <QueryProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryProvider>
   )
 }

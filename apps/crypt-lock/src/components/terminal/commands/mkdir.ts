@@ -1,7 +1,6 @@
 import { CommandFn } from './types'
-
-type ColorType = 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
-const validColors: ColorType[] = ['green', 'red', 'cyan', 'yellow', 'magenta']
+import { ColorType, isValidColor } from '../../../types/colors'
+import { findFolderByName } from '../../../utils/folderUtils'
 
 export const mkdir: CommandFn = async (args, ctx, t) => {
   const name = args[0]
@@ -9,12 +8,13 @@ export const mkdir: CommandFn = async (args, ctx, t) => {
     return { output: t('terminal.errors.usage.mkdir') }
   }
 
-  const color = (args[1]?.toLowerCase() || 'green') as ColorType
-  if (!validColors.includes(color)) {
+  const colorArg = args[1]?.toLowerCase()
+  const color: ColorType = isValidColor(colorArg) ? colorArg : 'green'
+  if (colorArg && !isValidColor(colorArg)) {
     return { output: t('terminal.errors.invalidColor') }
   }
 
-  if (ctx.vault?.folders.find(f => f.name.normalize() === name.toUpperCase().normalize())) {
+  if (ctx.vault?.folders && findFolderByName(ctx.vault.folders, name.toUpperCase())) {
     return { output: t('terminal.errors.folderExists', { name }) }
   }
 

@@ -5,9 +5,10 @@ import { useVault } from './VaultContext'
 
 interface EntryCardProps {
   entry: PasswordEntry
+  index?: number
 }
 
-export function EntryCard({ entry }: EntryCardProps) {
+export function EntryCard({ entry, index }: EntryCardProps) {
   const { t } = useTranslation()
   const { expandedEntryId, toggleEntry, copiedField, copyField, deleteEntry } = useVault()
   const isExpanded = expandedEntryId === entry.id
@@ -21,7 +22,10 @@ export function EntryCard({ entry }: EntryCardProps) {
       ]}
     >
       <div tw="flex justify-between items-center text-sm">
-        <span tw="font-bold truncate">{entry.name}</span>
+        <span tw="font-bold truncate">
+          {index && <span tw="text-cpc-green-500 text-xs relative top-[-5px] opacity-60 mr-1">[{index}]</span>}
+          {entry.name}
+        </span>
       </div>
       <div tw="text-xs truncate opacity-80">{entry.username}</div>
 

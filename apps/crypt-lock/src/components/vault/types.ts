@@ -1,6 +1,7 @@
 import tw from 'twin.macro'
+import { ColorType } from '../../types/colors'
 
-export type ColorType = 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
+export type { ColorType }
 
 export const colorStyles = {
   green: { border: tw`border-cpc-green-500`, text: tw`text-cpc-green-500`, bg: tw`bg-cpc-green-500` },

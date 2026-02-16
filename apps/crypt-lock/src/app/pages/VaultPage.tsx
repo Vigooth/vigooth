@@ -1,19 +1,14 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CpcLayout } from '@vigooth/ui'
 import 'twin.macro'
 import { useAuth } from '../../stores/auth'
-import { getVault, saveVault } from '../../lib/api/client'
 import {
-  decryptVault,
-  encryptVault,
-  createEmptyVault,
   generatePassword,
   generateId,
   PasswordEntry,
   Folder,
-  VaultData,
 } from '../../lib/crypto/vault'
 import { Terminal, CommandContext } from '../../components/terminal'
 import {
@@ -23,67 +18,63 @@ import {
   EntryCard,
   VaultProvider,
   useVault,
-  ColorType,
   EntryFormData,
 } from '../../components/vault'
+import { ColorType } from '@/types/colors'
+import {
+  useVaultQuery,
+  useAddFolder,
+  useDeleteFolder,
+  useAddEntry,
+  useDeleteEntry,
+  useMoveEntries,
+} from '@/hooks/useVaultQuery'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
+import { useSync } from '@/hooks/useSync'
 
 export function VaultPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { masterPassword, clearMasterPassword, logout } = useAuth()
-  const [vault, setVault] = useState<VaultData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [showAddFolder, setShowAddFolder] = useState(false)
   const [newFolder, setNewFolder] = useState({ name: '', color: 'green' as ColorType })
 
   // Terminal state
   const [currentFolder, setCurrentFolder] = useState<{ id: string; name: string } | null>(null)
 
-  useEffect(() => {
-    if (!masterPassword) {
+  // Online status
+  const isOnline = useOnlineStatus()
+
+  // Sync management
+  const { isSyncing, hasPending } = useSync({ masterPassword })
+
+  // React Query hooks
+  const {
+    data: vaultData,
+    isLoading: loading,
+    isError,
+  } = useVaultQuery({
+    masterPassword,
+    onAuthError: () => {
+      clearMasterPassword()
       navigate('/unlock')
-      return
-    }
-    loadVault()
-  }, [masterPassword])
+    },
+  })
 
-  const loadVault = async () => {
-    if (!masterPassword) return
+  const vault = vaultData?.vault ?? null
 
-    try {
-      const response = await getVault()
-      const decrypted = await decryptVault(response.data, masterPassword)
-      if (!decrypted.folders) {
-        decrypted.folders = []
-      }
-      setVault(decrypted)
-    } catch (err) {
-      if (err instanceof Error && err.message === 'vault not found') {
-        setVault(createEmptyVault())
-      } else {
-        clearMasterPassword()
-        navigate('/unlock')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  const addFolderMutation = useAddFolder({ masterPassword })
+  const deleteFolderMutation = useDeleteFolder({ masterPassword })
+  const addEntryMutation = useAddEntry({ masterPassword })
+  const deleteEntryMutation = useDeleteEntry({ masterPassword })
+  const moveEntriesMutation = useMoveEntries({ masterPassword })
 
-  const saveVaultToServer = async (updatedVault: VaultData) => {
-    if (!masterPassword) return
-
-    setSaving(true)
-    try {
-      const encrypted = await encryptVault(updatedVault, masterPassword)
-      await saveVault(encrypted)
-      setVault(updatedVault)
-    } catch (err) {
-      console.error('Failed to save vault:', err)
-    } finally {
-      setSaving(false)
-    }
-  }
+  const saving =
+    addFolderMutation.isPending ||
+    deleteFolderMutation.isPending ||
+    addEntryMutation.isPending ||
+    deleteEntryMutation.isPending ||
+    moveEntriesMutation.isPending
 
   const handleLock = () => {
     clearMasterPassword()
@@ -96,76 +87,44 @@ export function VaultPage() {
   }
 
   const handleAddFolder = async () => {
-    if (!vault || !newFolder.name) return
+    if (!newFolder.name) return
 
-    const folder: Folder = {
-      id: generateId(),
-      name: newFolder.name.toUpperCase(),
+    await addFolderMutation.mutateAsync({
+      name: newFolder.name,
       color: newFolder.color,
-      createdAt: new Date().toISOString(),
-    }
-
-    await saveVaultToServer({
-      ...vault,
-      folders: [...vault.folders, folder],
     })
     setNewFolder({ name: '', color: 'green' })
     setShowAddFolder(false)
   }
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (!vault) return
-
-    const updatedEntries = vault.entries.map(e =>
-      e.folderId === folderId ? { ...e, folderId: undefined } : e
-    )
-
-    await saveVaultToServer({
-      ...vault,
-      folders: vault.folders.filter(f => f.id !== folderId),
-      entries: updatedEntries,
-    })
+    await deleteFolderMutation.mutateAsync(folderId)
   }
 
   const handleAddEntry = async (folderId: string | null, data: EntryFormData) => {
-    if (!vault || !data.name) return
+    if (!data.name) return
 
-    const entry: PasswordEntry = {
-      id: generateId(),
-      folderId: folderId || undefined,
-      name: data.name,
-      username: data.username || '',
-      password: data.password || '',
-      url: data.url || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    await saveVaultToServer({
-      ...vault,
-      entries: [...vault.entries, entry],
-    })
-    return entry
+    const result = await addEntryMutation.mutateAsync({ folderId, data })
+    return result.entry
   }
 
   const handleDeleteEntry = async (id: string) => {
-    if (!vault) return
-
-    await saveVaultToServer({
-      ...vault,
-      entries: vault.entries.filter(e => e.id !== id),
-    })
+    await deleteEntryMutation.mutateAsync(id)
   }
 
   const handleGeneratePassword = () => generatePassword(20)
 
   // Add folder (for terminal)
   const addFolderToVault = async (folder: Folder) => {
-    if (!vault) return
-    await saveVaultToServer({
-      ...vault,
-      folders: [...vault.folders, folder],
+    await addFolderMutation.mutateAsync({
+      name: folder.name,
+      color: folder.color || 'green',
     })
+  }
+
+  // Move entries (for terminal) - batch update
+  const handleMoveEntries = async (entryIds: string[], targetFolderId: string | null) => {
+    await moveEntriesMutation.mutateAsync({ entryIds, targetFolderId })
   }
 
   // Terminal context
@@ -176,6 +135,8 @@ export function VaultPage() {
     addEntry: handleAddEntry,
     addFolder: addFolderToVault,
     removeFolder: handleDeleteFolder,
+    removeEntry: handleDeleteEntry,
+    moveEntries: handleMoveEntries,
     generatePassword,
     generateId,
   }), [vault, currentFolder])
@@ -195,6 +156,12 @@ export function VaultPage() {
     )
   }
 
+  if (isError) {
+    clearMasterPassword()
+    navigate('/unlock')
+    return null
+  }
+
   return (
     <VaultProvider
       onAddEntry={handleAddEntry}
@@ -206,9 +173,14 @@ export function VaultPage() {
         <div tw="h-full flex flex-col">
           {/* Header */}
           <div tw="flex justify-between items-center p-3 border-b-2 border-cpc-green-500">
-            <div>
+            <div tw="flex items-center gap-2">
               <span tw="text-cpc-red-500 font-bold">{t('app.name')}</span>
-              {saving && <span tw="text-cpc-yellow-500 ml-2 text-xs">{t('vault.saving')}</span>}
+              {saving && <span tw="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
+              {isSyncing && <span tw="text-cpc-cyan-500 text-xs animate-pulse">{t('status.syncing')}</span>}
+              {!isOnline && <span tw="text-cpc-red-500 text-xs animate-pulse">{t('status.offline')}</span>}
+              {isOnline && hasPending && !isSyncing && (
+                <span tw="text-cpc-yellow-500 text-xs">{t('status.pending')}</span>
+              )}
             </div>
             <div tw="flex gap-2">
               <button
@@ -229,11 +201,12 @@ export function VaultPage() {
           {/* Content */}
           <div tw="flex-1 overflow-auto p-3">
             <div tw="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {vault?.folders.map(folder => (
+              {vault?.folders.map((folder, index) => (
                 <FolderCard
                   key={folder.id}
                   folder={folder}
                   entries={getEntriesForFolder(folder.id)}
+                  index={index + 1}
                 />
               ))}
 
@@ -290,6 +263,7 @@ function RootEntriesCard({ entries }: { entries: PasswordEntry[] }) {
           onClick={() => addingToFolder !== 'root' && setAddingToFolder('root')}
           tw="text-cpc-green-500 font-bold flex items-center gap-2 cursor-pointer hover:opacity-80"
         >
+          <span tw="opacity-60">[0]</span>
           <span>📁</span>
           <span>{t('vault.unsorted')}</span>
           <span tw="text-xs opacity-60">({entries.length})</span>
@@ -297,8 +271,8 @@ function RootEntriesCard({ entries }: { entries: PasswordEntry[] }) {
       </div>
 
       <div tw="space-y-2">
-        {entries.map(entry => (
-          <EntryCard key={entry.id} entry={entry} />
+        {entries.map((entry, index) => (
+          <EntryCard key={entry.id} entry={entry} index={index + 1} />
         ))}
 
         {addingToFolder === 'root' && <AddEntryForm folderId={null} />}

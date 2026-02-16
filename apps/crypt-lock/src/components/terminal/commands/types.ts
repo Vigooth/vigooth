@@ -8,6 +8,8 @@ export interface CommandContext {
   addEntry: (folderId: string | null, data: { name: string; username: string; password: string; url: string }) => Promise<PasswordEntry | undefined>
   addFolder: (folder: Folder) => Promise<void>
   removeFolder: (folderId: string) => Promise<void>
+  removeEntry: (entryId: string) => Promise<void>
+  moveEntries: (entryIds: string[], targetFolderId: string | null) => Promise<void>
   generatePassword: (length: number) => string
   generateId: () => string
 }

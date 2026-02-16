@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import tw from 'twin.macro'
 import { useTranslation } from 'react-i18next'
 import { commands, CommandContext } from './commands'
@@ -50,8 +50,19 @@ export function Terminal({ context }: TerminalProps) {
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
+  const historyRef = useRef<HTMLDivElement>(null)
 
   const focusInput = () => inputRef.current?.focus()
+
+  const scrollHistoryToBottom = () => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight
+    }
+  }
+
+  useEffect(() => {
+    scrollHistoryToBottom()
+  }, [history])
 
   const handleCommand = async (command: string) => {
     const cmd = command.trim()
@@ -113,7 +124,7 @@ export function Terminal({ context }: TerminalProps) {
     <div tw="border-t-2 border-cpc-green-500 p-3 cursor-text" onClick={focusInput}>
       {/* History */}
       {history.length > 0 && (
-        <div tw="max-h-32 overflow-y-auto mb-2 text-xs font-mono">
+        <div ref={historyRef} tw="max-h-32 overflow-y-auto mb-2 text-xs font-mono">
           {history.slice(-5).map((entry, i) => (
             <div key={i} tw="mb-1">
               <div tw="text-cpc-yellow-500">&gt; {entry.command}</div>

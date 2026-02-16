@@ -8,9 +8,10 @@ import { useVault } from './VaultContext'
 interface FolderCardProps {
   folder: Folder
   entries: PasswordEntry[]
+  index: number
 }
 
-export function FolderCard({ folder, entries }: FolderCardProps) {
+export function FolderCard({ folder, entries, index }: FolderCardProps) {
   const { addingToFolder, setAddingToFolder, deleteFolder } = useVault()
   const colors = colorStyles[folder.color || 'green']
   const isAddingEntry = addingToFolder === folder.id
@@ -29,6 +30,7 @@ export function FolderCard({ folder, entries }: FolderCardProps) {
           onClick={handleHeaderClick}
           css={[tw`font-bold flex items-center gap-2 cursor-pointer hover:opacity-80`, colors.text]}
         >
+          <span tw="text-cpc-green-500 opacity-60">[{index}]</span>
           <span>📂</span>
           <span>{folder.name}</span>
           <span tw="text-xs opacity-60">({entries.length})</span>
@@ -43,8 +45,8 @@ export function FolderCard({ folder, entries }: FolderCardProps) {
 
       {/* Entries */}
       <div tw="space-y-2">
-        {entries.map(entry => (
-          <EntryCard key={entry.id} entry={entry} />
+        {entries.map((entry, entryIndex) => (
+          <EntryCard key={entry.id} entry={entry} index={entryIndex + 1} />
         ))}
 
         {isAddingEntry && <AddEntryForm folderId={folder.id} />}

@@ -68,8 +68,8 @@ export function Terminal({ context }: TerminalProps) {
     const cmd = command.trim()
     if (!cmd) return
 
-    const parts = parseCommandArgs(cmd.toUpperCase())
-    const commandName = parts[0]
+    const parts = parseCommandArgs(cmd)
+    const commandName = parts[0].toUpperCase()
     const args = parts.slice(1)
 
     let output: string

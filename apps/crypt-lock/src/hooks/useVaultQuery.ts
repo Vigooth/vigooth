@@ -236,6 +236,50 @@ export function useDeleteEntry({ masterPassword }: { masterPassword: string | nu
 }
 
 /**
+ * Hook to update an entry
+ */
+export function useUpdateEntry({ masterPassword }: { masterPassword: string | null }) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      entryId,
+      data,
+    }: {
+      entryId: string
+      data: Partial<{ name: string; username: string; password: string; url: string }>
+    }) => {
+      if (!masterPassword) {
+        throw new Error('No master password')
+      }
+
+      const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY)
+      if (!currentData) {
+        throw new Error('No vault data')
+      }
+
+      const updatedVault: VaultData = {
+        ...currentData.vault,
+        entries: currentData.vault.entries.map(e =>
+          e.id === entryId
+            ? { ...e, ...data, updatedAt: new Date().toISOString() }
+            : e
+        ),
+      }
+
+      await persistVault(updatedVault, masterPassword)
+      return updatedVault
+    },
+    onSuccess: (vault) => {
+      queryClient.setQueryData(VAULT_QUERY_KEY, {
+        vault,
+        updatedAt: new Date().toISOString(),
+      })
+    },
+  })
+}
+
+/**
  * Hook to move entries (batch)
  */
 export function useMoveEntries({ masterPassword }: { masterPassword: string | null }) {

@@ -10,6 +10,7 @@ export interface CommandContext {
   removeFolder: (folderId: string) => Promise<void>
   removeEntry: (entryId: string) => Promise<void>
   moveEntries: (entryIds: string[], targetFolderId: string | null) => Promise<void>
+  updateEntry: (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => Promise<void>
   generatePassword: (length: number) => string
   generateId: () => string
 }

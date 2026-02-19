@@ -10,6 +10,7 @@ import { mv } from './mv'
 import { ls } from './ls'
 import { cat } from './cat'
 import { gen } from './gen'
+import { edit } from './edit'
 
 export type { CommandContext, CommandResult, CommandFn } from './types'
 
@@ -18,6 +19,7 @@ export const commands: Record<string, CommandFn> = {
   CD: cd,
   PWD: pwd,
   ADD: add,
+  EDIT: edit,
   MKDIR: mkdir,
   RMDIR: rmdir,
   RM: rm,

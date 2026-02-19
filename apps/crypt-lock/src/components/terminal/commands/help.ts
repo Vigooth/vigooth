@@ -8,6 +8,7 @@ export const help: CommandFn = (_args, _ctx, t) => {
   ${t('terminal.help.addFolder')}
   ${t('terminal.help.mkdir')}
   ${t('terminal.help.rmdir')}
+  ${t('terminal.help.edit')}
   ${t('terminal.help.rm')}
   ${t('terminal.help.mv')}
   ${t('terminal.help.ls')}

@@ -27,6 +27,7 @@ import {
   useDeleteFolder,
   useAddEntry,
   useDeleteEntry,
+  useUpdateEntry,
   useMoveEntries,
 } from '@/hooks/useVaultQuery'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
@@ -67,6 +68,7 @@ export function VaultPage() {
   const deleteFolderMutation = useDeleteFolder({ masterPassword })
   const addEntryMutation = useAddEntry({ masterPassword })
   const deleteEntryMutation = useDeleteEntry({ masterPassword })
+  const updateEntryMutation = useUpdateEntry({ masterPassword })
   const moveEntriesMutation = useMoveEntries({ masterPassword })
 
   const saving =
@@ -74,6 +76,7 @@ export function VaultPage() {
     deleteFolderMutation.isPending ||
     addEntryMutation.isPending ||
     deleteEntryMutation.isPending ||
+    updateEntryMutation.isPending ||
     moveEntriesMutation.isPending
 
   const handleLock = () => {
@@ -122,6 +125,11 @@ export function VaultPage() {
     })
   }
 
+  // Update entry (for terminal)
+  const handleUpdateEntry = async (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => {
+    await updateEntryMutation.mutateAsync({ entryId, data })
+  }
+
   // Move entries (for terminal) - batch update
   const handleMoveEntries = async (entryIds: string[], targetFolderId: string | null) => {
     await moveEntriesMutation.mutateAsync({ entryIds, targetFolderId })
@@ -137,6 +145,7 @@ export function VaultPage() {
     removeFolder: handleDeleteFolder,
     removeEntry: handleDeleteEntry,
     moveEntries: handleMoveEntries,
+    updateEntry: handleUpdateEntry,
     generatePassword,
     generateId,
   }), [vault, currentFolder])

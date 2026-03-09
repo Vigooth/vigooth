@@ -23,9 +23,9 @@
 	}
 }
 
-# Crypt-Lock — app-cryptlock.vigooth.com
-app-cryptlock.{$DOMAIN} {
-	root * /srv/cryptlock
+# Vilock — app-vilock.vigooth.com
+app-vilock.{$DOMAIN} {
+	root * /srv/vilock
 	file_server
 
 	# SPA fallback
@@ -49,22 +49,30 @@ app-cryptlock.{$DOMAIN} {
 
 # API — api.vigooth.com
 api.{$DOMAIN} {
-	# CORS — restricted to crypt-lock frontend
+	# Dynamic CORS — allow vilock + moovi frontends
+	map {header.Origin} {cors_origin} {
+		"https://app-vilock.{$DOMAIN}" "https://app-vilock.{$DOMAIN}"
+		"https://app-moovi.{$DOMAIN}" "https://app-moovi.{$DOMAIN}"
+		default ""
+	}
+
 	@cors_preflight method OPTIONS
 	handle @cors_preflight {
-		header Access-Control-Allow-Origin "https://app-cryptlock.{$DOMAIN}"
+		header Access-Control-Allow-Origin "{cors_origin}"
 		header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
 		header Access-Control-Allow-Headers "Content-Type, Authorization"
 		header Access-Control-Max-Age "86400"
+		header Vary Origin
 		respond 204
 	}
 
 	reverse_proxy api:8090
 
 	header {
-		Access-Control-Allow-Origin "https://app-cryptlock.{$DOMAIN}"
+		Access-Control-Allow-Origin "{cors_origin}"
 		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
 		Access-Control-Allow-Headers "Content-Type, Authorization"
+		Vary Origin
 		X-Content-Type-Options nosniff
 		-Server
 	}

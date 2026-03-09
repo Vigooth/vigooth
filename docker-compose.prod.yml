@@ -42,7 +42,7 @@ services:
     volumes:
       - .:/app
       - frontend_portal:/app/apps/portal/dist
-      - frontend_cryptlock:/app/apps/crypt-lock/dist
+      - frontend_vilock:/app/apps/vilock/dist
       - pnpm_store:/app/.pnpm-store
     command: >
       sh -c "
@@ -50,7 +50,7 @@ services:
         corepack prepare pnpm@10.14.0 --activate &&
         pnpm install --frozen-lockfile &&
         pnpm build:portal &&
-        pnpm build:crypt-lock
+        pnpm build:vilock
       "
     networks: []
 
@@ -67,7 +67,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - frontend_portal:/srv/portal:ro
-      - frontend_cryptlock:/srv/cryptlock:ro
+      - frontend_vilock:/srv/vilock:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -78,7 +78,7 @@ services:
 volumes:
   postgres_data:
   frontend_portal:
-  frontend_cryptlock:
+  frontend_vilock:
   pnpm_store:
   caddy_data:
   caddy_config:

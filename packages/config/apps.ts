@@ -20,25 +20,25 @@ export const apps: AppDefinition[] = [
     prodPath: '/',
   },
   {
-    id: 'crypt-lock',
-    name: 'CRYPT-LOCK',
+    id: 'vilock',
+    name: 'VILOCK',
     description: 'Secure password vault with encryption',
     icon: '🔐',
     color: 'red',
     devPort: 5174,
-    prodPath: '/crypt-lock',
-    prodSubdomain: 'app-cryptlock',
+    prodPath: '/vilock',
+    prodSubdomain: 'app-vilock',
   },
-  // Future apps:
-  // {
-  //   id: 'movies',
-  //   name: 'MOVIE-DB',
-  //   description: 'Track your favorite movies',
-  //   icon: '🎬',
-  //   color: 'cyan',
-  //   devPort: 5176,
-  //   prodPath: '/movies',
-  // },
+  {
+    id: 'movies',
+    name: 'MOOVI',
+    description: 'Track your favorite movies',
+    icon: '🎬',
+    color: 'cyan',
+    devPort: 5176,
+    prodPath: '/movies',
+    prodSubdomain: 'app-moovi',
+  },
 ]
 
 function isDev(): boolean {
@@ -49,7 +49,7 @@ function isDev(): boolean {
 function getRootDomain(): string {
   if (typeof window === 'undefined') return ''
   const hostname = window.location.hostname
-  // Extract root domain: "app-cryptlock.vigooth.com" → "vigooth.com"
+  // Extract root domain: "app-vilock.vigooth.com" → "vigooth.com"
   const parts = hostname.split('.')
   if (parts.length >= 2) {
     return parts.slice(-2).join('.')

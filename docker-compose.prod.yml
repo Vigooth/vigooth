@@ -43,6 +43,7 @@ services:
       - .:/app
       - frontend_portal:/app/apps/portal/dist
       - frontend_vilock:/app/apps/vilock/dist
+      - frontend_moovi:/app/apps/moovi/dist
       - pnpm_store:/app/.pnpm-store
     command: >
       sh -c "
@@ -50,7 +51,8 @@ services:
         corepack prepare pnpm@10.14.0 --activate &&
         pnpm install --frozen-lockfile &&
         pnpm build:portal &&
-        pnpm build:vilock
+        pnpm build:vilock &&
+        pnpm build:moovi
       "
     networks: []
 
@@ -68,6 +70,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - frontend_portal:/srv/portal:ro
       - frontend_vilock:/srv/vilock:ro
+      - frontend_moovi:/srv/moovi:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -79,6 +82,7 @@ volumes:
   postgres_data:
   frontend_portal:
   frontend_vilock:
+  frontend_moovi:
   pnpm_store:
   caddy_data:
   caddy_config:

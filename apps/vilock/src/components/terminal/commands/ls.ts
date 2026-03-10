@@ -1,5 +1,5 @@
 import { CommandFn } from './types'
-import { getEntriesForFolder, countEntriesInFolder } from '@/utils/folderUtils'
+import { countEntriesInFolder } from '@/utils/folderUtils'
 
 export const ls: CommandFn = (_args, ctx, t) => {
   const rootCount = countEntriesInFolder(ctx.vault, null)

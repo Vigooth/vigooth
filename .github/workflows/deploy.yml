@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy scope"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - frontend
+          - api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: ssh-keyscan -H 46.224.226.44 >> ~/.ssh/known_hosts
+
+      - name: Pull latest code
+        run: ssh root@46.224.226.44 "cd /opt/vigooth && git pull"
+
+      - name: Build frontends
+        if: inputs.target == 'all' || inputs.target == 'frontend'
+        run: |
+          ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml --profile build run --rm frontend-build"
+
+      - name: Restart Caddy
+        if: inputs.target == 'all' || inputs.target == 'frontend'
+        run: |
+          ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml restart caddy"
+
+      - name: Build API
+        if: inputs.target == 'all' || inputs.target == 'api'
+        run: |
+          ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml build api"
+
+      - name: Restart API
+        if: inputs.target == 'all' || inputs.target == 'api'
+        run: |
+          ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml up -d api"

@@ -86,6 +86,8 @@ func main() {
 		api.DELETE("/movies/:id", movieHandler.DeleteMovie)
 
 		api.GET("/tmdb/search", proxyHandler.TmdbSearch)
+		api.GET("/tmdb/search-person", proxyHandler.TmdbSearchPerson)
+		api.GET("/tmdb/discover/movie", proxyHandler.TmdbDiscoverByPerson)
 		api.GET("/tmdb/movie/:id", proxyHandler.TmdbMovieDetail)
 		api.GET("/tmdb/movie/:id/credits", proxyHandler.TmdbMovieCredits)
 		api.GET("/omdb", proxyHandler.OmdbRatings)

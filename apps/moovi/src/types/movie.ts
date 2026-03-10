@@ -112,6 +112,20 @@ export interface TmdbCredits {
   crew: TmdbCrewMember[]
 }
 
+// TMDB Person types
+export interface TmdbPersonResult {
+  id: number
+  name: string
+  known_for_department: string
+  profile_path: string | null
+}
+
+export interface TmdbPersonSearchResponse {
+  page: number
+  results: TmdbPersonResult[]
+  total_results: number
+}
+
 // OMDB types
 export interface OmdbRating {
   Source: string

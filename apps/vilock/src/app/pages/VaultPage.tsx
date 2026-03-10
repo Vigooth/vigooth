@@ -148,7 +148,7 @@ export function VaultPage() {
     updateEntry: handleUpdateEntry,
     generatePassword,
     generateId,
-  }), [vault, currentFolder])
+  }), [vault, currentFolder, handleAddEntry, addFolderToVault, handleDeleteFolder, handleDeleteEntry, handleMoveEntries, handleUpdateEntry])
 
   const getEntriesForFolder = (folderId: string | null) =>
     vault?.entries.filter(e => folderId ? e.folderId === folderId : !e.folderId) || []

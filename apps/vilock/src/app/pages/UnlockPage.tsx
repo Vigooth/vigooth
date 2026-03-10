@@ -6,7 +6,7 @@ import { animatePulse } from '@vigooth/styles'
 import tw from 'twin.macro'
 import { useAuth } from '../../stores/auth'
 import { getVault } from '../../lib/api/client'
-import { decryptVault, createEmptyVault } from '../../lib/crypto/vault'
+import { decryptVault } from '../../lib/crypto/vault'
 
 export function UnlockPage() {
   const navigate = useNavigate()

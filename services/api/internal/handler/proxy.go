@@ -61,6 +61,37 @@ func (h *ProxyHandler) TmdbMovieCredits(c *gin.Context) {
 	h.proxyGet(c, url)
 }
 
+func (h *ProxyHandler) TmdbSearchPerson(c *gin.Context) {
+	query := c.Query("q")
+	page := c.DefaultQuery("page", "1")
+
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'q' is required"})
+		return
+	}
+
+	url := fmt.Sprintf("https://api.themoviedb.org/3/search/person?api_key=%s&language=fr-FR&query=%s&page=%s",
+		h.tmdbApiKey, query, page)
+
+	h.proxyGet(c, url)
+}
+
+func (h *ProxyHandler) TmdbDiscoverByPerson(c *gin.Context) {
+	withCrew := c.Query("with_crew")
+	page := c.DefaultQuery("page", "1")
+	sortBy := c.DefaultQuery("sort_by", "release_date.desc")
+
+	if withCrew == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'with_crew' is required"})
+		return
+	}
+
+	url := fmt.Sprintf("https://api.themoviedb.org/3/discover/movie?api_key=%s&language=fr-FR&with_crew=%s&page=%s&sort_by=%s",
+		h.tmdbApiKey, withCrew, page, sortBy)
+
+	h.proxyGet(c, url)
+}
+
 func (h *ProxyHandler) OmdbRatings(c *gin.Context) {
 	imdbId := c.Query("i")
 

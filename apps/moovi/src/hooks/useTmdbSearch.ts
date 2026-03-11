@@ -1,6 +1,12 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { searchMovies, getMovieDetails, getMovieCredits } from '@/lib/api/tmdb'
-import type { TmdbSearchResponse } from '@/types/movie'
+import {
+  searchMovies,
+  getMovieDetails,
+  getMovieCredits,
+  searchPerson,
+  discoverByPerson,
+} from '@/lib/api/tmdb'
+import type { TmdbSearchResponse, TmdbPersonSearchResponse } from '@/types/movie'
 
 export function useTmdbSearch(query: string) {
   return useInfiniteQuery<TmdbSearchResponse>({
@@ -33,5 +39,30 @@ export function useTmdbMovieCredits(tmdbId: number | null) {
     queryFn: () => getMovieCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
+  })
+}
+
+export function useTmdbSearchPerson(query: string) {
+  return useQuery<TmdbPersonSearchResponse>({
+    queryKey: ['tmdb-search-person', query],
+    queryFn: () => searchPerson(query),
+    enabled: query.length >= 2,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useTmdbDiscoverByPerson(personId: number | null) {
+  return useInfiniteQuery<TmdbSearchResponse>({
+    queryKey: ['tmdb-discover-person', personId],
+    queryFn: ({ pageParam }) => discoverByPerson(personId!, pageParam as number),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page < lastPage.total_pages) {
+        return lastPage.page + 1
+      }
+      return undefined
+    },
+    enabled: personId !== null,
+    staleTime: 1000 * 60 * 5,
   })
 }

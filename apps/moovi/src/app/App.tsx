@@ -5,8 +5,7 @@ import { QueryProvider } from './providers'
 import { LoginPage } from './pages/LoginPage'
 import { CollectionPage } from './pages/CollectionPage'
 import { SearchPage } from './pages/SearchPage'
-import { MovieDetailPage } from './pages/MovieDetailPage'
-import { PreviewPage } from './pages/PreviewPage'
+import { MoviePage } from './pages/MoviePage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -59,7 +58,7 @@ function AppRoutes() {
         path="/movie/:id"
         element={
           <ProtectedRoute>
-            <MovieDetailPage />
+            <MoviePage />
           </ProtectedRoute>
         }
       />
@@ -67,7 +66,7 @@ function AppRoutes() {
         path="/preview/:tmdbId"
         element={
           <ProtectedRoute>
-            <PreviewPage />
+            <MoviePage />
           </ProtectedRoute>
         }
       />

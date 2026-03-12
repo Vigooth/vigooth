@@ -1,6 +1,8 @@
 name: Deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -30,21 +32,21 @@ jobs:
         run: ssh root@46.224.226.44 "cd /opt/vigooth && git pull"
 
       - name: Build frontends
-        if: inputs.target == 'all' || inputs.target == 'frontend'
+        if: inputs.target == 'all' || inputs.target == 'frontend' || inputs.target == ''
         run: |
           ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml --profile build run --rm frontend-build"
 
       - name: Restart Caddy
-        if: inputs.target == 'all' || inputs.target == 'frontend'
+        if: inputs.target == 'all' || inputs.target == 'frontend' || inputs.target == ''
         run: |
           ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml restart caddy"
 
       - name: Build API
-        if: inputs.target == 'all' || inputs.target == 'api'
+        if: inputs.target == 'all' || inputs.target == 'api' || inputs.target == ''
         run: |
           ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml build api"
 
       - name: Restart API
-        if: inputs.target == 'all' || inputs.target == 'api'
+        if: inputs.target == 'all' || inputs.target == 'api' || inputs.target == ''
         run: |
           ssh root@46.224.226.44 "cd /opt/vigooth && docker compose -f docker-compose.prod.yml up -d api"

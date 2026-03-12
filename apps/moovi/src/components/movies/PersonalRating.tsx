@@ -9,7 +9,6 @@ interface PersonalRatingProps {
 export function PersonalRating({ value, onChange, disabled }: PersonalRatingProps) {
   return (
     <div>
-      <div tw="text-cpc-cyan-500 text-sm mb-2">PERSONAL RATING</div>
       <div tw="flex gap-1 flex-wrap">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
           <button
@@ -17,7 +16,7 @@ export function PersonalRating({ value, onChange, disabled }: PersonalRatingProp
             onClick={() => onChange(value === n ? null : n)}
             disabled={disabled}
             css={[
-              tw`w-8 h-8 border-2 text-sm font-bold transition-colors`,
+              tw`size-6 border text-xs md:(size-8 border-2 text-sm) font-bold transition-colors`,
               value !== null && n <= value
                 ? tw`border-cpc-cyan-500 bg-cpc-cyan-500 text-black`
                 : tw`border-cpc-green-900 text-cpc-green-900 hover:border-cpc-cyan-500 hover:text-cpc-cyan-500`,
@@ -27,9 +26,6 @@ export function PersonalRating({ value, onChange, disabled }: PersonalRatingProp
             {n}
           </button>
         ))}
-      </div>
-      <div tw="text-cpc-green-900 text-xs mt-1">
-        {value ? `${value}/10` : 'Click to rate'}
       </div>
     </div>
   )

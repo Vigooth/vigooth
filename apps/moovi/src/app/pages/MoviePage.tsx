@@ -273,6 +273,15 @@ export function MoviePage() {
                     allocineId={allocine?.allocine_id}
                   />
                 </div>
+
+                {/* Personal rating - always visible */}
+                <div tw="mt-3">
+                  <PersonalRating
+                    value={personalRating}
+                    onChange={handleRatingChange}
+                    disabled={updateMovie.isPending || adding}
+                  />
+                </div>
               </div>
             </div>
 
@@ -301,19 +310,9 @@ export function MoviePage() {
               </div>
             )}
 
-            {/* Personal rating - always visible */}
-            <div tw="mb-6">
-              <PersonalRating
-                value={personalRating}
-                onChange={handleRatingChange}
-                disabled={updateMovie.isPending || adding}
-              />
-            </div>
-
             {/* Notes - only when in collection */}
             {inCollection && (
               <div tw="mb-6">
-                <div tw="text-cpc-cyan-500 text-sm mb-2">NOTES</div>
                 <textarea
                   value={currentNotes}
                   onChange={(e) => setNotes(e.target.value)}

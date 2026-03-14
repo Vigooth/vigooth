@@ -267,7 +267,7 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
       onClick={handleClick}
       css={[
         tw`border-2 border-cpc-green-900 hover:border-cpc-cyan-500 transition-colors`,
-        recommendation.tmdb_id && tw`cursor-pointer`,
+        !!recommendation.tmdb_id && tw`cursor-pointer`,
       ]}
     >
       <div tw="flex">

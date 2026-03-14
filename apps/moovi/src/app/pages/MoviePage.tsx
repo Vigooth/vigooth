@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { CpcLayout } from '@vigooth/ui'
 import tw from 'twin.macro'
@@ -6,12 +6,12 @@ import { useTmdbMovieDetail, useTmdbMovieCredits } from '@/hooks/useTmdbSearch'
 import { useOmdbRatings } from '@/hooks/useOmdbRatings'
 import { useAllocineRatings } from '@/hooks/useAllocineRatings'
 import {
-  useMovieQuery,
   useMoviesQuery,
   useAddMovie,
   useUpdateMovie,
   useDeleteMovie,
 } from '@/hooks/useMoviesQuery'
+import { useIsInWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist'
 import { Header } from '@/components/layout/Header'
 import { RatingBadge } from '@/components/movies/RatingBadge'
 import { PersonalRating } from '@/components/movies/PersonalRating'
@@ -21,32 +21,25 @@ import { parseGenres, formatRuntime } from '@/utils/ratings'
 import type { AddMoviePayload } from '@/types/movie'
 
 export function MoviePage() {
-  const { id, tmdbId: tmdbIdParam } = useParams<{ id?: string; tmdbId?: string }>()
+  const { tmdbId: tmdbIdParam } = useParams<{ tmdbId: string }>()
   const navigate = useNavigate()
-
-  const isTmdbMode = !!tmdbIdParam
   const tmdbIdNum = tmdbIdParam ? parseInt(tmdbIdParam, 10) : null
 
-  // DB mode hooks
-  const { data: dbMovie, isLoading: loadingDb, isError: dbError } = useMovieQuery(id ?? '')
+  // TMDB data
+  const { data: tmdbDetails, isLoading: loadingTmdb } = useTmdbMovieDetail(tmdbIdNum)
+  const { data: credits } = useTmdbMovieCredits(tmdbIdNum)
+  const { data: omdb } = useOmdbRatings(tmdbDetails?.imdb_id || null)
+  const { data: allocine } = useAllocineRatings(tmdbDetails?.imdb_id || null)
 
-  // TMDB mode hooks
-  const { data: tmdbDetails, isLoading: loadingTmdb } = useTmdbMovieDetail(
-    isTmdbMode ? tmdbIdNum : null,
-  )
-  const { data: credits } = useTmdbMovieCredits(isTmdbMode ? tmdbIdNum : null)
-  const { data: omdb } = useOmdbRatings(
-    isTmdbMode ? (tmdbDetails?.imdb_id || null) : null,
-  )
-
-  // Allocine for both modes
-  const imdbIdForAllocine = isTmdbMode
-    ? (tmdbDetails?.imdb_id || null)
-    : (dbMovie?.imdb_id || null)
-  const { data: allocine } = useAllocineRatings(imdbIdForAllocine)
-
-  // Collection check
+  // Check if in collection
   const { data: collectionData } = useMoviesQuery()
+  const dbMovie = collectionData?.movies?.find((m) => m.tmdb_id === tmdbIdNum) ?? null
+  const inCollection = !!dbMovie
+
+  // Wishlist
+  const isWishlisted = useIsInWishlist(tmdbIdNum)
+  const addToWishlist = useAddToWishlist()
+  const removeFromWishlist = useRemoveFromWishlist()
 
   // Mutations
   const addMovie = useAddMovie()
@@ -58,76 +51,37 @@ export function MoviePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [adding, setAdding] = useState(false)
 
-  // In TMDB mode, check if already in collection and redirect
-  const collectionMatch = isTmdbMode
-    ? collectionData?.movies?.find((m) => m.tmdb_id === tmdbIdNum)
-    : null
-
-  useEffect(() => {
-    if (collectionMatch) {
-      navigate(`/movie/${collectionMatch.id}`, { replace: true })
-    }
-  }, [collectionMatch, navigate])
-
-  // Determine if movie is in collection (for DB mode it always is)
-  const inCollection = !isTmdbMode && !!dbMovie
-
-  // Loading states
-  const isLoading = isTmdbMode ? loadingTmdb : loadingDb
-  const hasData = isTmdbMode ? !!tmdbDetails : !!dbMovie
-  const hasError = !isTmdbMode && dbError
-
-  if (isLoading || (!hasData && !hasError)) {
+  if (loadingTmdb || !tmdbDetails) {
     return (
       <CpcLayout>
         <div tw="h-full flex flex-col">
           <Header />
           <div tw="flex-1 flex items-center justify-center">
-            <div tw="text-cpc-cyan-500">LOADING...</div>
+            <div tw="text-cpc-cyan-500">{loadingTmdb ? 'LOADING...' : 'MOVIE NOT FOUND'}</div>
           </div>
         </div>
       </CpcLayout>
     )
   }
 
-  if (hasError || !hasData) {
-    return (
-      <CpcLayout>
-        <div tw="h-full flex flex-col">
-          <Header />
-          <div tw="flex-1 flex items-center justify-center">
-            <div tw="text-cpc-red-500">MOVIE NOT FOUND</div>
-          </div>
-        </div>
-      </CpcLayout>
-    )
-  }
+  const title = tmdbDetails.title
+  const originalTitle = tmdbDetails.original_title
+  const overview = tmdbDetails.overview
+  const posterPath = tmdbDetails.poster_path
+  const backdropPath = tmdbDetails.backdrop_path
+  const runtimeMinutes = tmdbDetails.runtime
+  const tmdbId = tmdbDetails.id
+  const imdbId = tmdbDetails.imdb_id || null
 
-  // Normalize data from either source
-  const title = isTmdbMode ? tmdbDetails!.title : dbMovie!.title
-  const originalTitle = isTmdbMode ? tmdbDetails!.original_title : dbMovie!.original_title
-  const overview = isTmdbMode ? tmdbDetails!.overview : dbMovie!.overview
-  const posterPath = isTmdbMode ? tmdbDetails!.poster_path : dbMovie!.poster_path
-  const backdropPath = isTmdbMode ? tmdbDetails!.backdrop_path : dbMovie!.backdrop_path
-  const runtimeMinutes = isTmdbMode ? tmdbDetails!.runtime : dbMovie!.runtime
-  const tmdbId = isTmdbMode ? tmdbDetails!.id : dbMovie!.tmdb_id
-  const imdbId = isTmdbMode ? (tmdbDetails!.imdb_id || null) : (dbMovie!.imdb_id || null)
+  const director = credits?.crew.find((c) => c.job === 'Director')?.name || ''
+  const genres = tmdbDetails.genres.map((g) => g.name)
+  const year = tmdbDetails.release_date
+    ? parseInt(tmdbDetails.release_date.substring(0, 4), 10)
+    : 0
 
-  const director = isTmdbMode
-    ? (credits?.crew.find((c) => c.job === 'Director')?.name || '')
-    : dbMovie!.director
-
-  const genres = isTmdbMode
-    ? tmdbDetails!.genres.map((g) => g.name)
-    : parseGenres(dbMovie!.genres)
-
-  const year = isTmdbMode
-    ? (tmdbDetails!.release_date ? parseInt(tmdbDetails!.release_date.substring(0, 4), 10) : 0)
-    : dbMovie!.year
-
-  const imdbRating = isTmdbMode ? (omdb?.imdbRating ?? null) : dbMovie!.imdb_rating
-  const metascore = isTmdbMode ? (omdb?.metascore ?? null) : dbMovie!.metascore
-  const rottenTomatoes = isTmdbMode ? (omdb?.rottenTomatoes ?? null) : dbMovie!.rotten_tomatoes
+  const imdbRating = inCollection ? dbMovie!.imdb_rating : (omdb?.imdbRating ?? null)
+  const metascore = inCollection ? dbMovie!.metascore : (omdb?.metascore ?? null)
+  const rottenTomatoes = inCollection ? dbMovie!.rotten_tomatoes : (omdb?.rottenTomatoes ?? null)
 
   const personalRating = inCollection ? dbMovie!.personal_rating : null
   const currentNotes = notes ?? (inCollection ? dbMovie!.notes : '')
@@ -138,10 +92,8 @@ export function MoviePage() {
 
   const handleRatingChange = async (value: number | null) => {
     if (inCollection) {
-      // Already in collection - just update
       updateMovie.mutate({ id: dbMovie!.id, payload: { personal_rating: value } })
-    } else if (value !== null && isTmdbMode && tmdbDetails) {
-      // Not in collection, rating clicked -> auto-add
+    } else if (value !== null) {
       if (adding) return
       setAdding(true)
 
@@ -165,10 +117,10 @@ export function MoviePage() {
           notes: '',
         }
 
-        const movie = await addMovie.mutateAsync(payload)
-        navigate(`/movie/${movie.id}`, { replace: true })
+        await addMovie.mutateAsync(payload)
       } catch (err) {
         console.error('Failed to add movie:', err)
+      } finally {
         setAdding(false)
       }
     }
@@ -208,11 +160,11 @@ export function MoviePage() {
             <div tw="flex gap-4 mb-6">
               {/* Poster */}
               {posterUrl && (
-                <div tw="w-32 md:w-48 flex-shrink-0">
+                <div className="group" tw="w-32 md:w-48 flex-shrink-0 overflow-hidden">
                   <img
                     src={posterUrl}
                     alt={title}
-                    tw="w-full border-2 border-cpc-green-500"
+                    tw="w-full border-2 border-cpc-green-500 transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
               )}
@@ -282,6 +234,35 @@ export function MoviePage() {
                     disabled={updateMovie.isPending || adding}
                   />
                 </div>
+
+                {/* Wishlist button - only when not in collection */}
+                {!inCollection && (
+                  <div tw="mt-3">
+                    <button
+                      onClick={() => {
+                        if (isWishlisted) {
+                          removeFromWishlist.mutate(tmdbId)
+                        } else {
+                          addToWishlist.mutate({
+                            tmdb_id: tmdbId,
+                            title,
+                            year,
+                            poster_path: posterPath || '',
+                          })
+                        }
+                      }}
+                      disabled={addToWishlist.isPending || removeFromWishlist.isPending}
+                      css={[
+                        tw`border-2 px-4 py-1 text-xs transition-colors`,
+                        isWishlisted
+                          ? tw`border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black`
+                          : tw`border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black`,
+                      ]}
+                    >
+                      {isWishlisted ? 'WISHLISTED' : 'ADD TO WISHLIST'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -293,7 +274,7 @@ export function MoviePage() {
               </div>
             )}
 
-            {/* Cast (TMDB mode only) */}
+            {/* Cast */}
             {credits && credits.cast.length > 0 && (
               <div tw="mb-6">
                 <div tw="text-cpc-cyan-500 text-sm font-bold mb-1">CAST</div>

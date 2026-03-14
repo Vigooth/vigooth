@@ -15,7 +15,7 @@ export function MovieCard({ movie }: MovieCardProps) {
   return (
     <div
       className="group"
-      onClick={() => navigate(`/movie/${movie.id}`)}
+      onClick={() => navigate(`/movie/${movie.tmdb_id}`)}
       tw="border-2 border-cpc-green-900 cursor-pointer hover:border-cpc-cyan-500 transition-colors"
     >
       {/* Poster */}
@@ -25,12 +25,15 @@ export function MovieCard({ movie }: MovieCardProps) {
             src={posterUrl}
             alt={movie.title}
             tw="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              e.currentTarget.nextElementSibling?.removeAttribute('hidden')
+            }}
           />
-        ) : (
-          <div tw="w-full h-full flex items-center justify-center text-cpc-green-900">
-            NO POSTER
-          </div>
-        )}
+        ) : null}
+        <div hidden={!!posterUrl} tw="w-full h-full flex items-center justify-center text-cpc-green-900">
+          NO POSTER
+        </div>
         {/* Personal rating overlay */}
         {movie.personal_rating && (
           <div

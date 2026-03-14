@@ -41,6 +41,17 @@ export function Header() {
           >
             SEARCH
           </button>
+          <button
+            onClick={() => navigate('/recommendations')}
+            css={[
+              tw`border-2 px-3 py-1 text-xs transition-colors`,
+              isActive('/recommendations')
+                ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
+                : tw`border-cpc-magenta-900 text-cpc-magenta-900 hover:border-cpc-magenta-500 hover:text-cpc-magenta-500`,
+            ]}
+          >
+            RECO
+          </button>
         </nav>
       </div>
       <button

@@ -83,7 +83,7 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
     <div
       onClick={() => {
         if (window.getSelection()?.toString()) return
-        navigate(`/preview/${result.id}`)
+        navigate(`/movie/${result.id}`)
       }}
       className="search-result"
       tw="border-2 border-cpc-green-900 flex hover:border-cpc-cyan-500 transition-colors cursor-pointer"

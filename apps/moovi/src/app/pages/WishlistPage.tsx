@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { CpcLayout } from '@vigooth/ui'
-import 'twin.macro'
+import tw from 'twin.macro'
 import { useWishlistQuery, useRemoveFromWishlist } from '@/hooks/useWishlist'
 import { Header } from '@/components/layout/Header'
 import { getPosterUrl } from '@/utils/tmdbImage'

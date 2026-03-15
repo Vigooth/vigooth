@@ -157,12 +157,21 @@ func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie,
 	// Step 5: Enrich hidden gems (tmdb_id=0) by searching TMDB + get overview
 	filtered = a.enrichRecommendations(ctx, filtered, onEvent)
 
-	result := &RecommendationResult{
-		Recommendations: filtered,
-		Total:           len(filtered),
+	// Step 6: Re-filter after enrichment (hidden gems now have real TMDB IDs)
+	var final []Recommendation
+	for _, r := range filtered {
+		if r.TmdbID != 0 && existingTMDBIDs[r.TmdbID] {
+			continue
+		}
+		final = append(final, r)
 	}
 
-	for _, rec := range filtered {
+	result := &RecommendationResult{
+		Recommendations: final,
+		Total:           len(final),
+	}
+
+	for _, rec := range final {
 		onEvent(Event{
 			Type:    "recommendation",
 			Message: fmt.Sprintf("%s (%d)", rec.Title, rec.Year),
@@ -172,16 +181,16 @@ func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie,
 
 	onEvent(Event{
 		Type:    "done",
-		Message: fmt.Sprintf("%d recommandations trouvées", len(filtered)),
+		Message: fmt.Sprintf("%d recommandations trouvées", len(final)),
 		Data: map[string]interface{}{
-			"recommendations": filtered,
-			"total":           len(filtered),
+			"recommendations": final,
+			"total":           len(final),
 			"tokens":          tokens,
 		},
 	})
 
 	log.Printf("[agent] done: %d recommendations, tokens: in=%d out=%d total=%d",
-		len(filtered), tokens.InputTokens, tokens.OutputTokens, tokens.TotalTokens)
+		len(final), tokens.InputTokens, tokens.OutputTokens, tokens.TotalTokens)
 
 	return result, nil
 }

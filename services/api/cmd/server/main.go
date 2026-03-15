@@ -25,6 +25,8 @@ func main() {
 	var vaultRepo repository.VaultRepository
 	var userRepo repository.UserRepository
 	var movieRepo repository.MovieRepository
+	var wishlistRepo repository.WishlistRepository
+	var recoRepo repository.RecommendationRepository
 
 	if databaseURL != "" {
 		// PostgreSQL mode
@@ -39,15 +41,17 @@ func main() {
 		vaultRepo = repository.NewPostgresVaultRepository(pool)
 		userRepo = repository.NewPostgresUserRepository(pool)
 		movieRepo = repository.NewPostgresMovieRepository(pool)
+		wishlistRepo = repository.NewPostgresWishlistRepository(pool)
+		recoRepo = repository.NewPostgresRecommendationRepository(pool)
 	} else {
 		// In-memory mode (development)
 		log.Println("Running in-memory mode (no DATABASE_URL set)")
 		vaultRepo = repository.NewInMemoryVaultRepository()
 		userRepo = repository.NewInMemoryUserRepository()
 		movieRepo = repository.NewInMemoryMovieRepository()
+		wishlistRepo = repository.NewInMemoryWishlistRepository()
+		recoRepo = repository.NewInMemoryRecommendationRepository()
 	}
-
-	wishlistRepo := repository.NewInMemoryWishlistRepository()
 
 	vaultService := service.NewVaultService(vaultRepo)
 	movieService := service.NewMovieService(movieRepo)
@@ -59,9 +63,6 @@ func main() {
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey)
 	authHandler := handler.NewAuthHandler(authService)
-
-	// Recommendation history
-	recoRepo := repository.NewInMemoryRecommendationRepository()
 
 	// LLM provider (optional - recommendations feature)
 	var recoHandler *handler.RecommendationHandler

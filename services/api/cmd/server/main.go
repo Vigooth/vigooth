@@ -38,6 +38,10 @@ func main() {
 		defer pool.Close()
 		log.Println("Connected to PostgreSQL")
 
+		if err := repository.RunMigrations(pool, "migrations"); err != nil {
+			log.Fatalf("Failed to run migrations: %v", err)
+		}
+
 		vaultRepo = repository.NewPostgresVaultRepository(pool)
 		userRepo = repository.NewPostgresUserRepository(pool)
 		movieRepo = repository.NewPostgresMovieRepository(pool)

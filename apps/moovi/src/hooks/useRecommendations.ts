@@ -48,7 +48,8 @@ export function useRecommendations() {
           // Read URL param directly to avoid stale closure / dependency loop
           const historyId = new URLSearchParams(window.location.search).get('history')
 
-          let targetIndex = res.history.length - 1
+          // Default to first entry (most recent, backend sorts DESC)
+          let targetIndex = 0
           if (historyId) {
             const urlIndex = res.history.findIndex((e) => e.id === historyId)
             if (urlIndex !== -1) targetIndex = urlIndex
@@ -62,8 +63,9 @@ export function useRecommendations() {
             setTokens({ input_tokens: 0, output_tokens: 0, total_tokens: entry.tokens_used })
           }
         } else if (initialLoadDone.current && res.history.length > 0) {
-          const latest = res.history[res.history.length - 1]
-          setActiveHistoryIndex(res.history.length - 1)
+          // After new generation, select most recent (index 0, sorted DESC)
+          const latest = res.history[0]
+          setActiveHistoryIndex(0)
           setHistoryParam(latest.id)
         }
       })

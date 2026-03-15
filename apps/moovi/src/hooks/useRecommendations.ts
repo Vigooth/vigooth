@@ -15,7 +15,7 @@ export interface TokenUsage {
 }
 
 export function useRecommendations() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [, setSearchParams] = useSearchParams()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [events, setEvents] = useState<RecommendationEvent[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -28,12 +28,13 @@ export function useRecommendations() {
 
   const setHistoryParam = useCallback((id: string | null) => {
     setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
       if (id) {
-        prev.set('history', id)
+        next.set('history', id)
       } else {
-        prev.delete('history')
+        next.delete('history')
       }
-      return prev
+      return next
     }, { replace: true })
   }, [setSearchParams])
 
@@ -43,10 +44,12 @@ export function useRecommendations() {
         setHistory(res.history)
         if (!initialLoadDone.current && res.history.length > 0) {
           initialLoadDone.current = true
-          const historyId = searchParams.get('history')
 
-          // Restore from URL param, or fallback to latest
-          let targetIndex = res.history.length - 1
+          // Read URL param directly to avoid stale closure / dependency loop
+          const historyId = new URLSearchParams(window.location.search).get('history')
+
+          // Default to first entry (most recent, backend sorts DESC)
+          let targetIndex = 0
           if (historyId) {
             const urlIndex = res.history.findIndex((e) => e.id === historyId)
             if (urlIndex !== -1) targetIndex = urlIndex
@@ -60,18 +63,19 @@ export function useRecommendations() {
             setTokens({ input_tokens: 0, output_tokens: 0, total_tokens: entry.tokens_used })
           }
         } else if (initialLoadDone.current && res.history.length > 0) {
-          // After a new generation, point to the latest
-          const latest = res.history[res.history.length - 1]
-          setActiveHistoryIndex(res.history.length - 1)
+          // After new generation, select most recent (index 0, sorted DESC)
+          const latest = res.history[0]
+          setActiveHistoryIndex(0)
           setHistoryParam(latest.id)
         }
       })
       .catch(() => {})
-  }, [searchParams, setHistoryParam])
+  }, [setHistoryParam])
 
   useEffect(() => {
     refreshHistory()
-  }, [refreshHistory])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const selectHistoryEntry = useCallback((index: number) => {
     const entry = history[index]

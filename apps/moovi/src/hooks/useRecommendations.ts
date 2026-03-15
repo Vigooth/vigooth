@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   streamRecommendations,
   getRecommendationHistory,
@@ -14,6 +15,7 @@ export interface TokenUsage {
 }
 
 export function useRecommendations() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [events, setEvents] = useState<RecommendationEvent[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -24,26 +26,48 @@ export function useRecommendations() {
   const abortRef = useRef<AbortController | null>(null)
   const initialLoadDone = useRef(false)
 
+  const setHistoryParam = useCallback((id: string | null) => {
+    setSearchParams((prev) => {
+      if (id) {
+        prev.set('history', id)
+      } else {
+        prev.delete('history')
+      }
+      return prev
+    }, { replace: true })
+  }, [setSearchParams])
+
   const refreshHistory = useCallback(() => {
     getRecommendationHistory()
       .then((res) => {
         setHistory(res.history)
-        // On first load, show the latest entry
         if (!initialLoadDone.current && res.history.length > 0) {
           initialLoadDone.current = true
-          const latest = res.history[res.history.length - 1]
-          setRecommendations(latest.recommendations)
-          setActiveHistoryIndex(res.history.length - 1)
-          if (latest.tokens_used) {
-            setTokens({ input_tokens: 0, output_tokens: 0, total_tokens: latest.tokens_used })
+          const historyId = searchParams.get('history')
+
+          // Restore from URL param, or fallback to latest
+          let targetIndex = res.history.length - 1
+          if (historyId) {
+            const urlIndex = res.history.findIndex((e) => e.id === historyId)
+            if (urlIndex !== -1) targetIndex = urlIndex
           }
-        } else if (initialLoadDone.current) {
+
+          const entry = res.history[targetIndex]
+          setRecommendations(entry.recommendations)
+          setActiveHistoryIndex(targetIndex)
+          setHistoryParam(entry.id)
+          if (entry.tokens_used) {
+            setTokens({ input_tokens: 0, output_tokens: 0, total_tokens: entry.tokens_used })
+          }
+        } else if (initialLoadDone.current && res.history.length > 0) {
           // After a new generation, point to the latest
+          const latest = res.history[res.history.length - 1]
           setActiveHistoryIndex(res.history.length - 1)
+          setHistoryParam(latest.id)
         }
       })
       .catch(() => {})
-  }, [])
+  }, [searchParams, setHistoryParam])
 
   useEffect(() => {
     refreshHistory()
@@ -54,10 +78,11 @@ export function useRecommendations() {
     if (!entry) return
     setRecommendations(entry.recommendations)
     setActiveHistoryIndex(index)
+    setHistoryParam(entry.id)
     setTokens(entry.tokens_used ? { input_tokens: 0, output_tokens: 0, total_tokens: entry.tokens_used } : null)
     setEvents([])
     setError(null)
-  }, [history])
+  }, [history, setHistoryParam])
 
   const generate = useCallback((movieIds: string[] = [], vibe: number = 50) => {
     if (abortRef.current) {
@@ -69,6 +94,7 @@ export function useRecommendations() {
     setError(null)
     setTokens(null)
     setActiveHistoryIndex(null)
+    setHistoryParam(null)
     setIsLoading(true)
 
     const controller = new AbortController()
@@ -99,7 +125,7 @@ export function useRecommendations() {
       },
       controller.signal
     )
-  }, [refreshHistory])
+  }, [refreshHistory, setHistoryParam])
 
   const cancel = useCallback(() => {
     if (abortRef.current) {

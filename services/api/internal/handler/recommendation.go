@@ -57,8 +57,14 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 		return
 	}
 
-	// Fetch wishlist TMDB IDs to exclude from recommendations
+	// Exclude all collection + wishlist TMDB IDs from recommendations,
+	// regardless of which movies are selected for taste analysis
 	var excludeTmdbIDs []int
+	for _, m := range moviesResp.Movies {
+		if m.TmdbID != 0 {
+			excludeTmdbIDs = append(excludeTmdbIDs, m.TmdbID)
+		}
+	}
 	if wishlistResp, err := h.wishlistService.GetItems(userID); err == nil {
 		for _, item := range wishlistResp.Items {
 			excludeTmdbIDs = append(excludeTmdbIDs, item.TmdbID)

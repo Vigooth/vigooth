@@ -70,7 +70,7 @@ func main() {
 		if err != nil {
 			log.Printf("Warning: LLM provider init failed: %v (recommendations disabled)", err)
 		} else {
-			recoHandler = handler.NewRecommendationHandler(movieService, llmProvider, tmdbApiKey, recoRepo)
+			recoHandler = handler.NewRecommendationHandler(movieService, wishlistService, llmProvider, tmdbApiKey, recoRepo)
 			log.Printf("LLM provider initialized: %s", getEnv("LLM_PROVIDER", "anthropic"))
 		}
 	}

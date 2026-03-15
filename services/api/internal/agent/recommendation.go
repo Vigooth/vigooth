@@ -37,7 +37,7 @@ Ta mission: sélectionne 5-10 films à recommander.
 
 Règles:
 - Analyse les films adorés ET les moins aimés pour comprendre les goûts
-- Ne recommande JAMAIS un film de la liste "COLLECTION"
+- Ne recommande JAMAIS un film de la liste "COLLECTION" ou "WISHLIST"
 - Diversifie: pas 5 films du même réalisateur
 - Évite les genres/styles des films mal notés
 
@@ -67,7 +67,7 @@ type TokenUsage struct {
 	TotalTokens  int `json:"total_tokens"`
 }
 
-func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
+func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
 	ctx, cancel := context.WithTimeout(ctx, agentTimeout)
 	defer cancel()
 
@@ -84,6 +84,10 @@ func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie,
 		if m.TmdbID != 0 {
 			existingTMDBIDs[m.TmdbID] = true
 		}
+	}
+	// Exclude wishlist movies
+	for _, id := range excludeTmdbIDs {
+		existingTMDBIDs[id] = true
 	}
 
 	// Step 1: Pick top-rated movies to query TMDB

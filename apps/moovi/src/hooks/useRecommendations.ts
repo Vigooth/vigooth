@@ -125,7 +125,7 @@ export function useRecommendations() {
       },
       controller.signal
     )
-  }, [refreshHistory])
+  }, [refreshHistory, setHistoryParam])
 
   const cancel = useCallback(() => {
     if (abortRef.current) {

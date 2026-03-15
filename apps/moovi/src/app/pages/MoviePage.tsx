@@ -17,7 +17,7 @@ import { RatingBadge } from '@/components/movies/RatingBadge'
 import { PersonalRating } from '@/components/movies/PersonalRating'
 import { ExternalLinks } from '@/components/movies/ExternalLinks'
 import { getBackdropUrl, getPosterUrl } from '@/utils/tmdbImage'
-import { parseGenres, formatRuntime } from '@/utils/ratings'
+import { formatRuntime } from '@/utils/ratings'
 import type { AddMoviePayload } from '@/types/movie'
 
 export function MoviePage() {

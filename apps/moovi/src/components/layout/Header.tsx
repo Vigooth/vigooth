@@ -15,14 +15,20 @@ export function Header() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div tw="flex justify-between items-center p-3 border-b-2 border-cpc-green-500">
-      <div tw="flex items-center gap-4">
-        <span tw="text-cpc-cyan-500 font-bold">MOOVI</span>
-        <nav tw="flex gap-2">
+    <div tw="flex items-center p-3 border-b-2 border-cpc-green-500 gap-4 min-w-0">
+      <span tw="text-cpc-cyan-500 font-bold shrink-0">MOOVI</span>
+      <nav
+        tw="flex gap-2 overflow-x-auto min-w-0 flex-1"
+        css={{
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
           <button
             onClick={() => navigate('/collection')}
             css={[
-              tw`border-2 px-3 py-1 text-xs transition-colors`,
+              tw`border-2 px-3 py-1 text-xs transition-colors shrink-0`,
               isActive('/collection')
                 ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
                 : tw`border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500`,
@@ -33,7 +39,7 @@ export function Header() {
           <button
             onClick={() => navigate('/search')}
             css={[
-              tw`border-2 px-3 py-1 text-xs transition-colors`,
+              tw`border-2 px-3 py-1 text-xs transition-colors shrink-0`,
               isActive('/search')
                 ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
                 : tw`border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500`,
@@ -42,9 +48,20 @@ export function Header() {
             SEARCH
           </button>
           <button
+            onClick={() => navigate('/wishlist')}
+            css={[
+              tw`border-2 px-3 py-1 text-xs transition-colors shrink-0`,
+              isActive('/wishlist')
+                ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
+                : tw`border-cpc-yellow-900 text-cpc-yellow-900 hover:border-cpc-yellow-500 hover:text-cpc-yellow-500`,
+            ]}
+          >
+            WISHLIST
+          </button>
+          <button
             onClick={() => navigate('/recommendations')}
             css={[
-              tw`border-2 px-3 py-1 text-xs transition-colors`,
+              tw`border-2 px-3 py-1 text-xs transition-colors shrink-0`,
               isActive('/recommendations')
                 ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
                 : tw`border-cpc-magenta-900 text-cpc-magenta-900 hover:border-cpc-magenta-500 hover:text-cpc-magenta-500`,
@@ -52,11 +69,10 @@ export function Header() {
           >
             RECO
           </button>
-        </nav>
-      </div>
+      </nav>
       <button
         onClick={handleLogout}
-        tw="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs"
+        tw="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs shrink-0"
       >
         LOGOUT
       </button>

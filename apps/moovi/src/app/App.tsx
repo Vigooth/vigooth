@@ -7,6 +7,7 @@ import { CollectionPage } from './pages/CollectionPage'
 import { SearchPage } from './pages/SearchPage'
 import { MoviePage } from './pages/MoviePage'
 import { RecommendationsPage } from './pages/RecommendationsPage'
+import { WishlistPage } from './pages/WishlistPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -60,6 +61,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <RecommendationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <ProtectedRoute>
+            <WishlistPage />
           </ProtectedRoute>
         }
       />

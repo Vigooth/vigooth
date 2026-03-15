@@ -57,6 +57,30 @@ const pulse = keyframes`
   }
 `
 
+const crtWave = keyframes`
+  0% {
+    transform: translateY(-50%) skewX(0deg);
+  }
+  25% {
+    transform: translateY(-37.5%) skewX(0.3deg);
+  }
+  50% {
+    transform: translateY(-25%) skewX(0deg);
+  }
+  75% {
+    transform: translateY(-12.5%) skewX(-0.3deg);
+  }
+  100% {
+    transform: translateY(0%) skewX(0deg);
+  }
+`
+
+const crtFlicker = keyframes`
+  0% { opacity: 1; }
+  50% { opacity: 0.98; }
+  100% { opacity: 1; }
+`
+
 // Styles
 export const cpcScreen = css`
   background: linear-gradient(
@@ -66,6 +90,8 @@ export const cpcScreen = css`
     rgba(0, 255, 0, 0.03) 100%
   );
   position: relative;
+  overflow: hidden;
+  animation: ${crtFlicker} 0.15s infinite;
 
   &::before {
     content: '';
@@ -82,6 +108,43 @@ export const cpcScreen = css`
       rgba(0, 255, 0, 0.05) 4px
     );
     pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200%;
+    background:
+      linear-gradient(
+        0deg,
+        transparent 0%,
+        transparent 44%,
+        rgba(0, 255, 0, 0.03) 46%,
+        rgba(0, 255, 0, 0.07) 47.5%,
+        rgba(255, 255, 255, 0.06) 49%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.06) 51%,
+        rgba(0, 255, 0, 0.07) 52.5%,
+        rgba(0, 255, 0, 0.03) 54%,
+        transparent 56%,
+        transparent 100%
+      ),
+      linear-gradient(
+        0deg,
+        transparent 0%,
+        transparent 18%,
+        rgba(0, 255, 0, 0.02) 19%,
+        rgba(255, 255, 255, 0.04) 20%,
+        rgba(0, 255, 0, 0.02) 21%,
+        transparent 22%,
+        transparent 100%
+      );
+    pointer-events: none;
+    animation: ${crtWave} 8s linear infinite;
+    z-index: 1;
   }
 `
 

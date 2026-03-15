@@ -16,18 +16,20 @@ import (
 )
 
 type RecommendationHandler struct {
-	movieService *service.MovieService
-	llmProvider  llm.Provider
-	tmdbAPIKey   string
-	recoRepo     repository.RecommendationRepository
+	movieService    *service.MovieService
+	wishlistService *service.WishlistService
+	llmProvider     llm.Provider
+	tmdbAPIKey      string
+	recoRepo        repository.RecommendationRepository
 }
 
-func NewRecommendationHandler(movieService *service.MovieService, llmProvider llm.Provider, tmdbAPIKey string, recoRepo repository.RecommendationRepository) *RecommendationHandler {
+func NewRecommendationHandler(movieService *service.MovieService, wishlistService *service.WishlistService, llmProvider llm.Provider, tmdbAPIKey string, recoRepo repository.RecommendationRepository) *RecommendationHandler {
 	return &RecommendationHandler{
-		movieService: movieService,
-		llmProvider:  llmProvider,
-		tmdbAPIKey:   tmdbAPIKey,
-		recoRepo:     recoRepo,
+		movieService:    movieService,
+		wishlistService: wishlistService,
+		llmProvider:     llmProvider,
+		tmdbAPIKey:      tmdbAPIKey,
+		recoRepo:        recoRepo,
 	}
 }
 
@@ -53,6 +55,14 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 	if len(moviesResp.Movies) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no movies in collection"})
 		return
+	}
+
+	// Fetch wishlist TMDB IDs to exclude from recommendations
+	var excludeTmdbIDs []int
+	if wishlistResp, err := h.wishlistService.GetItems(userID); err == nil {
+		for _, item := range wishlistResp.Items {
+			excludeTmdbIDs = append(excludeTmdbIDs, item.TmdbID)
+		}
 	}
 
 	movies := moviesResp.Movies
@@ -86,7 +96,7 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 	}
 
 	var tokensUsed int
-	result, err := recoAgent.Run(c.Request.Context(), movies, vibe, func(event agent.Event) {
+	result, err := recoAgent.Run(c.Request.Context(), movies, excludeTmdbIDs, vibe, func(event agent.Event) {
 		// Capture tokens from done event
 		if event.Type == "done" {
 			if data, ok := event.Data.(map[string]interface{}); ok {

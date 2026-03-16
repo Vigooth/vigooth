@@ -1,21 +1,20 @@
 import 'twin.macro'
-import { useNavigate } from 'react-router-dom'
 import type { Movie } from '@/types/movie'
 import { getPosterUrl } from '@/utils/tmdbImage'
 import { RatingBadge } from './RatingBadge'
 
 interface MovieCardProps {
   movie: Movie
+  onClick?: (movie: Movie) => void
 }
 
-export function MovieCard({ movie }: MovieCardProps) {
-  const navigate = useNavigate()
+export function MovieCard({ movie, onClick }: MovieCardProps) {
   const posterUrl = getPosterUrl(movie.poster_path, 'w342')
 
   return (
     <div
       className="group"
-      onClick={() => navigate(`/movie/${movie.tmdb_id}`)}
+      onClick={() => onClick?.(movie)}
       tw="border-2 border-cpc-green-900 cursor-pointer hover:border-cpc-cyan-500 transition-colors"
     >
       {/* Poster */}
@@ -24,6 +23,8 @@ export function MovieCard({ movie }: MovieCardProps) {
           <img
             src={posterUrl}
             alt={movie.title}
+            loading="lazy"
+            decoding="async"
             tw="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
             onError={(e) => {
               e.currentTarget.style.display = 'none'

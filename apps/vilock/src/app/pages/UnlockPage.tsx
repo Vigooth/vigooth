@@ -26,8 +26,8 @@ export function UnlockPage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 4) {
-      setError('PASSWORD TOO SHORT')
+    if (password.length < 8) {
+      setError('PASSWORD MIN 8 CHARS')
       return
     }
 

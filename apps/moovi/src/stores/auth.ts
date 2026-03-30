@@ -7,12 +7,11 @@ export interface User {
 
 export interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
 }
 
 export interface AuthContextType extends AuthState {
-  login: (token: string, user: User) => void
+  login: (user: User) => void
   logout: () => void
 }
 
@@ -27,7 +26,6 @@ export function useAuth(): AuthContextType {
 }
 
 export function getInitialAuthState(): AuthState {
-  const token = localStorage.getItem('token')
   const userJson = localStorage.getItem('user')
 
   let user: User | null = null
@@ -41,7 +39,6 @@ export function getInitialAuthState(): AuthState {
 
   return {
     user,
-    token,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!user,
   }
 }

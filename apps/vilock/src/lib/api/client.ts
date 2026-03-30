@@ -8,19 +8,14 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('token')
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include',
   })
 
   if (!response.ok) {
@@ -33,7 +28,6 @@ async function request<T>(
 
 // Auth
 export interface AuthResponse {
-  token: string
   user: {
     id: string
     email: string
@@ -53,6 +47,10 @@ export async function login(email: string, password: string): Promise<AuthRespon
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+}
+
+export async function logout(): Promise<void> {
+  await request('/auth/logout', { method: 'POST' })
 }
 
 // Vault

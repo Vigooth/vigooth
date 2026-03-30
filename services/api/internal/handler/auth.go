@@ -9,14 +9,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthHandler struct {
-	authService *service.AuthService
+type CookieConfig struct {
+	Domain string
+	Secure bool
+	MaxAge int // seconds
 }
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+type AuthHandler struct {
+	authService  *service.AuthService
+	cookieConfig CookieConfig
+}
+
+func NewAuthHandler(authService *service.AuthService, cookieConfig CookieConfig) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
+		authService:  authService,
+		cookieConfig: cookieConfig,
 	}
+}
+
+func (h *AuthHandler) setAuthCookie(c *gin.Context, token string) {
+	c.SetCookie(
+		"auth_token",
+		token,
+		h.cookieConfig.MaxAge,
+		"/",
+		h.cookieConfig.Domain,
+		h.cookieConfig.Secure,
+		true, // HttpOnly
+	)
+	c.SetSameSite(http.SameSiteLaxMode)
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -36,7 +57,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	h.setAuthCookie(c, resp.Token)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"user": resp.User,
+	})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -56,5 +81,22 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	h.setAuthCookie(c, resp.Token)
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": resp.User,
+	})
+}
+
+func (h *AuthHandler) Logout(c *gin.Context) {
+	c.SetCookie(
+		"auth_token",
+		"",
+		-1,
+		"/",
+		h.cookieConfig.Domain,
+		h.cookieConfig.Secure,
+		true,
+	)
+	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
 }

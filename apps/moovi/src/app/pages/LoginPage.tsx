@@ -44,7 +44,7 @@ export function LoginPage() {
         ? await register(email, password)
         : await login(email, password)
 
-      authLogin(response.token, {
+      authLogin({
         id: response.user.id,
         email: response.user.email,
       })

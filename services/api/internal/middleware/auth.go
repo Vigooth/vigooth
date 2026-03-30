@@ -20,22 +20,12 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authorization header"})
+		tokenString := m.extractToken(c)
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authentication"})
 			c.Abort()
 			return
 		}
-
-		// Extract token from "Bearer <token>"
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header"})
-			c.Abort()
-			return
-		}
-
-		tokenString := parts[1]
 
 		// Parse and validate token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -70,4 +60,26 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		c.Set("userID", userID)
 		c.Next()
 	}
+}
+
+// extractToken reads the JWT from the HttpOnly cookie first, then falls back to
+// the Authorization header for backward compatibility.
+func (m *AuthMiddleware) extractToken(c *gin.Context) string {
+	// 1. Try HttpOnly cookie
+	if token, err := c.Cookie("auth_token"); err == nil && token != "" {
+		return token
+	}
+
+	// 2. Fallback: Authorization header
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return ""
+	}
+
+	return parts[1]
 }

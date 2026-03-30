@@ -62,11 +62,18 @@ func main() {
 	wishlistService := service.NewWishlistService(wishlistRepo)
 	authService := service.NewAuthService(userRepo, jwtSecret)
 
+	cookieDomain := os.Getenv("COOKIE_DOMAIN") // empty in dev, ".vigooth.com" in prod
+	cookieSecure := cookieDomain != ""          // HTTPS-only when domain is set (prod)
+
 	vaultHandler := handler.NewVaultHandler(vaultService)
 	movieHandler := handler.NewMovieHandler(movieService)
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey)
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
+		Domain: cookieDomain,
+		Secure: cookieSecure,
+		MaxAge: 86400, // 24h
+	})
 
 	// LLM provider (optional - recommendations feature)
 	var recoHandler *handler.RecommendationHandler
@@ -101,6 +108,7 @@ func main() {
 	// Auth routes
 	r.POST("/auth/register", authHandler.Register)
 	r.POST("/auth/login", authHandler.Login)
+	r.POST("/auth/logout", authHandler.Logout)
 
 	// Protected routes
 	api := r.Group("/api")

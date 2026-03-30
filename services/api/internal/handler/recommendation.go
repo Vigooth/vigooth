@@ -143,6 +143,109 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 			UserID:          userID,
 			Recommendations: stored,
 			TokensUsed:      tokensUsed,
+			IsAI:            true,
+			CreatedAt:       time.Now(),
+		}
+		if err := h.recoRepo.Save(entry); err != nil {
+			log.Printf("failed to save recommendation history: %v", err)
+		}
+	}
+}
+
+func (h *RecommendationHandler) StreamRecommendationsSimple(c *gin.Context) {
+	userID := c.GetString("userID")
+
+	var req streamRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		req = streamRequest{}
+	}
+
+	moviesResp, err := h.movieService.GetMovies(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get movies"})
+		return
+	}
+
+	if len(moviesResp.Movies) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no movies in collection"})
+		return
+	}
+
+	var excludeTmdbIDs []int
+	for _, m := range moviesResp.Movies {
+		if m.TmdbID != 0 {
+			excludeTmdbIDs = append(excludeTmdbIDs, m.TmdbID)
+		}
+	}
+	if wishlistResp, err := h.wishlistService.GetItems(userID); err == nil {
+		for _, item := range wishlistResp.Items {
+			excludeTmdbIDs = append(excludeTmdbIDs, item.TmdbID)
+		}
+	}
+
+	movies := moviesResp.Movies
+	if len(req.MovieIDs) > 0 {
+		idSet := make(map[string]bool)
+		for _, id := range req.MovieIDs {
+			idSet[id] = true
+		}
+		filteredMovies := movies[:0:0]
+		for _, m := range movies {
+			if idSet[m.ID] {
+				filteredMovies = append(filteredMovies, m)
+			}
+		}
+		if len(filteredMovies) > 0 {
+			movies = filteredMovies
+		}
+	}
+
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("X-Accel-Buffering", "no")
+	c.Writer.Flush()
+
+	recoAgent := agent.NewRecommendationAgent(h.llmProvider, h.tmdbAPIKey)
+
+	vibe := 50
+	if req.Vibe != nil {
+		vibe = *req.Vibe
+	}
+
+	result, err := recoAgent.RunSimple(c.Request.Context(), movies, excludeTmdbIDs, vibe, func(event agent.Event) {
+		data, _ := json.Marshal(event)
+		fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Type, string(data))
+		c.Writer.Flush()
+	})
+
+	if err != nil {
+		log.Printf("recommendation simple error: %v", err)
+		errEvent := agent.Event{Type: "error", Message: err.Error()}
+		data, _ := json.Marshal(errEvent)
+		fmt.Fprintf(c.Writer, "event: error\ndata: %s\n\n", string(data))
+		c.Writer.Flush()
+		return
+	}
+
+	// Save to history (no tokens used)
+	if result != nil && len(result.Recommendations) > 0 {
+		var stored []repository.StoredRecommendation
+		for _, r := range result.Recommendations {
+			stored = append(stored, repository.StoredRecommendation{
+				Title:      r.Title,
+				Year:       r.Year,
+				TmdbID:     r.TmdbID,
+				PosterPath: r.PosterPath,
+				Reason:     r.Reason,
+			})
+		}
+		entry := &repository.RecommendationHistory{
+			ID:              uuid.New().String(),
+			UserID:          userID,
+			Recommendations: stored,
+			TokensUsed:      0,
+			IsAI:            false,
 			CreatedAt:       time.Now(),
 		}
 		if err := h.recoRepo.Save(entry); err != nil {

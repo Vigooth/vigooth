@@ -130,6 +130,7 @@ func main() {
 
 		if recoHandler != nil {
 			api.POST("/recommendations/stream", recoHandler.StreamRecommendations)
+			api.POST("/recommendations/stream-simple", recoHandler.StreamRecommendationsSimple)
 			api.GET("/recommendations/history", recoHandler.GetHistory)
 		}
 	}

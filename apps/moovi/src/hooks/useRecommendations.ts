@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   streamRecommendations,
+  streamRecommendationsSimple,
   getRecommendationHistory,
   type Recommendation,
   type RecommendationEvent,
@@ -88,7 +89,7 @@ export function useRecommendations() {
     setError(null)
   }, [history, setHistoryParam])
 
-  const generate = useCallback((movieIds: string[] = [], vibe: number = 50) => {
+  const startStream = useCallback((streamFn: typeof streamRecommendations, movieIds: string[] = [], vibe: number = 50) => {
     if (abortRef.current) {
       abortRef.current.abort()
     }
@@ -104,7 +105,7 @@ export function useRecommendations() {
     const controller = new AbortController()
     abortRef.current = controller
 
-    streamRecommendations(
+    streamFn(
       { movieIds, vibe },
       (event) => {
         setEvents((prev) => [...prev, event])
@@ -131,6 +132,14 @@ export function useRecommendations() {
     )
   }, [refreshHistory, setHistoryParam])
 
+  const generate = useCallback((movieIds: string[] = [], vibe: number = 50) => {
+    startStream(streamRecommendations, movieIds, vibe)
+  }, [startStream])
+
+  const generateSimple = useCallback((movieIds: string[] = [], vibe: number = 50) => {
+    startStream(streamRecommendationsSimple, movieIds, vibe)
+  }, [startStream])
+
   const cancel = useCallback(() => {
     if (abortRef.current) {
       abortRef.current.abort()
@@ -149,6 +158,7 @@ export function useRecommendations() {
     activeHistoryIndex,
     selectHistoryEntry,
     generate,
+    generateSimple,
     cancel,
   }
 }

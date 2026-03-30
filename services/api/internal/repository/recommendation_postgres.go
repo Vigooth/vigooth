@@ -22,9 +22,9 @@ func (r *PostgresRecommendationRepository) Save(entry *RecommendationHistory) er
 	}
 
 	_, err = r.pool.Exec(context.Background(),
-		`INSERT INTO recommendation_history (id, user_id, recommendations, tokens_used, created_at)
-		 VALUES ($1, $2, $3, $4, $5)`,
-		entry.ID, entry.UserID, recsJSON, entry.TokensUsed, entry.CreatedAt,
+		`INSERT INTO recommendation_history (id, user_id, recommendations, tokens_used, is_ai, created_at)
+		 VALUES ($1, $2, $3, $4, $5, $6)`,
+		entry.ID, entry.UserID, recsJSON, entry.TokensUsed, entry.IsAI, entry.CreatedAt,
 	)
 
 	return err
@@ -32,7 +32,7 @@ func (r *PostgresRecommendationRepository) Save(entry *RecommendationHistory) er
 
 func (r *PostgresRecommendationRepository) FindByUserID(userID string) ([]RecommendationHistory, error) {
 	rows, err := r.pool.Query(context.Background(),
-		`SELECT id, user_id, recommendations, tokens_used, created_at
+		`SELECT id, user_id, recommendations, tokens_used, is_ai, created_at
 		 FROM recommendation_history WHERE user_id = $1 ORDER BY created_at DESC`,
 		userID,
 	)
@@ -46,7 +46,7 @@ func (r *PostgresRecommendationRepository) FindByUserID(userID string) ([]Recomm
 		var entry RecommendationHistory
 		var recsJSON []byte
 		err := rows.Scan(
-			&entry.ID, &entry.UserID, &recsJSON, &entry.TokensUsed, &entry.CreatedAt,
+			&entry.ID, &entry.UserID, &recsJSON, &entry.TokensUsed, &entry.IsAI, &entry.CreatedAt,
 		)
 		if err != nil {
 			return nil, err

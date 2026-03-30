@@ -67,6 +67,155 @@ type TokenUsage struct {
 	TotalTokens  int `json:"total_tokens"`
 }
 
+// RunSimple generates recommendations without AI by using TMDB candidates sorted by relevance.
+func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
+	ctx, cancel := context.WithTimeout(ctx, agentTimeout)
+	defer cancel()
+
+	onEvent(Event{Type: "thinking", Message: "Analyse de votre collection..."})
+
+	existingTMDBIDs := make(map[int]bool)
+	for _, m := range userMovies {
+		if m.TmdbID != 0 {
+			existingTMDBIDs[m.TmdbID] = true
+		}
+	}
+	for _, id := range excludeTmdbIDs {
+		existingTMDBIDs[id] = true
+	}
+
+	// Pick more seed movies for better diversity without AI
+	seedCount := 5
+	if len(userMovies) < seedCount {
+		seedCount = len(userMovies)
+	}
+	topMovies := pickTopMovies(userMovies, seedCount)
+
+	onEvent(Event{Type: "tool_call", Message: "Recherche TMDB des films similaires..."})
+	candidates := a.fetchTMDBCandidates(ctx, topMovies, existingTMDBIDs, onEvent)
+
+	if len(candidates) == 0 {
+		onEvent(Event{Type: "error", Message: "Aucun candidat trouvé sur TMDB"})
+		return &RecommendationResult{}, nil
+	}
+
+	log.Printf("[agent-simple] fetched %d TMDB candidates", len(candidates))
+
+	// Sort candidates by vote (descending)
+	for i := 0; i < len(candidates); i++ {
+		for j := i + 1; j < len(candidates); j++ {
+			if candidates[j].Vote > candidates[i].Vote {
+				candidates[i], candidates[j] = candidates[j], candidates[i]
+			}
+		}
+	}
+
+	// Apply vibe to determine how many to pick and threshold
+	maxResults := 10
+	var minVote float64
+	switch {
+	case vibe <= 20:
+		// Niche: lower-voted, less popular films — reverse sort
+		for i, j := 0, len(candidates)-1; i < j; i, j = i+1, j-1 {
+			candidates[i], candidates[j] = candidates[j], candidates[i]
+		}
+		minVote = 0
+	case vibe <= 40:
+		// Mostly niche: skip top-voted
+		if len(candidates) > maxResults {
+			candidates = candidates[len(candidates)/3:]
+		}
+		minVote = 0
+	case vibe <= 60:
+		// Balanced: take from middle + top
+		minVote = 5.0
+	case vibe <= 80:
+		// Mostly popular
+		minVote = 6.0
+	default:
+		// 100% popular
+		minVote = 7.0
+	}
+
+	var final []Recommendation
+	for _, c := range candidates {
+		if len(final) >= maxResults {
+			break
+		}
+		if c.Vote < minVote {
+			continue
+		}
+		year := 0
+		if len(c.Year) >= 4 {
+			fmt.Sscanf(c.Year[:4], "%d", &year)
+		}
+		final = append(final, Recommendation{
+			Title:      c.Title,
+			Year:       year,
+			TmdbID:     c.ID,
+			PosterPath: c.PosterPath,
+			Reason:     c.Overview,
+		})
+	}
+
+	// If we don't have enough, fill from remaining candidates
+	if len(final) < maxResults {
+		for _, c := range candidates {
+			if len(final) >= maxResults {
+				break
+			}
+			// Skip already added
+			alreadyAdded := false
+			for _, f := range final {
+				if f.TmdbID == c.ID {
+					alreadyAdded = true
+					break
+				}
+			}
+			if alreadyAdded {
+				continue
+			}
+			year := 0
+			if len(c.Year) >= 4 {
+				fmt.Sscanf(c.Year[:4], "%d", &year)
+			}
+			final = append(final, Recommendation{
+				Title:      c.Title,
+				Year:       year,
+				TmdbID:     c.ID,
+				PosterPath: c.PosterPath,
+				Reason:     c.Overview,
+			})
+		}
+	}
+
+	result := &RecommendationResult{
+		Recommendations: final,
+		Total:           len(final),
+	}
+
+	for _, rec := range final {
+		onEvent(Event{
+			Type:    "recommendation",
+			Message: fmt.Sprintf("%s (%d)", rec.Title, rec.Year),
+			Data:    rec,
+		})
+	}
+
+	onEvent(Event{
+		Type:    "done",
+		Message: fmt.Sprintf("%d recommandations trouvées", len(final)),
+		Data: map[string]interface{}{
+			"recommendations": final,
+			"total":           len(final),
+		},
+	})
+
+	log.Printf("[agent-simple] done: %d recommendations", len(final))
+
+	return result, nil
+}
+
 func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
 	ctx, cancel := context.WithTimeout(ctx, agentTimeout)
 	defer cancel()

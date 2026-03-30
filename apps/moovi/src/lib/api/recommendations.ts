@@ -38,14 +38,31 @@ export interface StreamOptions {
   vibe?: number
 }
 
+export function streamRecommendationsSimple(
+  options: StreamOptions,
+  onEvent: (event: RecommendationEvent) => void,
+  signal?: AbortSignal
+): void {
+  streamFromEndpoint(`${API_URL}/api/recommendations/stream-simple`, options, onEvent, signal)
+}
+
 export function streamRecommendations(
+  options: StreamOptions,
+  onEvent: (event: RecommendationEvent) => void,
+  signal?: AbortSignal
+): void {
+  streamFromEndpoint(`${API_URL}/api/recommendations/stream`, options, onEvent, signal)
+}
+
+function streamFromEndpoint(
+  url: string,
   options: StreamOptions,
   onEvent: (event: RecommendationEvent) => void,
   signal?: AbortSignal
 ): void {
   const token = localStorage.getItem('token')
 
-  fetch(`${API_URL}/api/recommendations/stream`, {
+  fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

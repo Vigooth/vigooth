@@ -18,6 +18,7 @@ type RecommendationHistory struct {
 	UserID          string                 `json:"user_id"`
 	Recommendations []StoredRecommendation `json:"recommendations"`
 	TokensUsed      int                    `json:"tokens_used"`
+	IsAI            bool                   `json:"is_ai"`
 	CreatedAt       time.Time              `json:"created_at"`
 }
 

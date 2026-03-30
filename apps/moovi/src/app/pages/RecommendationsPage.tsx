@@ -23,7 +23,7 @@ export function RecommendationsPage() {
   const {
     recommendations, events, isLoading, error, tokens,
     history, activeHistoryIndex, selectHistoryEntry,
-    generate, cancel,
+    generate, generateSimple, cancel,
   } = useRecommendations()
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -39,8 +39,15 @@ export function RecommendationsPage() {
     })
   }
 
+  const movieIds = selectedIds.size > 0 ? Array.from(selectedIds) : []
+
   const handleGenerate = () => {
-    generate(selectedIds.size > 0 ? Array.from(selectedIds) : [], vibe)
+    generateSimple(movieIds, vibe)
+    setShowPicker(false)
+  }
+
+  const handleGenerateIA = () => {
+    generate(movieIds, vibe)
     setShowPicker(false)
   }
 
@@ -52,8 +59,26 @@ export function RecommendationsPage() {
         <Header />
 
         <div tw="flex-1 overflow-auto p-3">
-          {/* Title */}
-          <div tw="text-cpc-cyan-500 text-sm font-bold mb-4">RECOMMENDATIONS IA</div>
+          {/* Title + History select */}
+          <div tw="flex items-center justify-between mb-4">
+            <div tw="text-cpc-cyan-500 text-sm font-bold">RECOMMENDATIONS</div>
+            {history.length > 0 && (
+              <select
+                value={activeHistoryIndex ?? ''}
+                onChange={(e) => {
+                  const idx = Number(e.target.value)
+                  if (!isNaN(idx)) selectHistoryEntry(idx)
+                }}
+                tw="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 outline-none cursor-pointer"
+              >
+                {history.map((entry, i) => (
+                  <option key={entry.id} value={i}>
+                    #{i + 1} — {new Date(entry.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
           {/* Config panel */}
           {!isLoading && movies.length > 0 && (
@@ -131,19 +156,33 @@ export function RecommendationsPage() {
                 </div>
               )}
 
-              {/* Generate button */}
-              <button
-                onClick={handleGenerate}
-                disabled={!data || data.total === 0}
-                css={[
-                  tw`border-2 px-6 py-2 text-xs font-bold transition-colors w-full`,
-                  data && data.total > 0
-                    ? tw`border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black`
-                    : tw`border-cpc-green-900 text-cpc-green-900 cursor-not-allowed`,
-                ]}
-              >
-                GENERATE
-              </button>
+              {/* Generate buttons */}
+              <div tw="flex gap-3">
+                <button
+                  onClick={handleGenerate}
+                  disabled={!data || data.total === 0}
+                  css={[
+                    tw`border-2 px-6 py-2 text-xs font-bold transition-colors flex-1`,
+                    data && data.total > 0
+                      ? tw`border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black`
+                      : tw`border-cpc-green-900 text-cpc-green-900 cursor-not-allowed`,
+                  ]}
+                >
+                  GENERATE
+                </button>
+                <button
+                  onClick={handleGenerateIA}
+                  disabled={!data || data.total === 0}
+                  css={[
+                    tw`border-2 px-6 py-2 text-xs font-bold transition-colors flex-1`,
+                    data && data.total > 0
+                      ? tw`border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black`
+                      : tw`border-cpc-green-900 text-cpc-green-900 cursor-not-allowed`,
+                  ]}
+                >
+                  GENERATE IA
+                </button>
+              </div>
             </div>
           )}
 
@@ -159,25 +198,6 @@ export function RecommendationsPage() {
             </div>
           )}
 
-          {/* History selector */}
-          {history.length > 1 && (
-            <div tw="flex gap-2 mb-4 flex-wrap">
-              {history.map((entry, i) => (
-                <button
-                  key={entry.id}
-                  onClick={() => selectHistoryEntry(i)}
-                  css={[
-                    tw`border px-3 py-1 text-xs transition-colors`,
-                    i === activeHistoryIndex
-                      ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
-                      : tw`border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500`,
-                  ]}
-                >
-                  #{i + 1} — {new Date(entry.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                </button>
-              ))}
-            </div>
-          )}
 
           {!data || data.total === 0 ? (
             <div tw="text-cpc-green-900 text-xs">

@@ -85,7 +85,7 @@ func (s *AuthService) Login(req model.LoginRequest) (*model.AuthResponse, error)
 func (s *AuthService) generateToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID,
-		"exp": time.Now().Add(30 * 24 * time.Hour).Unix(),
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
 		"iat": time.Now().Unix(),
 	}
 

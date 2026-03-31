@@ -60,14 +60,12 @@ function streamFromEndpoint(
   onEvent: (event: RecommendationEvent) => void,
   signal?: AbortSignal
 ): void {
-  const token = localStorage.getItem('token')
-
   fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    credentials: 'include',
     body: JSON.stringify({ movie_ids: options.movieIds ?? [], vibe: options.vibe ?? 50 }),
     signal,
   })

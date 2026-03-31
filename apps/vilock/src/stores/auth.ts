@@ -7,13 +7,12 @@ export interface User {
 
 export interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   masterPassword: string | null // Kept in memory only, never persisted
 }
 
 export interface AuthContextType extends AuthState {
-  login: (token: string, user: User) => void
+  login: (user: User) => void
   logout: () => void
   setMasterPassword: (password: string) => void
   clearMasterPassword: () => void
@@ -31,7 +30,6 @@ export function useAuth(): AuthContextType {
 
 // Helper to get initial state from localStorage
 export function getInitialAuthState(): AuthState {
-  const token = localStorage.getItem('token')
   const userJson = localStorage.getItem('user')
 
   let user: User | null = null
@@ -39,15 +37,13 @@ export function getInitialAuthState(): AuthState {
     try {
       user = JSON.parse(userJson)
     } catch {
-      // Invalid JSON, clear it
       localStorage.removeItem('user')
     }
   }
 
   return {
     user,
-    token,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!user,
     masterPassword: null, // Never persisted
   }
 }

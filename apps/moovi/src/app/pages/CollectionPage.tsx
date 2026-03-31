@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CpcLayout, CpcInput } from '@vigooth/ui'
 import 'twin.macro'
 import { useAuth } from '@/stores/auth'
 import { useMoviesQuery } from '@/hooks/useMoviesQuery'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { Header } from '@/components/layout/Header'
 import { MovieGrid } from '@/components/movies/MovieGrid'
 import { MovieDrawer } from '@/components/movies/MovieDrawer'
@@ -15,16 +17,7 @@ export function CollectionPage() {
   const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const searchRef = useRef<HTMLInputElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
+  const debouncedSearch = useDebounce(search, 300)
 
   const openDrawer = (movie: Movie) => {
     setDrawerMovie(movie)
@@ -53,24 +46,11 @@ export function CollectionPage() {
     onAuthError,
   })
 
-  // Infinite scroll with IntersectionObserver
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    const container = scrollRef.current
-    if (!sentinel || !container) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage()
-        }
-      },
-      { root: container, rootMargin: '200px' },
-    )
-
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  const { scrollRef, sentinelRef } = useInfiniteScroll({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  })
 
   return (
     <CpcLayout>
@@ -98,7 +78,6 @@ export function CollectionPage() {
                 <div tw="text-cpc-green-500 text-xs flex items-center gap-1">
                   <span>{'>'}</span>
                   <CpcInput
-                    ref={searchRef}
                     value={search}
                     onChange={setSearch}
                     placeholder="SEARCH..."

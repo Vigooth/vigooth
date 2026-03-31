@@ -1,8 +1,13 @@
 import { request } from './client'
-import type { Movie, MovieListResponse, AddMoviePayload, UpdateMoviePayload } from '@/types/movie'
+import type { Movie, MovieListResponse, MovieListQuery, AddMoviePayload, UpdateMoviePayload } from '@/types/movie'
 
-export async function getMovies(): Promise<MovieListResponse> {
-  return request<MovieListResponse>('/api/movies')
+export async function getMovies(query: MovieListQuery = {}): Promise<MovieListResponse> {
+  const params = new URLSearchParams()
+  if (query.search) params.set('search', query.search)
+  if (query.limit != null) params.set('limit', String(query.limit))
+  if (query.offset != null) params.set('offset', String(query.offset))
+  const qs = params.toString()
+  return request<MovieListResponse>(`/api/movies${qs ? `?${qs}` : ''}`)
 }
 
 export async function getMovie(id: string): Promise<Movie> {

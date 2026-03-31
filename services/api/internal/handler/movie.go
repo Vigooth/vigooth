@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
 	"github.com/Vigooth/vigooth/services/api/internal/repository"
@@ -23,7 +24,17 @@ func NewMovieHandler(movieService *service.MovieService) *MovieHandler {
 func (h *MovieHandler) GetMovies(c *gin.Context) {
 	userID := c.GetString("userID")
 
-	resp, err := h.movieService.GetMovies(userID)
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	search := c.Query("search")
+
+	query := model.MovieListQuery{
+		Search: search,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	resp, err := h.movieService.GetMovies(userID, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get movies"})
 		return

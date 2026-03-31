@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +17,7 @@ var (
 type MovieRepository interface {
 	Create(movie *model.Movie) error
 	FindByID(id string, userID string) (*model.Movie, error)
-	FindAllByUserID(userID string) ([]model.Movie, error)
+	FindAllByUserID(userID string, query model.MovieListQuery) ([]model.Movie, int, error)
 	Update(movie *model.Movie) error
 	Delete(id string, userID string) error
 	ExistsByTmdbID(userID string, tmdbID int) (bool, error)
@@ -62,17 +63,32 @@ func (r *InMemoryMovieRepository) FindByID(id string, userID string) (*model.Mov
 	return movie, nil
 }
 
-func (r *InMemoryMovieRepository) FindAllByUserID(userID string) ([]model.Movie, error) {
+func (r *InMemoryMovieRepository) FindAllByUserID(userID string, query model.MovieListQuery) ([]model.Movie, int, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	var movies []model.Movie
+	var all []model.Movie
+	search := strings.ToLower(query.Search)
 	for _, m := range r.movies {
-		if m.UserID == userID {
-			movies = append(movies, *m)
+		if m.UserID != userID {
+			continue
 		}
+		if search != "" && !strings.Contains(strings.ToLower(m.Title), search) && !strings.Contains(strings.ToLower(m.Director), search) {
+			continue
+		}
+		all = append(all, *m)
 	}
-	return movies, nil
+
+	total := len(all)
+	start := query.Offset
+	if start > total {
+		start = total
+	}
+	end := start + query.Limit
+	if end > total {
+		end = total
+	}
+	return all[start:end], total, nil
 }
 
 func (r *InMemoryMovieRepository) Update(movie *model.Movie) error {

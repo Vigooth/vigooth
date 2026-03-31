@@ -49,15 +49,23 @@ func (s *MovieService) AddMovie(userID string, req *model.AddMovieRequest) (*mod
 	return movie, nil
 }
 
-func (s *MovieService) GetMovies(userID string) (*model.MovieListResponse, error) {
-	movies, err := s.movieRepo.FindAllByUserID(userID)
+func (s *MovieService) GetMovies(userID string, query model.MovieListQuery) (*model.MovieListResponse, error) {
+	if query.Limit <= 0 {
+		query.Limit = 20
+	}
+	if query.Limit > 100 {
+		query.Limit = 100
+	}
+
+	movies, total, err := s.movieRepo.FindAllByUserID(userID, query)
 	if err != nil {
 		return nil, err
 	}
 
 	return &model.MovieListResponse{
-		Movies: movies,
-		Total:  len(movies),
+		Movies:  movies,
+		Total:   total,
+		HasMore: query.Offset+len(movies) < total,
 	}, nil
 }
 

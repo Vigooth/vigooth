@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -65,16 +66,32 @@ func (r *PostgresMovieRepository) FindByID(id string, userID string) (*model.Mov
 	return &movie, nil
 }
 
-func (r *PostgresMovieRepository) FindAllByUserID(userID string) ([]model.Movie, error) {
-	rows, err := r.pool.Query(context.Background(),
-		`SELECT id, user_id, tmdb_id, imdb_id, title, original_title, year,
+func (r *PostgresMovieRepository) FindAllByUserID(userID string, query model.MovieListQuery) ([]model.Movie, int, error) {
+	args := []any{userID}
+	where := "WHERE user_id = $1"
+
+	if query.Search != "" {
+		args = append(args, "%"+query.Search+"%")
+		where += " AND (title ILIKE $2 OR director ILIKE $2)"
+	}
+
+	// Count total matching rows
+	var total int
+	countSQL := "SELECT COUNT(*) FROM movies " + where
+	if err := r.pool.QueryRow(context.Background(), countSQL, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// Fetch page
+	selectSQL := `SELECT id, user_id, tmdb_id, imdb_id, title, original_title, year,
 			poster_path, backdrop_path, overview, genres, director, runtime,
 			metascore, imdb_rating, rotten_tomatoes, personal_rating, notes, added_at, updated_at
-		 FROM movies WHERE user_id = $1 ORDER BY added_at DESC`,
-		userID,
-	)
+		 FROM movies ` + where + ` ORDER BY added_at DESC LIMIT $` + fmt.Sprintf("%d", len(args)+1) + ` OFFSET $` + fmt.Sprintf("%d", len(args)+2)
+	args = append(args, query.Limit, query.Offset)
+
+	rows, err := r.pool.Query(context.Background(), selectSQL, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -89,7 +106,7 @@ func (r *PostgresMovieRepository) FindAllByUserID(userID string) ([]model.Movie,
 			&movie.PersonalRating, &movie.Notes, &movie.AddedAt, &movie.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		movies = append(movies, movie)
 	}
@@ -98,7 +115,7 @@ func (r *PostgresMovieRepository) FindAllByUserID(userID string) ([]model.Movie,
 		movies = []model.Movie{}
 	}
 
-	return movies, nil
+	return movies, total, nil
 }
 
 func (r *PostgresMovieRepository) Update(movie *model.Movie) error {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Vigooth/vigooth/services/api/internal/agent"
 	"github.com/Vigooth/vigooth/services/api/internal/llm"
+	"github.com/Vigooth/vigooth/services/api/internal/model"
 	"github.com/Vigooth/vigooth/services/api/internal/repository"
 	"github.com/Vigooth/vigooth/services/api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,7 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 		req = streamRequest{}
 	}
 
-	moviesResp, err := h.movieService.GetMovies(userID)
+	moviesResp, err := h.movieService.GetMovies(userID, model.MovieListQuery{Limit: 10000})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get movies"})
 		return
@@ -160,7 +161,7 @@ func (h *RecommendationHandler) StreamRecommendationsSimple(c *gin.Context) {
 		req = streamRequest{}
 	}
 
-	moviesResp, err := h.movieService.GetMovies(userID)
+	moviesResp, err := h.movieService.GetMovies(userID, model.MovieListQuery{Limit: 10000})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get movies"})
 		return

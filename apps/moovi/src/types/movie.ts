@@ -21,9 +21,16 @@ export interface Movie {
   updated_at: string
 }
 
+export interface MovieListQuery {
+  search?: string
+  limit?: number
+  offset?: number
+}
+
 export interface MovieListResponse {
   movies: Movie[]
   total: number
+  has_more: boolean
 }
 
 export interface AddMoviePayload {

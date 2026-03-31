@@ -52,7 +52,14 @@ type UpdateMovieRequest struct {
 	RottenTomatoes *int     `json:"rotten_tomatoes"`
 }
 
+type MovieListQuery struct {
+	Search string
+	Limit  int
+	Offset int
+}
+
 type MovieListResponse struct {
-	Movies []Movie `json:"movies"`
-	Total  int     `json:"total"`
+	Movies  []Movie `json:"movies"`
+	Total   int     `json:"total"`
+	HasMore bool    `json:"has_more"`
 }

@@ -72,6 +72,11 @@ Each feature should be self-contained with its own:
 - Follow unidirectional dependency flow: shared → features → app
 - Keep features modular and self-contained
 
+## Git Workflow Rules
+- **Never create a PR with unpushed commits.** After every commit, push immediately. Before creating a PR, verify local and remote are in sync.
+- **Commit all pending changes before creating a PR.** Do not leave uncommitted work behind — commit it automatically without asking for confirmation.
+- **Always rebase on `origin/main`** before creating a PR or deploying.
+
 ## Code Style Conventions
 
 ### Exports

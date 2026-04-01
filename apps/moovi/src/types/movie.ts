@@ -25,6 +25,8 @@ export interface MovieListQuery {
   search?: string
   limit?: number
   offset?: number
+  added_after?: string
+  min_rating?: number
 }
 
 export interface MovieListResponse {

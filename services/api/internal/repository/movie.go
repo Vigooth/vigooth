@@ -67,6 +67,11 @@ func (r *InMemoryMovieRepository) FindAllByUserID(userID string, query model.Mov
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
+	var addedAfter time.Time
+	if query.AddedAfter != "" {
+		addedAfter, _ = time.Parse(time.RFC3339, query.AddedAfter)
+	}
+
 	var all []model.Movie
 	search := strings.ToLower(query.Search)
 	for _, m := range r.movies {
@@ -74,6 +79,12 @@ func (r *InMemoryMovieRepository) FindAllByUserID(userID string, query model.Mov
 			continue
 		}
 		if search != "" && !strings.Contains(strings.ToLower(m.Title), search) && !strings.Contains(strings.ToLower(m.Director), search) {
+			continue
+		}
+		if !addedAfter.IsZero() && m.AddedAt.Before(addedAfter) {
+			continue
+		}
+		if query.MinRating > 0 && (m.PersonalRating == nil || *m.PersonalRating < query.MinRating) {
 			continue
 		}
 		all = append(all, *m)

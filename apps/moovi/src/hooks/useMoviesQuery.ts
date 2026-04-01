@@ -9,14 +9,16 @@ export const MOVIES_QUERY_KEY = ['movies'] as const
 
 export function useMoviesQuery(options?: {
   search?: string
+  minRating?: number
   onAuthError?: () => void
 }) {
   const search = options?.search ?? ''
+  const minRating = options?.minRating ?? 0
 
   const query = useInfiniteQuery({
-    queryKey: [...MOVIES_QUERY_KEY, { search }],
+    queryKey: [...MOVIES_QUERY_KEY, { search, minRating }],
     queryFn: ({ pageParam = 0 }) =>
-      moviesApi.getMovies({ search: search || undefined, limit: PAGE_SIZE, offset: pageParam }),
+      moviesApi.getMovies({ search: search || undefined, limit: PAGE_SIZE, offset: pageParam, min_rating: minRating || undefined }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.has_more ? lastPageParam + PAGE_SIZE : undefined,
@@ -30,7 +32,7 @@ export function useMoviesQuery(options?: {
   })
 
   const movies = useMemo(
-    () => query.data?.pages.flatMap((p) => p.movies) ?? [],
+    () => query.data?.pages.flatMap((p) => p.movies ?? []) ?? [],
     [query.data?.pages],
   )
   const total = query.data?.pages[0]?.total ?? 0

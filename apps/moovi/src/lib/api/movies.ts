@@ -6,6 +6,8 @@ export async function getMovies(query: MovieListQuery = {}): Promise<MovieListRe
   if (query.search) params.set('search', query.search)
   if (query.limit != null) params.set('limit', String(query.limit))
   if (query.offset != null) params.set('offset', String(query.offset))
+  if (query.added_after) params.set('added_after', query.added_after)
+  if (query.min_rating) params.set('min_rating', String(query.min_rating))
   const qs = params.toString()
   return request<MovieListResponse>(`/api/movies${qs ? `?${qs}` : ''}`)
 }

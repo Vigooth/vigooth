@@ -9,6 +9,14 @@ import { Header } from '@/components/layout/Header'
 import { getPosterUrl } from '@/utils/tmdbImage'
 import type { Recommendation } from '@/lib/api/recommendations'
 
+const RATING_PRESETS = [
+  { label: 'TOUTES', value: 0 },
+  { label: '5+', value: 5 },
+  { label: '6+', value: 6 },
+  { label: '7+', value: 7 },
+  { label: '8+', value: 8 },
+] as const
+
 export function RecommendationsPage() {
   const navigate = useNavigate()
   const { logout } = useAuth()
@@ -29,6 +37,7 @@ export function RecommendationsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showPicker, setShowPicker] = useState(false)
   const [vibe, setVibe] = useState(50)
+  const [minRating, setMinRating] = useState(0)
 
   const toggleMovie = (id: string) => {
     setSelectedIds((prev) => {
@@ -39,7 +48,21 @@ export function RecommendationsPage() {
     })
   }
 
-  const movieIds = selectedIds.size > 0 ? Array.from(selectedIds) : []
+  const allMovies = data?.movies ?? []
+
+  const filteredMovies = allMovies.filter((m) => {
+    if (minRating > 0) {
+      if (!m.personal_rating || m.personal_rating < minRating) return false
+    }
+    return true
+  })
+
+  const hasFilters = minRating > 0
+  const movieIds = selectedIds.size > 0
+    ? Array.from(selectedIds)
+    : hasFilters
+      ? filteredMovies.map((m) => m.id)
+      : []
 
   const handleGenerate = () => {
     generateSimple(movieIds, vibe)
@@ -51,7 +74,7 @@ export function RecommendationsPage() {
     setShowPicker(false)
   }
 
-  const movies = data?.movies ?? []
+  const movies = filteredMovies
 
   return (
     <CpcLayout>
@@ -81,7 +104,7 @@ export function RecommendationsPage() {
           </div>
 
           {/* Config panel */}
-          {!isLoading && movies.length > 0 && (
+          {!isLoading && allMovies.length > 0 && (
             <div tw="border-2 border-cpc-green-900 p-3 mb-4">
               {/* Vibe slider */}
               <div tw="mb-3">
@@ -103,6 +126,27 @@ export function RecommendationsPage() {
                 />
               </div>
 
+              {/* Rating filter */}
+              <div tw="mb-3">
+                <div tw="text-cpc-green-900 text-xs mb-1">NOTE PERSO</div>
+                <div tw="flex gap-1">
+                  {RATING_PRESETS.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => { setMinRating(preset.value); setSelectedIds(new Set()) }}
+                      css={[
+                        tw`border px-2 py-0.5 text-xs transition-colors`,
+                        minRating === preset.value
+                          ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
+                          : tw`border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500`,
+                      ]}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Collection filter */}
               <div tw="flex items-center justify-between mb-2">
                 <button
@@ -111,6 +155,8 @@ export function RecommendationsPage() {
                 >
                   COLLECTION: {selectedIds.size > 0 ? (
                     <span tw="text-cpc-yellow-500">{selectedIds.size} FILM{selectedIds.size > 1 ? 'S' : ''}</span>
+                  ) : hasFilters ? (
+                    <span tw="text-cpc-yellow-500">{filteredMovies.length} FILM{filteredMovies.length !== 1 ? 'S' : ''}</span>
                   ) : (
                     <span tw="text-cpc-green-500">TOUT</span>
                   )}
@@ -160,10 +206,10 @@ export function RecommendationsPage() {
               <div tw="flex gap-3">
                 <button
                   onClick={handleGenerate}
-                  disabled={!data || data.total === 0}
+                  disabled={!data || allMovies.length === 0}
                   css={[
                     tw`border-2 px-6 py-2 text-xs font-bold transition-colors flex-1`,
-                    data && data.total > 0
+                    data && allMovies.length > 0
                       ? tw`border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black`
                       : tw`border-cpc-green-900 text-cpc-green-900 cursor-not-allowed`,
                   ]}
@@ -172,10 +218,10 @@ export function RecommendationsPage() {
                 </button>
                 <button
                   onClick={handleGenerateIA}
-                  disabled={!data || data.total === 0}
+                  disabled={!data || allMovies.length === 0}
                   css={[
                     tw`border-2 px-6 py-2 text-xs font-bold transition-colors flex-1`,
-                    data && data.total > 0
+                    data && allMovies.length > 0
                       ? tw`border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black`
                       : tw`border-cpc-green-900 text-cpc-green-900 cursor-not-allowed`,
                   ]}
@@ -199,7 +245,7 @@ export function RecommendationsPage() {
           )}
 
 
-          {!data || data.total === 0 ? (
+          {!data || allMovies.length === 0 ? (
             <div tw="text-cpc-green-900 text-xs">
               ADD MOVIES TO YOUR COLLECTION FIRST TO GET RECOMMENDATIONS
             </div>

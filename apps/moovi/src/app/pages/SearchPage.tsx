@@ -1,8 +1,8 @@
 import { useRef, useEffect, useCallback, useMemo } from 'react'
 import { CpcLayout } from '@vigooth/ui'
-import { useSearchParams } from 'react-router-dom'
 import 'twin.macro'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useQueryParam } from '@/hooks/useQueryParam'
 import {
   useTmdbSearch,
   useTmdbSearchPerson,
@@ -14,17 +14,8 @@ import { SearchBar } from '@/components/search/SearchBar'
 import { SearchResultCard } from '@/components/search/SearchResultCard'
 
 export function SearchPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const query = searchParams.get('q') || ''
+  const [query, setQuery] = useQueryParam('q')
   const debouncedQuery = useDebounce(query, 300)
-
-  const setQuery = (value: string) => {
-    if (value) {
-      setSearchParams({ q: value }, { replace: true })
-    } else {
-      setSearchParams({}, { replace: true })
-    }
-  }
 
   const {
     data: searchData,
@@ -126,7 +117,7 @@ export function SearchPage() {
         </div>
 
         <div tw="flex-1 overflow-auto px-3 pb-3">
-          {!debouncedQuery ? (
+          {!debouncedQuery || debouncedQuery.length < 2 ? (
             <div tw="text-center py-12 text-cpc-green-900">
               <div tw="text-lg mb-2">SEARCH MOVIES</div>
               <div tw="text-sm">Type a movie title or director name to search TMDB</div>

@@ -28,10 +28,15 @@ func (h *MovieHandler) GetMovies(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	search := c.Query("search")
 
+	addedAfter := c.Query("added_after")
+	minRating, _ := strconv.Atoi(c.DefaultQuery("min_rating", "0"))
+
 	query := model.MovieListQuery{
-		Search: search,
-		Limit:  limit,
-		Offset: offset,
+		Search:     search,
+		Limit:      limit,
+		Offset:     offset,
+		AddedAfter: addedAfter,
+		MinRating:  minRating,
 	}
 
 	resp, err := h.movieService.GetMovies(userID, query)

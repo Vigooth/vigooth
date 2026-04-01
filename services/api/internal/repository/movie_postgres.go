@@ -72,7 +72,17 @@ func (r *PostgresMovieRepository) FindAllByUserID(userID string, query model.Mov
 
 	if query.Search != "" {
 		args = append(args, "%"+query.Search+"%")
-		where += " AND (title ILIKE $2 OR director ILIKE $2)"
+		where += fmt.Sprintf(" AND (title ILIKE $%d OR director ILIKE $%d)", len(args), len(args))
+	}
+
+	if query.AddedAfter != "" {
+		args = append(args, query.AddedAfter)
+		where += fmt.Sprintf(" AND added_at >= $%d", len(args))
+	}
+
+	if query.MinRating > 0 {
+		args = append(args, query.MinRating)
+		where += fmt.Sprintf(" AND personal_rating >= $%d", len(args))
 	}
 
 	// Count total matching rows

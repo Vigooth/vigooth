@@ -5,14 +5,14 @@ import { MovieCard } from './MovieCard'
 interface MovieGridProps {
   movies: Movie[]
   onMovieClick?: (movie: Movie) => void
+  emptyMessage?: string
 }
 
-export function MovieGrid({ movies, onMovieClick }: MovieGridProps) {
+export function MovieGrid({ movies, onMovieClick, emptyMessage }: MovieGridProps) {
   if (movies.length === 0) {
     return (
-      <div tw="text-center py-12 text-cpc-green-900">
-        <div tw="text-lg mb-2">NO MOVIES YET</div>
-        <div tw="text-sm">Search and add movies to your collection</div>
+      <div tw="text-center py-12 text-cpc-green-500">
+        <div tw="text-lg mb-2">{emptyMessage ?? 'NO MOVIES YET'}</div>
       </div>
     )
   }

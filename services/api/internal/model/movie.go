@@ -53,9 +53,11 @@ type UpdateMovieRequest struct {
 }
 
 type MovieListQuery struct {
-	Search string
-	Limit  int
-	Offset int
+	Search     string
+	Limit      int
+	Offset     int
+	AddedAfter string // RFC3339 date string, e.g. "2025-01-01T00:00:00Z"
+	MinRating  int    // minimum personal_rating (0 = no filter)
 }
 
 type MovieListResponse struct {

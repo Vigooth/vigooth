@@ -14,6 +14,7 @@
   "folder.colors.cyan": "CYAN",
   "folder.colors.yellow": "YELLOW",
   "folder.colors.magenta": "MAGENTA",
+  "entry.add": "ADD",
   "entry.name": "NAME *",
   "entry.username": "USERNAME",
   "entry.password": "PASSWORD",

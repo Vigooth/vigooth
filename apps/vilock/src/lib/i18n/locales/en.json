@@ -67,6 +67,11 @@
   "terminal.success.rmEntry": "OK: Removed \"{{name}}\" from {{folder}}",
   "terminal.success.edit": "OK: Updated \"{{name}}\" ({{fields}})",
   "terminal.success.mv": "OK: Moved {{count}} entry(ies) from {{source}} to {{target}}",
+  "sidebar.passwords": "PASSWORDS",
+  "sidebar.notes": "NOTEPAD",
+  "note.new": "NEW NOTE",
+  "note.titlePlaceholder": "NOTE TITLE",
+  "note.contentPlaceholder": "Start writing...",
   "status.offline": "OFFLINE",
   "status.syncing": "SYNC...",
   "status.pending": "PENDING"

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CpcLayout } from '@vigooth/ui'
@@ -13,9 +13,11 @@ import { Terminal, CommandContext } from '../../components/terminal'
 import {
   Sidebar,
   FolderContent,
+  NoteEditor,
   VaultProvider,
   EntryFormData,
 } from '../../components/vault'
+import type { SidebarView } from '../../components/vault/Sidebar'
 import { ColorType } from '@/types/colors'
 import {
   useVaultQuery,
@@ -25,6 +27,9 @@ import {
   useDeleteEntry,
   useUpdateEntry,
   useMoveEntries,
+  useAddNote,
+  useUpdateNote,
+  useDeleteNote,
 } from '@/hooks/useVaultQuery'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useSync } from '@/hooks/useSync'
@@ -36,8 +41,8 @@ export function VaultPage() {
   const [showAddFolder, setShowAddFolder] = useState(false)
   const [newFolder, setNewFolder] = useState({ name: '', color: 'green' as ColorType })
 
-  // Selected folder in sidebar (null = root/unsorted)
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  // Active view in sidebar (folder or note)
+  const [activeView, setActiveView] = useState<SidebarView>({ type: 'folder', folderId: null })
 
   // Terminal state
   const [currentFolder, setCurrentFolder] = useState<{ id: string; name: string } | null>(null)
@@ -69,6 +74,9 @@ export function VaultPage() {
   const deleteEntryMutation = useDeleteEntry({ masterPassword })
   const updateEntryMutation = useUpdateEntry({ masterPassword })
   const moveEntriesMutation = useMoveEntries({ masterPassword })
+  const addNoteMutation = useAddNote({ masterPassword })
+  const updateNoteMutation = useUpdateNote({ masterPassword })
+  const deleteNoteMutation = useDeleteNote({ masterPassword })
 
   const saving =
     addFolderMutation.isPending ||
@@ -76,7 +84,10 @@ export function VaultPage() {
     addEntryMutation.isPending ||
     deleteEntryMutation.isPending ||
     updateEntryMutation.isPending ||
-    moveEntriesMutation.isPending
+    moveEntriesMutation.isPending ||
+    addNoteMutation.isPending ||
+    updateNoteMutation.isPending ||
+    deleteNoteMutation.isPending
 
   const handleLock = () => {
     clearMasterPassword()
@@ -100,8 +111,8 @@ export function VaultPage() {
   }
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (selectedFolderId === folderId) {
-      setSelectedFolderId(null)
+    if (activeView.type === 'folder' && activeView.folderId === folderId) {
+      setActiveView({ type: 'folder', folderId: null })
     }
     await deleteFolderMutation.mutateAsync(folderId)
   }
@@ -137,6 +148,23 @@ export function VaultPage() {
     await moveEntriesMutation.mutateAsync({ entryIds, targetFolderId })
   }
 
+  // Notes handlers
+  const handleAddNote = async (title: string) => {
+    const result = await addNoteMutation.mutateAsync({ title })
+    setActiveView({ type: 'note', noteId: result.note.id })
+  }
+
+  const handleUpdateNote = useCallback(async (noteId: string, data: Partial<{ title: string; content: string }>) => {
+    await updateNoteMutation.mutateAsync({ noteId, data })
+  }, [updateNoteMutation])
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (activeView.type === 'note' && activeView.noteId === noteId) {
+      setActiveView({ type: 'folder', folderId: null })
+    }
+    await deleteNoteMutation.mutateAsync(noteId)
+  }
+
   // Terminal context
   const terminalContext: CommandContext = useMemo(() => ({
     vault,
@@ -155,14 +183,19 @@ export function VaultPage() {
   const getEntriesForFolder = (folderId: string | null) =>
     vault?.entries.filter(e => folderId ? e.folderId === folderId : !e.folderId) || []
 
-  // Current selected folder object
-  const selectedFolder = selectedFolderId
-    ? vault?.folders.find(f => f.id === selectedFolderId) ?? null
+  // Current selected folder/note
+  const selectedFolder = activeView.type === 'folder' && activeView.folderId
+    ? vault?.folders.find(f => f.id === activeView.folderId) ?? null
     : null
-  const selectedFolderIndex = selectedFolderId
-    ? (vault?.folders.findIndex(f => f.id === selectedFolderId) ?? -1) + 1
+  const selectedFolderIndex = activeView.type === 'folder' && activeView.folderId
+    ? (vault?.folders.findIndex(f => f.id === activeView.folderId) ?? -1) + 1
     : 0
-  const selectedEntries = getEntriesForFolder(selectedFolderId)
+  const selectedEntries = activeView.type === 'folder'
+    ? getEntriesForFolder(activeView.folderId)
+    : []
+  const selectedNote = activeView.type === 'note'
+    ? (vault?.notes ?? []).find(n => n.id === activeView.noteId) ?? null
+    : null
 
   if (loading) {
     return (
@@ -221,9 +254,13 @@ export function VaultPage() {
             <Sidebar
               folders={vault?.folders ?? []}
               entries={vault?.entries ?? []}
-              selectedFolderId={selectedFolderId}
-              onSelectFolder={setSelectedFolderId}
+              notes={vault?.notes ?? []}
+              activeView={activeView}
+              onSelectFolder={(folderId) => setActiveView({ type: 'folder', folderId })}
+              onSelectNote={(noteId) => setActiveView({ type: 'note', noteId })}
               onDeleteFolder={handleDeleteFolder}
+              onDeleteNote={handleDeleteNote}
+              onAddNote={handleAddNote}
               showAddFolder={showAddFolder}
               onShowAddFolder={setShowAddFolder}
               newFolder={newFolder}
@@ -231,11 +268,20 @@ export function VaultPage() {
               onAddFolder={handleAddFolder}
             />
 
-            <FolderContent
-              folder={selectedFolder}
-              entries={selectedEntries}
-              folderIndex={selectedFolderIndex}
-            />
+            {activeView.type === 'folder' ? (
+              <FolderContent
+                folder={selectedFolder}
+                entries={selectedEntries}
+                folderIndex={selectedFolderIndex}
+              />
+            ) : selectedNote ? (
+              <NoteEditor
+                key={selectedNote.id}
+                note={selectedNote}
+                onUpdateNote={handleUpdateNote}
+                onDeleteNote={handleDeleteNote}
+              />
+            ) : null}
           </div>
 
           <Terminal context={terminalContext} />

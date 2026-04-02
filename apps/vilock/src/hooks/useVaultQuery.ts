@@ -4,6 +4,7 @@ import {
   VaultData,
   Folder,
   PasswordEntry,
+  Note,
   generateId,
 } from '@/lib/crypto/vault'
 import { ColorType } from '@/types/colors'
@@ -308,6 +309,126 @@ export function useMoveEntries({ masterPassword }: { masterPassword: string | nu
         entries: currentData.vault.entries.map(e =>
           idsSet.has(e.id) ? { ...e, folderId: targetFolderId || undefined } : e
         ),
+      }
+
+      await persistVault(updatedVault, masterPassword)
+      return updatedVault
+    },
+    onSuccess: (vault) => {
+      queryClient.setQueryData(VAULT_QUERY_KEY, {
+        vault,
+        updatedAt: new Date().toISOString(),
+      })
+    },
+  })
+}
+
+/**
+ * Hook to add a note
+ */
+export function useAddNote({ masterPassword }: { masterPassword: string | null }) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ title }: { title: string }) => {
+      if (!masterPassword) {
+        throw new Error('No master password')
+      }
+
+      const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY)
+      if (!currentData) {
+        throw new Error('No vault data')
+      }
+
+      const note: Note = {
+        id: generateId(),
+        title: title.toUpperCase(),
+        content: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      const updatedVault: VaultData = {
+        ...currentData.vault,
+        notes: [...(currentData.vault.notes ?? []), note],
+      }
+
+      await persistVault(updatedVault, masterPassword)
+      return { vault: updatedVault, note }
+    },
+    onSuccess: ({ vault }) => {
+      queryClient.setQueryData(VAULT_QUERY_KEY, {
+        vault,
+        updatedAt: new Date().toISOString(),
+      })
+    },
+  })
+}
+
+/**
+ * Hook to update a note
+ */
+export function useUpdateNote({ masterPassword }: { masterPassword: string | null }) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      noteId,
+      data,
+    }: {
+      noteId: string
+      data: Partial<{ title: string; content: string }>
+    }) => {
+      if (!masterPassword) {
+        throw new Error('No master password')
+      }
+
+      const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY)
+      if (!currentData) {
+        throw new Error('No vault data')
+      }
+
+      const updatedVault: VaultData = {
+        ...currentData.vault,
+        notes: (currentData.vault.notes ?? []).map(n =>
+          n.id === noteId
+            ? { ...n, ...data, title: data.title ? data.title.toUpperCase() : n.title, updatedAt: new Date().toISOString() }
+            : n
+        ),
+      }
+
+      await persistVault(updatedVault, masterPassword)
+      return updatedVault
+    },
+    onSuccess: (vault) => {
+      queryClient.setQueryData(VAULT_QUERY_KEY, {
+        vault,
+        updatedAt: new Date().toISOString(),
+      })
+    },
+  })
+}
+
+/**
+ * Hook to delete a note
+ */
+export function useDeleteNote({ masterPassword }: { masterPassword: string | null }) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (noteId: string) => {
+      if (!masterPassword) {
+        throw new Error('No master password')
+      }
+
+      const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY)
+      if (!currentData) {
+        throw new Error('No vault data')
+      }
+
+      const updatedVault: VaultData = {
+        ...currentData.vault,
+        notes: (currentData.vault.notes ?? []).filter(n => n.id !== noteId),
       }
 
       await persistVault(updatedVault, masterPassword)

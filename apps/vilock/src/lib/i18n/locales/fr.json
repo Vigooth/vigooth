@@ -67,6 +67,11 @@
   "terminal.success.rmEntry": "OK: \"{{name}}\" supprimé de {{folder}}",
   "terminal.success.edit": "OK: \"{{name}}\" modifié ({{fields}})",
   "terminal.success.mv": "OK: {{count}} entrée(s) déplacée(s) de {{source}} vers {{target}}",
+  "sidebar.passwords": "MOTS DE PASSE",
+  "sidebar.notes": "BLOC-NOTES",
+  "note.new": "NOUVELLE NOTE",
+  "note.titlePlaceholder": "TITRE DE LA NOTE",
+  "note.contentPlaceholder": "Commencez à écrire...",
   "status.offline": "HORS LIGNE",
   "status.syncing": "SYNC...",
   "status.pending": "EN ATTENTE"

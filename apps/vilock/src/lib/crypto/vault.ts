@@ -21,9 +21,18 @@ export interface PasswordEntry {
   updatedAt: string
 }
 
+export interface Note {
+  id: string
+  title: string
+  content: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface VaultData {
   folders: Folder[]
   entries: PasswordEntry[]
+  notes: Note[]
   version: number
 }
 
@@ -122,6 +131,7 @@ export function createEmptyVault(): VaultData {
   return {
     folders: [],
     entries: [],
+    notes: [],
     version: 1,
   }
 }

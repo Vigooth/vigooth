@@ -7,17 +7,13 @@ import { useAuth } from '../../stores/auth'
 import {
   generatePassword,
   generateId,
-  PasswordEntry,
   Folder,
 } from '../../lib/crypto/vault'
 import { Terminal, CommandContext } from '../../components/terminal'
 import {
-  FolderCard,
-  AddFolderForm,
-  AddEntryForm,
-  EntryCard,
+  Sidebar,
+  FolderContent,
   VaultProvider,
-  useVault,
   EntryFormData,
 } from '../../components/vault'
 import { ColorType } from '@/types/colors'
@@ -39,6 +35,9 @@ export function VaultPage() {
   const { masterPassword, clearMasterPassword, logout } = useAuth()
   const [showAddFolder, setShowAddFolder] = useState(false)
   const [newFolder, setNewFolder] = useState({ name: '', color: 'green' as ColorType })
+
+  // Selected folder in sidebar (null = root/unsorted)
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
 
   // Terminal state
   const [currentFolder, setCurrentFolder] = useState<{ id: string; name: string } | null>(null)
@@ -101,6 +100,9 @@ export function VaultPage() {
   }
 
   const handleDeleteFolder = async (folderId: string) => {
+    if (selectedFolderId === folderId) {
+      setSelectedFolderId(null)
+    }
     await deleteFolderMutation.mutateAsync(folderId)
   }
 
@@ -153,7 +155,14 @@ export function VaultPage() {
   const getEntriesForFolder = (folderId: string | null) =>
     vault?.entries.filter(e => folderId ? e.folderId === folderId : !e.folderId) || []
 
-  const rootEntries = getEntriesForFolder(null)
+  // Current selected folder object
+  const selectedFolder = selectedFolderId
+    ? vault?.folders.find(f => f.id === selectedFolderId) ?? null
+    : null
+  const selectedFolderIndex = selectedFolderId
+    ? (vault?.folders.findIndex(f => f.id === selectedFolderId) ?? -1) + 1
+    : 0
+  const selectedEntries = getEntriesForFolder(selectedFolderId)
 
   if (loading) {
     return (
@@ -207,85 +216,31 @@ export function VaultPage() {
             </div>
           </div>
 
-          {/* Content */}
-          <div tw="flex-1 overflow-auto p-3">
-            <div tw="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {vault?.folders.map((folder, index) => (
-                <FolderCard
-                  key={folder.id}
-                  folder={folder}
-                  entries={getEntriesForFolder(folder.id)}
-                  index={index + 1}
-                />
-              ))}
+          {/* Sidebar + Content */}
+          <div tw="flex-1 flex overflow-hidden">
+            <Sidebar
+              folders={vault?.folders ?? []}
+              entries={vault?.entries ?? []}
+              selectedFolderId={selectedFolderId}
+              onSelectFolder={setSelectedFolderId}
+              onDeleteFolder={handleDeleteFolder}
+              showAddFolder={showAddFolder}
+              onShowAddFolder={setShowAddFolder}
+              newFolder={newFolder}
+              onNewFolderChange={setNewFolder}
+              onAddFolder={handleAddFolder}
+            />
 
-              <RootEntriesCard entries={rootEntries} />
-
-              {showAddFolder ? (
-                <AddFolderForm
-                  name={newFolder.name}
-                  color={newFolder.color}
-                  onNameChange={(name) => setNewFolder(prev => ({ ...prev, name }))}
-                  onColorChange={(color) => setNewFolder(prev => ({ ...prev, color }))}
-                  onSubmit={handleAddFolder}
-                  onCancel={() => setShowAddFolder(false)}
-                />
-              ) : (
-                <button
-                  onClick={() => setShowAddFolder(true)}
-                  tw="border-2 border-dashed border-cpc-green-900 text-cpc-green-900 p-3 flex items-center justify-center gap-2 hover:border-cpc-green-500 hover:text-cpc-green-500 transition-colors min-h-[120px]"
-                >
-                  <span tw="text-2xl">+</span>
-                  <span tw="text-sm">{t('folder.new')}</span>
-                </button>
-              )}
-            </div>
-
-            {vault?.folders.length === 0 && rootEntries.length === 0 && !showAddFolder && (
-              <div tw="text-center py-12 text-cpc-green-900">
-                <div tw="text-lg mb-2">{t('vault.empty.title')}</div>
-                <div tw="text-sm">{t('vault.empty.subtitle')}</div>
-              </div>
-            )}
+            <FolderContent
+              folder={selectedFolder}
+              entries={selectedEntries}
+              folderIndex={selectedFolderIndex}
+            />
           </div>
 
           <Terminal context={terminalContext} />
         </div>
       </CpcLayout>
     </VaultProvider>
-  )
-}
-
-// Root entries card component
-function RootEntriesCard({ entries }: { entries: PasswordEntry[] }) {
-  const { t } = useTranslation()
-  const { addingToFolder, setAddingToFolder } = useVault()
-
-  if (entries.length === 0 && addingToFolder !== 'root') {
-    return null
-  }
-
-  return (
-    <div tw="border-2 border-cpc-green-500 p-3">
-      <div tw="flex justify-between items-center mb-3">
-        <div
-          onClick={() => addingToFolder !== 'root' && setAddingToFolder('root')}
-          tw="text-cpc-green-500 font-bold flex items-center gap-2 cursor-pointer hover:opacity-80"
-        >
-          <span tw="opacity-60">[0]</span>
-          <span>📁</span>
-          <span>{t('vault.unsorted')}</span>
-          <span tw="text-xs opacity-60">({entries.length})</span>
-        </div>
-      </div>
-
-      <div tw="space-y-2">
-        {entries.map((entry, index) => (
-          <EntryCard key={entry.id} entry={entry} index={index + 1} />
-        ))}
-
-        {addingToFolder === 'root' && <AddEntryForm folderId={null} />}
-      </div>
-    </div>
   )
 }

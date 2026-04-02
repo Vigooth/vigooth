@@ -3,10 +3,12 @@ import {
   searchMovies,
   getMovieDetails,
   getMovieCredits,
+  getTvDetails,
+  getTvCredits,
   searchPerson,
   discoverByPerson,
 } from '@/lib/api/tmdb'
-import type { TmdbSearchResponse, TmdbPersonSearchResponse } from '@/types/movie'
+import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from '@/types/movie'
 
 export function useTmdbSearch(query: string) {
   return useInfiniteQuery<TmdbSearchResponse>({
@@ -37,6 +39,24 @@ export function useTmdbMovieCredits(tmdbId: number | null) {
   return useQuery({
     queryKey: ['tmdb-credits', tmdbId],
     queryFn: () => getMovieCredits(tmdbId!),
+    enabled: tmdbId !== null,
+    staleTime: 1000 * 60 * 30,
+  })
+}
+
+export function useTmdbTvDetail(tmdbId: number | null) {
+  return useQuery<TmdbTvDetail>({
+    queryKey: ['tmdb-tv-detail', tmdbId],
+    queryFn: () => getTvDetails(tmdbId!),
+    enabled: tmdbId !== null,
+    staleTime: 1000 * 60 * 30,
+  })
+}
+
+export function useTmdbTvCredits(tmdbId: number | null) {
+  return useQuery({
+    queryKey: ['tmdb-tv-credits', tmdbId],
+    queryFn: () => getTvCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
   })

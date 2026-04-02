@@ -3,6 +3,7 @@ export interface Movie {
   user_id: string
   tmdb_id: number
   imdb_id: string
+  media_type: string
   title: string
   original_title: string
   year: number
@@ -38,6 +39,7 @@ export interface MovieListResponse {
 export interface AddMoviePayload {
   tmdb_id: number
   imdb_id: string
+  media_type: string
   title: string
   original_title: string
   year: number
@@ -65,14 +67,21 @@ export interface UpdateMoviePayload {
 // TMDB types
 export interface TmdbSearchResult {
   id: number
-  title: string
-  original_title: string
-  overview: string
+  media_type: 'movie' | 'tv' | 'person'
+  // Movie fields
+  title?: string
+  original_title?: string
+  release_date?: string
+  // TV fields
+  name?: string
+  original_name?: string
+  first_air_date?: string
+  // Shared fields
+  overview?: string
   poster_path: string | null
-  backdrop_path: string | null
-  release_date: string
-  genre_ids: number[]
-  vote_average: number
+  backdrop_path?: string | null
+  genre_ids?: number[]
+  vote_average?: number
 }
 
 export interface TmdbSearchResponse {
@@ -99,6 +108,23 @@ export interface TmdbMovieDetail {
   runtime: number
   imdb_id: string
   vote_average: number
+}
+
+export interface TmdbTvDetail {
+  id: number
+  name: string
+  original_name: string
+  overview: string
+  poster_path: string | null
+  backdrop_path: string | null
+  first_air_date: string
+  genres: TmdbGenre[]
+  number_of_seasons: number
+  number_of_episodes: number
+  episode_run_time: number[]
+  created_by: { id: number; name: string }[]
+  vote_average: number
+  external_ids?: { imdb_id?: string }
 }
 
 export interface TmdbCastMember {

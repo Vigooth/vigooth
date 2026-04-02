@@ -21,11 +21,11 @@ func NewPostgresMovieRepository(pool *pgxpool.Pool) *PostgresMovieRepository {
 
 func (r *PostgresMovieRepository) Create(movie *model.Movie) error {
 	_, err := r.pool.Exec(context.Background(),
-		`INSERT INTO movies (id, user_id, tmdb_id, imdb_id, title, original_title, year,
+		`INSERT INTO movies (id, user_id, tmdb_id, imdb_id, media_type, title, original_title, year,
 			poster_path, backdrop_path, overview, genres, director, runtime,
 			metascore, imdb_rating, rotten_tomatoes, personal_rating, notes, added_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
-		movie.ID, movie.UserID, movie.TmdbID, movie.ImdbID, movie.Title, movie.OriginalTitle,
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+		movie.ID, movie.UserID, movie.TmdbID, movie.ImdbID, movie.MediaType, movie.Title, movie.OriginalTitle,
 		movie.Year, movie.PosterPath, movie.BackdropPath, movie.Overview, movie.Genres,
 		movie.Director, movie.Runtime, movie.Metascore, movie.ImdbRating, movie.RottenTomatoes,
 		movie.PersonalRating, movie.Notes, movie.AddedAt, movie.UpdatedAt,
@@ -44,13 +44,13 @@ func (r *PostgresMovieRepository) Create(movie *model.Movie) error {
 func (r *PostgresMovieRepository) FindByID(id string, userID string) (*model.Movie, error) {
 	var movie model.Movie
 	err := r.pool.QueryRow(context.Background(),
-		`SELECT id, user_id, tmdb_id, imdb_id, title, original_title, year,
+		`SELECT id, user_id, tmdb_id, imdb_id, media_type, title, original_title, year,
 			poster_path, backdrop_path, overview, genres, director, runtime,
 			metascore, imdb_rating, rotten_tomatoes, personal_rating, notes, added_at, updated_at
 		 FROM movies WHERE id = $1 AND user_id = $2`,
 		id, userID,
 	).Scan(
-		&movie.ID, &movie.UserID, &movie.TmdbID, &movie.ImdbID, &movie.Title,
+		&movie.ID, &movie.UserID, &movie.TmdbID, &movie.ImdbID, &movie.MediaType, &movie.Title,
 		&movie.OriginalTitle, &movie.Year, &movie.PosterPath, &movie.BackdropPath,
 		&movie.Overview, &movie.Genres, &movie.Director, &movie.Runtime,
 		&movie.Metascore, &movie.ImdbRating, &movie.RottenTomatoes,
@@ -93,7 +93,7 @@ func (r *PostgresMovieRepository) FindAllByUserID(userID string, query model.Mov
 	}
 
 	// Fetch page
-	selectSQL := `SELECT id, user_id, tmdb_id, imdb_id, title, original_title, year,
+	selectSQL := `SELECT id, user_id, tmdb_id, imdb_id, media_type, title, original_title, year,
 			poster_path, backdrop_path, overview, genres, director, runtime,
 			metascore, imdb_rating, rotten_tomatoes, personal_rating, notes, added_at, updated_at
 		 FROM movies ` + where + ` ORDER BY added_at DESC LIMIT $` + fmt.Sprintf("%d", len(args)+1) + ` OFFSET $` + fmt.Sprintf("%d", len(args)+2)
@@ -109,7 +109,7 @@ func (r *PostgresMovieRepository) FindAllByUserID(userID string, query model.Mov
 	for rows.Next() {
 		var movie model.Movie
 		err := rows.Scan(
-			&movie.ID, &movie.UserID, &movie.TmdbID, &movie.ImdbID, &movie.Title,
+			&movie.ID, &movie.UserID, &movie.TmdbID, &movie.ImdbID, &movie.MediaType, &movie.Title,
 			&movie.OriginalTitle, &movie.Year, &movie.PosterPath, &movie.BackdropPath,
 			&movie.Overview, &movie.Genres, &movie.Director, &movie.Runtime,
 			&movie.Metascore, &movie.ImdbRating, &movie.RottenTomatoes,

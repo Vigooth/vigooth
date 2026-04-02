@@ -7,6 +7,7 @@ type Movie struct {
 	UserID          string    `json:"user_id"`
 	TmdbID          int       `json:"tmdb_id"`
 	ImdbID          string    `json:"imdb_id"`
+	MediaType       string    `json:"media_type"`
 	Title           string    `json:"title"`
 	OriginalTitle   string    `json:"original_title"`
 	Year            int       `json:"year"`
@@ -28,6 +29,7 @@ type Movie struct {
 type AddMovieRequest struct {
 	TmdbID         int      `json:"tmdb_id" binding:"required"`
 	ImdbID         string   `json:"imdb_id"`
+	MediaType      string   `json:"media_type"`
 	Title          string   `json:"title" binding:"required"`
 	OriginalTitle  string   `json:"original_title"`
 	Year           int      `json:"year"`

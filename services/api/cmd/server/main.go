@@ -133,6 +133,8 @@ func main() {
 		api.GET("/tmdb/discover/movie", proxyHandler.TmdbDiscoverByPerson)
 		api.GET("/tmdb/movie/:id", proxyHandler.TmdbMovieDetail)
 		api.GET("/tmdb/movie/:id/credits", proxyHandler.TmdbMovieCredits)
+		api.GET("/tmdb/tv/:id", proxyHandler.TmdbTvDetail)
+		api.GET("/tmdb/tv/:id/credits", proxyHandler.TmdbTvCredits)
 		api.GET("/omdb", proxyHandler.OmdbRatings)
 		api.GET("/allocine/ratings", proxyHandler.AllocineRatings)
 

@@ -2,6 +2,7 @@ import { request } from './client'
 import type {
   TmdbSearchResponse,
   TmdbMovieDetail,
+  TmdbTvDetail,
   TmdbCredits,
   TmdbPersonSearchResponse,
 } from '@/types/movie'
@@ -16,6 +17,14 @@ export async function getMovieDetails(tmdbId: number): Promise<TmdbMovieDetail> 
 
 export async function getMovieCredits(tmdbId: number): Promise<TmdbCredits> {
   return request<TmdbCredits>(`/api/tmdb/movie/${tmdbId}/credits`)
+}
+
+export async function getTvDetails(tmdbId: number): Promise<TmdbTvDetail> {
+  return request<TmdbTvDetail>(`/api/tmdb/tv/${tmdbId}`)
+}
+
+export async function getTvCredits(tmdbId: number): Promise<TmdbCredits> {
+  return request<TmdbCredits>(`/api/tmdb/tv/${tmdbId}/credits`)
 }
 
 export async function searchPerson(

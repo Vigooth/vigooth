@@ -37,7 +37,7 @@ func (h *ProxyHandler) TmdbSearch(c *gin.Context) {
 		return
 	}
 
-	url := fmt.Sprintf("https://api.themoviedb.org/3/search/movie?api_key=%s&language=fr-FR&query=%s&page=%s",
+	url := fmt.Sprintf("https://api.themoviedb.org/3/search/multi?api_key=%s&language=fr-FR&query=%s&page=%s",
 		h.tmdbApiKey, query, page)
 
 	h.proxyGet(c, url)
@@ -56,6 +56,24 @@ func (h *ProxyHandler) TmdbMovieCredits(c *gin.Context) {
 	id := c.Param("id")
 
 	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/%s/credits?api_key=%s&language=fr-FR",
+		id, h.tmdbApiKey)
+
+	h.proxyGet(c, url)
+}
+
+func (h *ProxyHandler) TmdbTvDetail(c *gin.Context) {
+	id := c.Param("id")
+
+	url := fmt.Sprintf("https://api.themoviedb.org/3/tv/%s?api_key=%s&language=fr-FR&append_to_response=external_ids",
+		id, h.tmdbApiKey)
+
+	h.proxyGet(c, url)
+}
+
+func (h *ProxyHandler) TmdbTvCredits(c *gin.Context) {
+	id := c.Param("id")
+
+	url := fmt.Sprintf("https://api.themoviedb.org/3/tv/%s/credits?api_key=%s&language=fr-FR",
 		id, h.tmdbApiKey)
 
 	h.proxyGet(c, url)

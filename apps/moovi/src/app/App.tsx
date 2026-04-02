@@ -80,6 +80,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/tv/:tmdbId"
+        element={
+          <ProtectedRoute>
+            <MoviePage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

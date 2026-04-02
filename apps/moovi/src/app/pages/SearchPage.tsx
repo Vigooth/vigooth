@@ -45,12 +45,13 @@ export function SearchPage() {
 
   const { data: collectionData } = useMoviesQuery()
 
-  const collectionTmdbIds = new Set(
-    (collectionData?.movies ?? []).map((m) => m.tmdb_id)
+  const collectionKeys = new Set(
+    (collectionData?.movies ?? []).map((m) => `${m.media_type}:${m.tmdb_id}`)
   )
 
-  const results = searchData?.pages.flatMap((page) => page.results) ?? []
-  const totalResults = searchData?.pages[0]?.total_results ?? 0
+  const results = (searchData?.pages.flatMap((page) => page.results) ?? [])
+    .filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
+  const totalResults = results.length
 
   const directorResults =
     directorData?.pages.flatMap((page) => page.results) ?? []
@@ -139,7 +140,7 @@ export function SearchPage() {
                       <SearchResultCard
                         key={`director-${result.id}`}
                         result={result}
-                        inCollection={collectionTmdbIds.has(result.id)}
+                        inCollection={collectionKeys.has(`${result.media_type ?? 'movie'}:${result.id}`)}
                       />
                     ))}
                   </div>
@@ -172,7 +173,7 @@ export function SearchPage() {
                     <SearchResultCard
                       key={result.id}
                       result={result}
-                      inCollection={collectionTmdbIds.has(result.id)}
+                      inCollection={collectionKeys.has(`${result.media_type ?? 'movie'}:${result.id}`)}
                     />
                   ))}
 

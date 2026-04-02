@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { css, keyframes } from '@emotion/react'
 import tw from 'twin.macro'
-import { useTmdbMovieDetail, useTmdbMovieCredits } from '@/hooks/useTmdbSearch'
+import { useTmdbMovieDetail, useTmdbMovieCredits, useTmdbTvDetail, useTmdbTvCredits } from '@/hooks/useTmdbSearch'
 import { useOmdbRatings } from '@/hooks/useOmdbRatings'
 import { useAllocineRatings } from '@/hooks/useAllocineRatings'
 import {
@@ -20,19 +20,33 @@ import type { AddMoviePayload } from '@/types/movie'
 
 interface MovieDetailsProps {
   tmdbId: number
+  mediaType?: string
   onDeleted?: () => void
 }
 
-export function MovieDetails({ tmdbId: tmdbIdNum, onDeleted }: MovieDetailsProps) {
-  // TMDB data
-  const { data: tmdbDetails, isLoading: loadingTmdb } = useTmdbMovieDetail(tmdbIdNum)
-  const { data: credits } = useTmdbMovieCredits(tmdbIdNum)
-  const { data: omdb } = useOmdbRatings(tmdbDetails?.imdb_id || null)
-  const { data: allocine } = useAllocineRatings(tmdbDetails?.imdb_id || null)
+export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted }: MovieDetailsProps) {
+  const isTv = mediaType === 'tv'
+
+  // TMDB data — fetch movie OR tv details
+  const { data: movieDetails, isLoading: loadingMovie } = useTmdbMovieDetail(isTv ? null : tmdbIdNum)
+  const { data: movieCredits } = useTmdbMovieCredits(isTv ? null : tmdbIdNum)
+  const { data: tvDetails, isLoading: loadingTv } = useTmdbTvDetail(isTv ? tmdbIdNum : null)
+  const { data: tvCredits } = useTmdbTvCredits(isTv ? tmdbIdNum : null)
+
+  const tmdbDetails = isTv ? tvDetails : movieDetails
+  const credits = isTv ? tvCredits : movieCredits
+  const loadingTmdb = isTv ? loadingTv : loadingMovie
+
+  const imdbIdForRatings = isTv
+    ? (tvDetails?.external_ids?.imdb_id || null)
+    : (movieDetails?.imdb_id || null)
+
+  const { data: omdb } = useOmdbRatings(imdbIdForRatings)
+  const { data: allocine } = useAllocineRatings(imdbIdForRatings)
 
   // Check if in collection
   const { data: collectionData } = useMoviesQuery()
-  const dbMovie = collectionData?.movies?.find((m) => m.tmdb_id === tmdbIdNum) ?? null
+  const dbMovie = collectionData?.movies?.find((m) => m.tmdb_id === tmdbIdNum && m.media_type === mediaType) ?? null
   const inCollection = !!dbMovie
 
   // Wishlist
@@ -62,20 +76,22 @@ export function MovieDetails({ tmdbId: tmdbIdNum, onDeleted }: MovieDetailsProps
     return <MovieDetailsSkeleton />
   }
 
-  const title = tmdbDetails.title
-  const originalTitle = tmdbDetails.original_title
-  const overview = tmdbDetails.overview
-  const posterPath = tmdbDetails.poster_path
-  const backdropPath = tmdbDetails.backdrop_path
-  const runtimeMinutes = tmdbDetails.runtime
-  const tmdbId = tmdbDetails.id
-  const imdbId = tmdbDetails.imdb_id || null
+  const title = isTv ? (tvDetails?.name || '') : (movieDetails?.title || '')
+  const originalTitle = isTv ? (tvDetails?.original_name || '') : (movieDetails?.original_title || '')
+  const overview = tmdbDetails?.overview || ''
+  const posterPath = tmdbDetails?.poster_path || null
+  const backdropPath = tmdbDetails?.backdrop_path || null
+  const runtimeMinutes = isTv ? (tvDetails?.episode_run_time?.[0] || 0) : (movieDetails?.runtime || 0)
+  const tmdbId = tmdbDetails?.id || tmdbIdNum
+  const imdbId = imdbIdForRatings
 
-  const director = credits?.crew.find((c) => c.job === 'Director')?.name || ''
-  const genres = tmdbDetails.genres.map((g) => g.name)
-  const year = tmdbDetails.release_date
-    ? parseInt(tmdbDetails.release_date.substring(0, 4), 10)
-    : 0
+  const director = isTv
+    ? (tvDetails?.created_by?.[0]?.name || credits?.crew.find((c) => c.job === 'Director')?.name || '')
+    : (credits?.crew.find((c) => c.job === 'Director')?.name || '')
+  const genres = (isTv ? tvDetails?.genres : movieDetails?.genres)?.map((g) => g.name) || []
+  const dateStr = isTv ? tvDetails?.first_air_date : movieDetails?.release_date
+  const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : 0
+  const seasonInfo = isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : ''
 
   const imdbRating = inCollection ? dbMovie!.imdb_rating : (omdb?.imdbRating ?? null)
   const metascore = inCollection ? dbMovie!.metascore : (omdb?.metascore ?? null)
@@ -97,17 +113,18 @@ export function MovieDetails({ tmdbId: tmdbIdNum, onDeleted }: MovieDetailsProps
 
       try {
         const payload: AddMoviePayload = {
-          tmdb_id: tmdbDetails.id,
-          imdb_id: tmdbDetails.imdb_id || '',
-          title: tmdbDetails.title,
-          original_title: tmdbDetails.original_title,
+          tmdb_id: tmdbId,
+          imdb_id: imdbId || '',
+          media_type: mediaType,
+          title,
+          original_title: originalTitle,
           year,
-          poster_path: tmdbDetails.poster_path || '',
-          backdrop_path: tmdbDetails.backdrop_path || '',
-          overview: tmdbDetails.overview,
+          poster_path: posterPath || '',
+          backdrop_path: backdropPath || '',
+          overview,
           genres: JSON.stringify(genres),
           director,
-          runtime: tmdbDetails.runtime || 0,
+          runtime: runtimeMinutes || 0,
           metascore: omdb?.metascore ?? null,
           imdb_rating: omdb?.imdbRating ?? null,
           rotten_tomatoes: omdb?.rottenTomatoes ?? null,
@@ -174,6 +191,12 @@ export function MovieDetails({ tmdbId: tmdbIdNum, onDeleted }: MovieDetailsProps
               <>
                 <span tw="text-cpc-green-900">|</span>
                 <span>{director}</span>
+              </>
+            )}
+            {seasonInfo && (
+              <>
+                <span tw="text-cpc-green-900">|</span>
+                <span>{seasonInfo}</span>
               </>
             )}
             {runtime && (

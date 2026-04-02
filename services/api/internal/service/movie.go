@@ -19,11 +19,17 @@ func NewMovieService(movieRepo repository.MovieRepository) *MovieService {
 }
 
 func (s *MovieService) AddMovie(userID string, req *model.AddMovieRequest) (*model.Movie, error) {
+	mediaType := req.MediaType
+	if mediaType == "" {
+		mediaType = "movie"
+	}
+
 	movie := &model.Movie{
 		ID:             uuid.New().String(),
 		UserID:         userID,
 		TmdbID:         req.TmdbID,
 		ImdbID:         req.ImdbID,
+		MediaType:      mediaType,
 		Title:          req.Title,
 		OriginalTitle:  req.OriginalTitle,
 		Year:           req.Year,

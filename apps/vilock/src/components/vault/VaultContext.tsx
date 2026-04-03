@@ -31,6 +31,7 @@ interface VaultContextValue {
   // Update
   updateFolder: (folderId: string, data: Partial<{ name: string; color: ColorType }>) => Promise<void>
   updateNote: (noteId: string, data: Partial<{ title: string; content: string }>) => Promise<void>
+  updateEntry: (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => Promise<void>
 }
 
 const VaultContext = createContext<VaultContextValue | null>(null)
@@ -43,6 +44,7 @@ interface VaultProviderProps {
   onAddNote: (title: string, color: ColorType, folderId?: string) => Promise<string>
   onUpdateFolder: (folderId: string, data: Partial<{ name: string; color: ColorType }>) => Promise<void>
   onUpdateNote: (noteId: string, data: Partial<{ title: string; content: string }>) => Promise<void>
+  onUpdateEntry: (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => Promise<void>
   onGeneratePassword: () => string
 }
 
@@ -54,6 +56,7 @@ export function VaultProvider({
   onAddNote,
   onUpdateFolder,
   onUpdateNote,
+  onUpdateEntry,
   onGeneratePassword,
 }: VaultProviderProps) {
   const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null)
@@ -113,6 +116,10 @@ export function VaultProvider({
     await onUpdateNote(noteId, data)
   }
 
+  const updateEntry = async (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => {
+    await onUpdateEntry(entryId, data)
+  }
+
   return (
     <VaultContext.Provider
       value={{
@@ -132,6 +139,7 @@ export function VaultProvider({
         addNote,
         updateFolder,
         updateNote,
+        updateEntry,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { PasswordEntry } from '../../lib/crypto/vault'
+import { ColorType } from '../../types/colors'
 import { EntryFormData } from './types'
 
 interface VaultContextValue {
@@ -23,6 +24,13 @@ interface VaultContextValue {
   // Delete
   deleteEntry: (entryId: string) => Promise<void>
   deleteFolder: (folderId: string) => Promise<void>
+
+  // Add
+  addNote: (title: string, color: ColorType, folderId?: string) => Promise<string>
+
+  // Update
+  updateFolder: (folderId: string, data: Partial<{ name: string; color: ColorType }>) => Promise<void>
+  updateNote: (noteId: string, data: Partial<{ title: string; content: string }>) => Promise<void>
 }
 
 const VaultContext = createContext<VaultContextValue | null>(null)
@@ -32,6 +40,9 @@ interface VaultProviderProps {
   onAddEntry: (folderId: string | null, data: EntryFormData) => Promise<PasswordEntry | undefined>
   onDeleteEntry: (entryId: string) => Promise<void>
   onDeleteFolder: (folderId: string) => Promise<void>
+  onAddNote: (title: string, color: ColorType, folderId?: string) => Promise<string>
+  onUpdateFolder: (folderId: string, data: Partial<{ name: string; color: ColorType }>) => Promise<void>
+  onUpdateNote: (noteId: string, data: Partial<{ title: string; content: string }>) => Promise<void>
   onGeneratePassword: () => string
 }
 
@@ -40,6 +51,9 @@ export function VaultProvider({
   onAddEntry,
   onDeleteEntry,
   onDeleteFolder,
+  onAddNote,
+  onUpdateFolder,
+  onUpdateNote,
   onGeneratePassword,
 }: VaultProviderProps) {
   const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null)
@@ -87,6 +101,18 @@ export function VaultProvider({
     await onDeleteFolder(folderId)
   }
 
+  const addNote = async (title: string, color: ColorType, folderId?: string) => {
+    return onAddNote(title, color, folderId)
+  }
+
+  const updateFolder = async (folderId: string, data: Partial<{ name: string; color: ColorType }>) => {
+    await onUpdateFolder(folderId, data)
+  }
+
+  const updateNote = async (noteId: string, data: Partial<{ title: string; content: string }>) => {
+    await onUpdateNote(noteId, data)
+  }
+
   return (
     <VaultContext.Provider
       value={{
@@ -103,6 +129,9 @@ export function VaultProvider({
         generatePassword,
         deleteEntry,
         deleteFolder,
+        addNote,
+        updateFolder,
+        updateNote,
       }}
     >
       {children}

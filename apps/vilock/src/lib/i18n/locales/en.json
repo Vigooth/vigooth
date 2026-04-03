@@ -70,8 +70,10 @@
   "sidebar.passwords": "PASSWORDS",
   "sidebar.notes": "NOTEPAD",
   "note.new": "NEW NOTE",
+  "note.untitled": "UNTITLED",
   "note.titlePlaceholder": "NOTE TITLE",
   "note.contentPlaceholder": "Start writing...",
+  "sidebar.trash": "TRASH",
   "status.offline": "OFFLINE",
   "status.syncing": "SYNC...",
   "status.pending": "PENDING"

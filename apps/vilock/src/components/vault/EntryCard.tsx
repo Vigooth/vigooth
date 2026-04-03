@@ -17,7 +17,7 @@ export function EntryCard({ entry, index }: EntryCardProps) {
     <div
       onClick={() => toggleEntry(entry.id)}
       css={[
-        tw`p-2 cursor-pointer transition-colors`,
+        tw`p-2 cursor-pointer transition-colors w-40`,
         isExpanded ? tw`bg-cpc-green-500 text-cpc-grey-900` : tw`hover:bg-cpc-green-500/10`
       ]}
     >

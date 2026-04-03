@@ -1,6 +1,7 @@
-import 'twin.macro'
+import tw from 'twin.macro'
 import { useTranslation } from 'react-i18next'
-import { ColorType } from './types'
+import { ColorType, colorStyles } from './types'
+import { VALID_COLORS } from '../../types/colors'
 
 interface AddFolderFormProps {
   name: string
@@ -10,8 +11,6 @@ interface AddFolderFormProps {
   onSubmit: () => void
   onCancel: () => void
 }
-
-const colorOptions: ColorType[] = ['green', 'red', 'cyan', 'yellow', 'magenta']
 
 export function AddFolderForm({
   name,
@@ -24,8 +23,7 @@ export function AddFolderForm({
   const { t } = useTranslation()
 
   return (
-    <div tw="border-2 border-cpc-cyan-500 p-3 space-y-2">
-      <div tw="text-cpc-cyan-500 text-sm font-bold mb-2">{t('folder.new')}</div>
+    <div tw="space-y-1">
       <input
         type="text"
         value={name}
@@ -34,15 +32,23 @@ export function AddFolderForm({
         placeholder={t('folder.name')}
         autoFocus
       />
-      <select
-        value={color}
-        onChange={(e) => onColorChange(e.target.value as ColorType)}
-        tw="w-full bg-cpc-grey-900 border border-cpc-green-500 text-cpc-green-500 px-2 py-1 text-xs outline-none"
-      >
-        {colorOptions.map(c => (
-          <option key={c} value={c}>{t(`folder.colors.${c}`)}</option>
-        ))}
-      </select>
+      <div tw="flex gap-1">
+        {VALID_COLORS.map(c => {
+          const cs = colorStyles[c]
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => onColorChange(c)}
+              css={[
+                tw`w-5 h-5 transition-all`,
+                cs.bg,
+                color !== c && tw`opacity-50 hover:opacity-80`,
+              ]}
+            />
+          )
+        })}
+      </div>
       <div tw="flex gap-1">
         <button
           onClick={onSubmit}

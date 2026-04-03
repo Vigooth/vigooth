@@ -2,13 +2,13 @@ import { createContext, useContext, ReactNode } from 'react'
 import { ColorType } from '../../types/colors'
 
 export type SidebarView =
-  | { type: 'folder'; folderId: string | null }
+  | { type: 'folder'; folderId: string | null; activeNoteId?: string }
   | { type: 'note'; noteId: string }
 
 interface SidebarContextValue {
   activeView: SidebarView
   selectFolder: (folderId: string | null) => void
-  selectNote: (noteId: string) => void
+  selectNote: (noteId: string, folderId?: string | null) => void
   addFolder: (name: string, color: ColorType) => void
   deleteFolder: (folderId: string) => void
   addNote: (title: string, color: ColorType, folderId?: string) => void
@@ -21,7 +21,7 @@ interface SidebarProviderProps {
   children: ReactNode
   activeView: SidebarView
   onSelectFolder: (folderId: string | null) => void
-  onSelectNote: (noteId: string) => void
+  onSelectNote: (noteId: string, folderId?: string | null) => void
   onAddFolder: (name: string, color: ColorType) => void
   onDeleteFolder: (folderId: string) => void
   onAddNote: (title: string, color: ColorType) => void

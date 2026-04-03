@@ -144,6 +144,48 @@ export function useDeleteFolder({ masterPassword }: { masterPassword: string | n
   })
 }
 
+/**
+ * Hook to update a folder
+ */
+export function useUpdateFolder({ masterPassword }: { masterPassword: string | null }) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      folderId,
+      data,
+    }: {
+      folderId: string
+      data: Partial<{ name: string; color: ColorType }>
+    }) => {
+      if (!masterPassword) {
+        throw new Error('No master password')
+      }
+
+      const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY)
+      if (!currentData) {
+        throw new Error('No vault data')
+      }
+
+      const updatedVault: VaultData = {
+        ...currentData.vault,
+        folders: currentData.vault.folders.map(f =>
+          f.id === folderId ? { ...f, ...data } : f
+        ),
+      }
+
+      await persistVault(updatedVault, masterPassword)
+      return updatedVault
+    },
+    onSuccess: (vault) => {
+      queryClient.setQueryData(VAULT_QUERY_KEY, {
+        vault,
+        updatedAt: new Date().toISOString(),
+      })
+    },
+  })
+}
+
 export interface AddEntryData {
   name: string
   username?: string
@@ -330,7 +372,7 @@ export function useAddNote({ masterPassword }: { masterPassword: string | null }
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ title }: { title: string }) => {
+    mutationFn: async ({ title, color, folderId }: { title: string; color?: string; folderId?: string }) => {
       if (!masterPassword) {
         throw new Error('No master password')
       }
@@ -344,6 +386,8 @@ export function useAddNote({ masterPassword }: { masterPassword: string | null }
         id: generateId(),
         title: title.toUpperCase(),
         content: '',
+        color,
+        folderId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }

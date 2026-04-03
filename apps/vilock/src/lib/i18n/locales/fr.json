@@ -70,8 +70,10 @@
   "sidebar.passwords": "MOTS DE PASSE",
   "sidebar.notes": "BLOC-NOTES",
   "note.new": "NOUVELLE NOTE",
+  "note.untitled": "SANS TITRE",
   "note.titlePlaceholder": "TITRE DE LA NOTE",
   "note.contentPlaceholder": "Commencez à écrire...",
+  "sidebar.trash": "CORBEILLE",
   "status.offline": "HORS LIGNE",
   "status.syncing": "SYNC...",
   "status.pending": "EN ATTENTE"

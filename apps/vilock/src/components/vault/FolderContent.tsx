@@ -9,7 +9,7 @@ import { InlineNoteEditor } from './InlineNoteEditor'
 import { useVault } from './VaultContext'
 import { useSidebar } from './SidebarContext'
 import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from '@vigooth/ui'
-import { VALID_COLORS, ColorType } from '../../types/colors'
+import { VALID_COLORS } from '../../types/colors'
 
 interface FolderContentProps {
   folder: Folder | null

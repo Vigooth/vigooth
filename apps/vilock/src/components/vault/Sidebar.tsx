@@ -5,6 +5,8 @@ import { Folder, PasswordEntry, Note } from '../../lib/crypto/vault'
 import { colorStyles, ColorType } from './types'
 import { AddFolderForm } from './AddFolderForm'
 import { useSidebar } from './SidebarContext'
+import { useVault } from './VaultContext'
+import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from '@vigooth/ui'
 
 interface SidebarProps {
   folders: Folder[]
@@ -200,12 +202,7 @@ function FolderItem({
       {isExpanded && (entries.length > 0 || folderNotes.length > 0) && (
         <div tw="pl-7">
           {entries.map((entry, i) => (
-            <div
-              key={entry.id}
-              tw="text-xs py-0.5 px-2 text-cpc-green-500 opacity-70 truncate"
-            >
-              <span tw="opacity-50">{i + 1}.</span> {entry.name}
-            </div>
+            <EntryItem key={entry.id} entry={entry} index={i + 1} />
           ))}
           {folderNotes.map(note => {
             const nc = colorStyles[(note.color as keyof typeof colorStyles) || 'green'] || colorStyles.green
@@ -222,6 +219,53 @@ function FolderItem({
         </div>
       )}
     </div>
+  )
+}
+
+const inputStyles = tw`w-full bg-transparent border border-cpc-green-500/40 text-cpc-green-500 text-xs px-2 py-1 outline-none focus:border-cpc-green-500`
+
+function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
+  const { t } = useTranslation()
+  const { copyField, deleteEntry, updateEntry } = useVault()
+  const [form, setForm] = useState({ name: entry.name, username: entry.username, password: entry.password, url: entry.url ?? '' })
+
+  const handleSave = async () => {
+    await updateEntry(entry.id, form)
+  }
+
+  return (
+    <CpcMenu
+      trigger={
+        <div tw="text-xs py-0.5 px-2 text-cpc-green-500 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity">
+          <span tw="opacity-50">{index}.</span> {entry.name}
+        </div>
+      }
+    >
+      <CpcMenuItem onClick={() => copyField(entry.password, `pass-${entry.id}`)}>{t('menu.copyPassword')}</CpcMenuItem>
+      <CpcMenuItem onClick={() => copyField(entry.username, `user-${entry.id}`)}>{t('menu.copyUser')}</CpcMenuItem>
+      {entry.url && (
+        <>
+          <CpcMenuSeparator />
+          <CpcMenuItem onClick={() => window.open(entry.url, '_blank')}>{t('menu.website')}</CpcMenuItem>
+        </>
+      )}
+      <CpcMenuSeparator />
+      <CpcSubmenu label={t('menu.edit')}>
+        <div tw="p-2 space-y-2 w-48" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+          <input css={inputStyles} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('entry.name')} />
+          <input css={inputStyles} value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder={t('entry.username')} />
+          <input css={inputStyles} type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={t('entry.password')} />
+          <input css={inputStyles} value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder={t('entry.url')} />
+          <button
+            onClick={handleSave}
+            tw="w-full border border-cpc-green-500 text-cpc-green-500 text-xs py-1 hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer"
+          >
+            {t('menu.edit.save')}
+          </button>
+        </div>
+      </CpcSubmenu>
+      <CpcMenuItem variant="danger" onClick={() => deleteEntry(entry.id)}>{t('menu.delete')}</CpcMenuItem>
+    </CpcMenu>
   )
 }
 

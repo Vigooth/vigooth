@@ -8,6 +8,8 @@ import { AddEntryForm } from './AddEntryForm'
 import { InlineNoteEditor } from './InlineNoteEditor'
 import { useVault } from './VaultContext'
 import { useSidebar } from './SidebarContext'
+import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from '@vigooth/ui'
+import { VALID_COLORS } from '../../types/colors'
 
 interface FolderContentProps {
   folder: Folder | null
@@ -86,6 +88,34 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
               + {t('entry.add')}
             </button>
           )}
+          <CpcMenu
+            trigger={
+              <button tw="border border-cpc-green-500 text-cpc-green-500 px-2 py-0.5 text-xs hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer">
+                ⋮
+              </button>
+            }
+          >
+            <CpcMenuItem onClick={handleAddClick}>{t('menu.add')}</CpcMenuItem>
+            <CpcMenuSeparator />
+            {folder && (
+              <CpcSubmenu label={t('menu.color')}>
+                {VALID_COLORS.map((c) => (
+                  <CpcMenuItem key={c} onClick={() => updateFolder(folder.id, { color: c })}>
+                    <span tw="inline-flex items-center gap-2">
+                      <span
+                        tw="inline-block w-3 h-3 border border-current"
+                        css={[colorStyles[c].bg]}
+                      />
+                      {c.toUpperCase()}
+                    </span>
+                  </CpcMenuItem>
+                ))}
+              </CpcSubmenu>
+            )}
+            {folder && (
+              <CpcMenuItem variant="danger" onClick={() => deleteFolder(folder.id)}>{t('menu.delete')}</CpcMenuItem>
+            )}
+          </CpcMenu>
           {folder && (
             <button
               onClick={() => deleteFolder(folder.id)}

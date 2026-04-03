@@ -226,6 +226,7 @@ export function VaultPage() {
       }}
       onUpdateFolder={handleUpdateFolder}
       onUpdateNote={handleUpdateNote}
+      onUpdateEntry={handleUpdateEntry}
       onGeneratePassword={handleGeneratePassword}
     >
       <SidebarProvider

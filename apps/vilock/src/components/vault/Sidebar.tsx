@@ -14,7 +14,7 @@ interface SidebarProps {
 
 export function Sidebar({ folders, entries, notes }: SidebarProps) {
   const { t } = useTranslation()
-  const { activeView, selectFolder, addFolder, deleteFolder } = useSidebar()
+  const { activeView, selectFolder, selectNote, addFolder, deleteFolder } = useSidebar()
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
   const [showAddFolder, setShowAddFolder] = useState(false)
   const [newFolder, setNewFolder] = useState({ name: '', color: 'green' as ColorType })
@@ -69,6 +69,7 @@ export function Sidebar({ folders, entries, notes }: SidebarProps) {
               onSelect={() => selectFolder(folder.id)}
               onToggleExpand={() => toggleExpand(folder.id)}
               onDelete={() => deleteFolder(folder.id)}
+              onSelectNote={(noteId) => selectNote(noteId, folder.id)}
               entries={folderEntries}
               folderNotes={folderNotes}
               color={folder.color || 'green'}
@@ -113,6 +114,7 @@ export function Sidebar({ folders, entries, notes }: SidebarProps) {
               isExpanded={expandedFolders.has('root')}
               onSelect={() => selectFolder(null)}
               onToggleExpand={() => toggleExpand('root')}
+              onSelectNote={(noteId) => selectNote(noteId, null)}
               entries={rootEntries}
               folderNotes={rootNotes}
               color="green"
@@ -133,6 +135,7 @@ interface FolderItemProps {
   onSelect: () => void
   onToggleExpand: () => void
   onDelete?: () => void
+  onSelectNote?: (noteId: string) => void
   entries: PasswordEntry[]
   folderNotes: Note[]
   color: string
@@ -147,6 +150,7 @@ function FolderItem({
   onSelect,
   onToggleExpand,
   onDelete,
+  onSelectNote,
   entries,
   folderNotes,
   color,
@@ -208,7 +212,8 @@ function FolderItem({
             return (
               <div
                 key={note.id}
-                css={[tw`text-xs py-0.5 px-2 opacity-70 truncate`, nc.text]}
+                onClick={() => onSelectNote?.(note.id)}
+                css={[tw`text-xs py-0.5 px-2 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity`, nc.text]}
               >
                 ■ {note.title}
               </div>

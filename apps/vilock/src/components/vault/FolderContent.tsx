@@ -14,14 +14,15 @@ interface FolderContentProps {
   entries: PasswordEntry[]
   notes: Note[]
   folderIndex: number
+  initialNoteId?: string
 }
 
-export function FolderContent({ folder, entries, notes, folderIndex }: FolderContentProps) {
+export function FolderContent({ folder, entries, notes, folderIndex, initialNoteId }: FolderContentProps) {
   const { t } = useTranslation()
   const { addingToFolder, setAddingToFolder, deleteFolder, updateFolder, addNote } = useVault()
   const { deleteNote } = useSidebar()
   const [folderName, setFolderName] = useState(folder?.name ?? '')
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(notes[0]?.id ?? null)
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(initialNoteId ?? notes[0]?.id ?? null)
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const activeNote = notes.find(n => n.id === activeNoteId) ?? null
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

@@ -231,7 +231,13 @@ export function VaultPage() {
       <SidebarProvider
         activeView={activeView}
         onSelectFolder={(folderId) => setActiveView({ type: 'folder', folderId })}
-        onSelectNote={(noteId) => setActiveView({ type: 'note', noteId })}
+        onSelectNote={(noteId, folderId) => {
+          if (folderId !== undefined) {
+            setActiveView({ type: 'folder', folderId, activeNoteId: noteId })
+          } else {
+            setActiveView({ type: 'note', noteId })
+          }
+        }}
         onAddFolder={handleAddFolder}
         onDeleteFolder={handleDeleteFolder}
         onAddNote={handleAddNote}
@@ -276,11 +282,12 @@ export function VaultPage() {
 
               {activeView.type === 'folder' ? (
                 <FolderContent
-                  key={selectedFolder?.id ?? 'root'}
+                  key={`${selectedFolder?.id ?? 'root'}-${activeView.activeNoteId ?? ''}`}
                   folder={selectedFolder}
                   entries={selectedEntries}
                   notes={selectedNotes}
                   folderIndex={selectedFolderIndex}
+                  initialNoteId={activeView.activeNoteId}
                 />
               ) : selectedNote ? (
                 <NoteEditor

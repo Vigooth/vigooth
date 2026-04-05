@@ -138,6 +138,7 @@ func main() {
 		api.GET("/omdb", proxyHandler.OmdbRatings)
 		api.GET("/allocine/ratings", proxyHandler.AllocineRatings)
 		api.GET("/yts", proxyHandler.YtsLookup)
+		api.GET("/service/status", proxyHandler.ServiceHealth)
 
 		if recoHandler != nil {
 			api.POST("/recommendations/stream", recoHandler.StreamRecommendations)

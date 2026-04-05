@@ -69,6 +69,17 @@ export function Header() {
           >
             RECO
           </button>
+          <button
+            onClick={() => navigate('/status')}
+            css={[
+              tw`border-2 px-3 py-1 text-xs transition-colors shrink-0`,
+              isActive('/status')
+                ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
+                : tw`border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500`,
+            ]}
+          >
+            STATUS
+          </button>
       </nav>
       <button
         onClick={handleLogout}

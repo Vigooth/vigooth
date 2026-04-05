@@ -12,9 +12,10 @@ interface SidebarProps {
   folders: Folder[]
   entries: PasswordEntry[]
   notes: Note[]
+  onNavigate?: () => void
 }
 
-export function Sidebar({ folders, entries, notes }: SidebarProps) {
+export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
   const { t } = useTranslation()
   const { activeView, selectFolder, selectNote, addFolder, deleteFolder } = useSidebar()
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
@@ -43,7 +44,7 @@ export function Sidebar({ folders, entries, notes }: SidebarProps) {
   const rootNotes = getNotesForFolder(null)
 
   return (
-    <div tw="w-56 min-w-56 border-r-2 border-cpc-green-500 flex flex-col h-full overflow-hidden">
+    <div tw="w-56 min-w-56 md:border-r-2 border-cpc-green-500 flex flex-col h-full overflow-hidden max-md:w-full max-md:min-w-0">
       <div tw="flex-1 overflow-y-auto">
         {/* === PASSWORDS SECTION === */}
         <div tw="px-2 pt-2 pb-1 flex items-center justify-between">
@@ -68,10 +69,10 @@ export function Sidebar({ folders, entries, notes }: SidebarProps) {
               count={folderEntries.length}
               isSelected={activeView.type === 'folder' && activeView.folderId === folder.id}
               isExpanded={expandedFolders.has(folder.id)}
-              onSelect={() => selectFolder(folder.id)}
+              onSelect={() => { selectFolder(folder.id); onNavigate?.() }}
               onToggleExpand={() => toggleExpand(folder.id)}
               onDelete={() => deleteFolder(folder.id)}
-              onSelectNote={(noteId) => selectNote(noteId, folder.id)}
+              onSelectNote={(noteId) => { selectNote(noteId, folder.id); onNavigate?.() }}
               entries={folderEntries}
               folderNotes={folderNotes}
               color={folder.color || 'green'}
@@ -114,9 +115,9 @@ export function Sidebar({ folders, entries, notes }: SidebarProps) {
               count={rootEntries.length}
               isSelected={activeView.type === 'folder' && activeView.folderId === null}
               isExpanded={expandedFolders.has('root')}
-              onSelect={() => selectFolder(null)}
+              onSelect={() => { selectFolder(null); onNavigate?.() }}
               onToggleExpand={() => toggleExpand('root')}
-              onSelectNote={(noteId) => selectNote(noteId, null)}
+              onSelectNote={(noteId) => { selectNote(noteId, null); onNavigate?.() }}
               entries={rootEntries}
               folderNotes={rootNotes}
               color="green"
@@ -159,6 +160,15 @@ function FolderItem({
 }: FolderItemProps) {
   const colors = colorStyles[color as keyof typeof colorStyles] || colorStyles.green
 
+  const handleFolderClick = () => {
+    if (isSelected) {
+      onToggleExpand()
+    } else {
+      onSelect()
+      if (!isExpanded) onToggleExpand()
+    }
+  }
+
   return (
     <div>
       {/* Folder row */}
@@ -178,7 +188,7 @@ function FolderItem({
 
         {/* Folder info */}
         <div
-          onClick={onSelect}
+          onClick={handleFolderClick}
           tw="flex-1 flex items-center gap-1 min-w-0"
         >
           <span tw="text-cpc-green-500 opacity-50 text-xs flex-shrink-0">[{index}]</span>

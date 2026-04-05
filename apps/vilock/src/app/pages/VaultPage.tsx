@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CpcLayout } from '@vigooth/ui'
+import { CpcLayout, CpcDrawer } from '@vigooth/ui'
 import 'twin.macro'
 import { useAuth } from '../../stores/auth'
 import {
@@ -43,6 +43,7 @@ export function VaultPage() {
 
   // Active view in sidebar (folder or note)
   const [activeView, setActiveView] = useState<SidebarView>({ type: 'folder', folderId: null })
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Terminal state
   const [currentFolder, setCurrentFolder] = useState<{ id: string; name: string } | null>(null)
@@ -249,6 +250,12 @@ export function VaultPage() {
             {/* Header */}
             <div tw="flex justify-between items-center p-3 border-b-2 border-cpc-green-500">
               <div tw="flex items-center gap-2">
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  tw="text-cpc-green-500 text-sm hover:text-cpc-green-500/80 transition-colors md:hidden cursor-pointer"
+                >
+                  ☰
+                </button>
                 <span tw="text-cpc-red-500 font-bold">{t('app.name')}</span>
                 {saving && <span tw="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
                 {isSyncing && <span tw="text-cpc-cyan-500 text-xs animate-pulse">{t('status.syncing')}</span>}
@@ -275,11 +282,30 @@ export function VaultPage() {
 
             {/* Sidebar + Content */}
             <div tw="flex-1 flex overflow-hidden">
-              <Sidebar
-                folders={vault?.folders ?? []}
-                entries={vault?.entries ?? []}
-                notes={vault?.notes ?? []}
-              />
+              {/* Desktop sidebar */}
+              <div tw="hidden md:block">
+                <Sidebar
+                  folders={vault?.folders ?? []}
+                  entries={vault?.entries ?? []}
+                  notes={vault?.notes ?? []}
+                />
+              </div>
+
+              {/* Mobile sidebar drawer */}
+              <CpcDrawer
+                open={drawerOpen}
+                onOpenChange={setDrawerOpen}
+                side="left"
+                showClose={false}
+                noPadding
+              >
+                <Sidebar
+                  folders={vault?.folders ?? []}
+                  entries={vault?.entries ?? []}
+                  notes={vault?.notes ?? []}
+                  onNavigate={() => setDrawerOpen(false)}
+                />
+              </CpcDrawer>
 
               {activeView.type === 'folder' ? (
                 <FolderContent

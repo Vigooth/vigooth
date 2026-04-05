@@ -60,11 +60,34 @@ Each feature should be self-contained with its own:
 - `types/` - Feature-specific TypeScript types
 - `utils/` - Feature utility functions
 
+### Monorepo Structure
+```
+apps/
+├── moovi/        # Movie collection app (React + Vite)
+├── vilock/       # Vault/notepad app (React + Vite)
+└── portal/       # Portal/launcher app (React + Vite)
+packages/
+├── ui/           # Shared component library (@vigooth/ui)
+└── styles/       # Shared animations and style utilities (@vigooth/styles)
+services/
+└── api/          # Go backend (Gin + PostgreSQL)
+```
+
 ### Tech Stack
 - **React 19.1.1** with TypeScript
 - **Vite** for build tooling and development server
+- **twin.macro + Emotion** for CSS-in-JS with Tailwind utilities
+- **@base-ui-components/react** for headless UI primitives (Menu, Drawer)
+- **TanStack Query** for server state management
 - **ESLint** for linting with React-specific rules
 - **Prettier** for code formatting
+- **Go + Gin** for backend API (services/api/)
+
+### Shared UI Library (@vigooth/ui)
+- `CpcButton` — variants: outlined/filled/text, colors: green/cyan/red/yellow/magenta/blue/orange
+- `CpcMenu` — dropdown with `color` prop, plus CpcMenuItem/CpcMenuSeparator/CpcMenuGroup/CpcSubmenu
+- Icon system: `createIcon` factory, SVGs in `packages/ui/src/Icons/svg/` with viewBox `0 0 24 24`
+- Always check for existing components before building inline
 
 ### Architecture Rules
 - Features should not import from each other

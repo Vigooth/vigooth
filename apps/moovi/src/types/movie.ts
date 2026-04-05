@@ -181,3 +181,19 @@ export interface ParsedRatings {
   imdbRating: number | null
   rottenTomatoes: number | null
 }
+
+// YTS types
+export interface YtsTorrent {
+  url: string
+  magnet: string
+  quality: string
+  type: string
+  size: string
+}
+
+export interface YtsResponse {
+  found: boolean
+  url?: string
+  title?: string
+  torrents?: YtsTorrent[]
+}

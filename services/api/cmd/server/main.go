@@ -137,6 +137,7 @@ func main() {
 		api.GET("/tmdb/tv/:id/credits", proxyHandler.TmdbTvCredits)
 		api.GET("/omdb", proxyHandler.OmdbRatings)
 		api.GET("/allocine/ratings", proxyHandler.AllocineRatings)
+		api.GET("/yts", proxyHandler.YtsLookup)
 
 		if recoHandler != nil {
 			api.POST("/recommendations/stream", recoHandler.StreamRecommendations)

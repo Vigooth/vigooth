@@ -238,6 +238,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
               title={title}
               year={year}
               allocineId={allocine?.allocine_id}
+              mediaType={mediaType}
             />
           </div>
 

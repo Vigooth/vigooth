@@ -3,6 +3,18 @@ import type { ReactNode } from 'react'
 import { css } from '@emotion/react'
 import tw from 'twin.macro'
 
+type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange'
+
+const colorMap = {
+  green: { base: '#00FF00', dark: '#008000' },
+  cyan: { base: '#00FFFF', dark: '#008080' },
+  red: { base: '#FF0000', dark: '#800000' },
+  yellow: { base: '#FFFF00', dark: '#808000' },
+  magenta: { base: '#FF00FF', dark: '#800080' },
+  blue: { base: '#0000FF', dark: '#000080' },
+  orange: { base: '#FF8000', dark: '#804000' },
+}
+
 interface CpcMenuProps {
   trigger: ReactNode
   children: ReactNode
@@ -10,6 +22,7 @@ interface CpcMenuProps {
   onOpenChange?: (open: boolean) => void
   side?: 'top' | 'bottom' | 'left' | 'right'
   align?: 'start' | 'center' | 'end'
+  color?: CpcColor
 }
 
 interface CpcMenuItemProps {
@@ -31,43 +44,74 @@ interface CpcSubmenuProps {
   align?: 'start' | 'center' | 'end'
 }
 
-const popupStyles = tw`
-  bg-cpc-grey-900 border-2 border-cpc-green-500
-  p-1 min-w-[180px] z-50
-  outline-none
-`
+function getPopupStyles(color: CpcColor) {
+  const c = colorMap[color]
+  return css`
+    ${tw`p-1 min-w-[180px] z-50 outline-none`}
+    background: #0a0a0a;
+    border: 2px solid ${c.base};
+  `
+}
 
-const itemStyles = css`
-  ${tw`px-3 py-1.5 text-cpc-green-500 text-sm cursor-pointer outline-none select-none`}
+function getItemStyles(color: CpcColor) {
+  const c = colorMap[color]
+  return css`
+    ${tw`px-3 py-1.5 text-sm cursor-pointer outline-none select-none`}
+    color: ${c.base};
+    &[data-highlighted] {
+      background: ${c.base};
+      color: #0a0a0a;
+    }
+    &[data-highlighted] span {
+      color: #0a0a0a;
+    }
+  `
+}
 
-  &[data-highlighted] {
-    ${tw`bg-cpc-green-500 text-cpc-grey-900`}
-  }
-`
+function getDangerItemStyles() {
+  return css`
+    ${tw`px-3 py-1.5 text-sm cursor-pointer outline-none select-none`}
+    color: #FF0000;
+    &[data-highlighted] {
+      background: #FF0000;
+      color: #0a0a0a;
+    }
+  `
+}
 
-const itemDangerStyles = css`
-  ${tw`px-3 py-1.5 text-cpc-red-500 text-sm cursor-pointer outline-none select-none`}
+function getSeparatorStyles(color: CpcColor) {
+  const c = colorMap[color]
+  return css`
+    ${tw`my-1`}
+    border-top: 1px solid ${c.base}40;
+  `
+}
 
-  &[data-highlighted] {
-    ${tw`bg-cpc-red-500 text-cpc-grey-900`}
-  }
-`
+function getGroupLabelStyles(color: CpcColor) {
+  const c = colorMap[color]
+  return css`
+    ${tw`px-3 py-1 text-xs uppercase tracking-wider`}
+    color: ${c.base}99;
+  `
+}
 
-const itemDisabledStyles = tw`opacity-40 cursor-not-allowed`
+function getSubmenuTriggerStyles(color: CpcColor) {
+  const c = colorMap[color]
+  return css`
+    ${tw`flex items-center w-full px-3 py-1.5 text-sm cursor-pointer outline-none select-none`}
+    color: ${c.base};
+    &[data-highlighted] {
+      background: ${c.base};
+      color: #0a0a0a;
+    }
+  `
+}
 
-const submenuTriggerStyles = css`
-  ${tw`flex items-center w-full px-3 py-1.5 text-cpc-green-500 text-sm cursor-pointer outline-none select-none`}
+// Context to pass color down to children
+import { createContext, useContext } from 'react'
+import { ChevronRightIcon } from '../Icons'
 
-  &[data-highlighted] {
-    ${tw`bg-cpc-green-500 text-cpc-grey-900`}
-  }
-`
-
-const separatorStyles = tw`my-1 border-t border-cpc-green-500/40`
-
-const groupLabelStyles = tw`
-  px-3 py-1 text-cpc-green-500/60 text-xs uppercase tracking-wider
-`
+const MenuColorContext = createContext<CpcColor>('green')
 
 export function CpcMenu({
   trigger,
@@ -76,23 +120,30 @@ export function CpcMenu({
   onOpenChange,
   side = 'bottom',
   align = 'start',
+  color = 'green',
 }: CpcMenuProps) {
   return (
-    <Menu.Root open={open} onOpenChange={onOpenChange}>
-      <Menu.Trigger render={<div tw="w-full" />}>{trigger}</Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner side={side} align={align} sideOffset={4}>
-          <Menu.Popup css={popupStyles}>{children}</Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+    <MenuColorContext.Provider value={color}>
+      <Menu.Root open={open} onOpenChange={onOpenChange}>
+        <Menu.Trigger render={<div tw="inline-flex" />}>{trigger}</Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner side={side} align={align} sideOffset={4}>
+            <Menu.Popup css={getPopupStyles(color)}>{children}</Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+    </MenuColorContext.Provider>
   )
 }
 
 export function CpcMenuItem({ children, onClick, disabled, variant = 'default' }: CpcMenuItemProps) {
+  const color = useContext(MenuColorContext)
+  const styles = variant === 'danger' ? getDangerItemStyles() : getItemStyles(color)
+  const disabledStyles = disabled ? tw`opacity-40 cursor-not-allowed` : undefined
+
   return (
     <Menu.Item
-      css={[variant === 'danger' ? itemDangerStyles : itemStyles, disabled && itemDisabledStyles]}
+      css={[styles, disabledStyles]}
       onClick={onClick}
       disabled={disabled}
     >
@@ -102,13 +153,15 @@ export function CpcMenuItem({ children, onClick, disabled, variant = 'default' }
 }
 
 export function CpcMenuSeparator() {
-  return <Menu.Separator css={separatorStyles} />
+  const color = useContext(MenuColorContext)
+  return <Menu.Separator css={getSeparatorStyles(color)} />
 }
 
 export function CpcMenuGroup({ label, children }: CpcMenuGroupProps) {
+  const color = useContext(MenuColorContext)
   return (
     <Menu.Group>
-      {label && <Menu.GroupLabel css={groupLabelStyles}>{label}</Menu.GroupLabel>}
+      {label && <Menu.GroupLabel css={getGroupLabelStyles(color)}>{label}</Menu.GroupLabel>}
       {children}
     </Menu.Group>
   )
@@ -120,15 +173,16 @@ export function CpcSubmenu({
   side = 'right',
   align = 'start',
 }: CpcSubmenuProps) {
+  const color = useContext(MenuColorContext)
   return (
     <Menu.SubmenuRoot>
-      <Menu.SubmenuTrigger css={submenuTriggerStyles}>
+      <Menu.SubmenuTrigger css={getSubmenuTriggerStyles(color)}>
         {label}
-        <span tw="ml-auto pl-3 text-xs">▶</span>
+        <ChevronRightIcon size="sm" tw="ml-auto" />
       </Menu.SubmenuTrigger>
       <Menu.Portal>
         <Menu.Positioner side={side} align={align} sideOffset={0}>
-          <Menu.Popup css={popupStyles}>{children}</Menu.Popup>
+          <Menu.Popup css={getPopupStyles(color)}>{children}</Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.SubmenuRoot>

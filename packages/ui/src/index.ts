@@ -1,3 +1,15 @@
+export { CpcButton } from './Button'
+export {
+  createIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  SearchIcon,
+  DownloadIcon,
+  ExternalLinkIcon,
+  StarIcon,
+} from './Icons'
+export type { CreateIconProps, IconConfig, VariantDef, Size, IconVariant } from './Icons'
 export { Door } from './Door'
 export { Terminal } from './Terminal'
 export { CpcInput } from './CpcInput'

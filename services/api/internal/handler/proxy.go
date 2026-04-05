@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -12,12 +14,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/net/proxy"
 )
 
 type ProxyHandler struct {
 	tmdbApiKey string
 	omdbApiKey string
 	client     *http.Client
+	torClient  *http.Client
 }
 
 func NewProxyHandler(tmdbApiKey, omdbApiKey string) *ProxyHandler {
@@ -26,6 +30,27 @@ func NewProxyHandler(tmdbApiKey, omdbApiKey string) *ProxyHandler {
 		omdbApiKey: omdbApiKey,
 		client:     &http.Client{Timeout: 10 * time.Second},
 	}
+}
+
+func (h *ProxyHandler) getTorClient() *http.Client {
+	if h.torClient != nil {
+		return h.torClient
+	}
+
+	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:9150", nil, proxy.Direct)
+	if err != nil {
+		return h.client
+	}
+
+	h.torClient = &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
+				return dialer.Dial(network, addr)
+			},
+		},
+	}
+	return h.torClient
 }
 
 func (h *ProxyHandler) TmdbSearch(c *gin.Context) {
@@ -242,6 +267,96 @@ func (h *ProxyHandler) scrapeAllocineRatings(filmURL string) (press *float64, sp
 	}
 
 	return press, spectateurs
+}
+
+func (h *ProxyHandler) YtsLookup(c *gin.Context) {
+	imdbID := c.Query("imdb_id")
+	if imdbID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'imdb_id' is required"})
+		return
+	}
+
+	targetURL := fmt.Sprintf("https://yts.bz/api/v2/list_movies.json?query_term=%s&limit=1", url.QueryEscape(imdbID))
+
+	client := h.getTorClient()
+	resp, err := client.Get(targetURL)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach YTS API (is Tor running?)"})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read response"})
+		return
+	}
+
+	var ytsResp struct {
+		Status string `json:"status"`
+		Data   struct {
+			MovieCount int `json:"movie_count"`
+			Movies     []struct {
+				URL      string `json:"url"`
+				Slug     string `json:"slug"`
+				Title    string `json:"title_long"`
+				Torrents []struct {
+					URL       string `json:"url"`
+					Hash      string `json:"hash"`
+					Quality   string `json:"quality"`
+					Type      string `json:"type"`
+					SizeBytes int64  `json:"size_bytes"`
+					Size      string `json:"size"`
+				} `json:"torrents"`
+			} `json:"movies"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &ytsResp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse YTS response"})
+		return
+	}
+
+	if ytsResp.Data.MovieCount == 0 || len(ytsResp.Data.Movies) == 0 {
+		c.JSON(http.StatusOK, gin.H{"found": false})
+		return
+	}
+
+	movie := ytsResp.Data.Movies[0]
+	trackers := []string{
+		"udp://open.demonii.com:1337/announce",
+		"udp://tracker.openbittorrent.com:80",
+		"udp://tracker.coppersurfer.tk:6969",
+		"udp://glotorrents.pw:6969/announce",
+		"udp://tracker.opentrackr.org:1337/announce",
+		"udp://torrent.gresille.org:80/announce",
+		"udp://p4p.arenabg.com:1337",
+		"udp://tracker.leechers-paradise.org:6969",
+	}
+	trackerParams := ""
+	for _, tr := range trackers {
+		trackerParams += "&tr=" + url.QueryEscape(tr)
+	}
+
+	torrents := make([]gin.H, 0, len(movie.Torrents))
+	for _, t := range movie.Torrents {
+		magnet := fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s",
+			t.Hash, url.QueryEscape(movie.Title), trackerParams)
+		torrents = append(torrents, gin.H{
+			"url":     t.URL,
+			"magnet":  magnet,
+			"quality": t.Quality,
+			"type":    t.Type,
+			"size":    t.Size,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"found":    true,
+		"url":      movie.URL,
+		"title":    movie.Title,
+		"torrents": torrents,
+	})
 }
 
 func (h *ProxyHandler) proxyGet(c *gin.Context, targetURL string) {

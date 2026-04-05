@@ -19,17 +19,22 @@ import (
 )
 
 type ProxyHandler struct {
-	tmdbApiKey string
-	omdbApiKey string
-	client     *http.Client
-	torClient  *http.Client
+	tmdbApiKey   string
+	omdbApiKey   string
+	torSocksAddr string
+	client       *http.Client
+	torClient    *http.Client
 }
 
-func NewProxyHandler(tmdbApiKey, omdbApiKey string) *ProxyHandler {
+func NewProxyHandler(tmdbApiKey, omdbApiKey, torSocksAddr string) *ProxyHandler {
+	if torSocksAddr == "" {
+		torSocksAddr = "127.0.0.1:9150"
+	}
 	return &ProxyHandler{
-		tmdbApiKey: tmdbApiKey,
-		omdbApiKey: omdbApiKey,
-		client:     &http.Client{Timeout: 10 * time.Second},
+		tmdbApiKey:   tmdbApiKey,
+		omdbApiKey:   omdbApiKey,
+		torSocksAddr: torSocksAddr,
+		client:       &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
@@ -38,7 +43,7 @@ func (h *ProxyHandler) getTorClient() *http.Client {
 		return h.torClient
 	}
 
-	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:9150", nil, proxy.Direct)
+	dialer, err := proxy.SOCKS5("tcp", h.torSocksAddr, nil, proxy.Direct)
 	if err != nil {
 		return h.client
 	}
@@ -468,7 +473,7 @@ func (h *ProxyHandler) ServiceHealth(c *gin.Context) {
 
 	// Tor SOCKS5 (optional)
 	go check(3, "Tor SOCKS5", func() error {
-		conn, err := net.DialTimeout("tcp", "127.0.0.1:9150", 3*time.Second)
+		conn, err := net.DialTimeout("tcp", h.torSocksAddr, 3*time.Second)
 		if err != nil {
 			return fmt.Errorf("not available (optional)")
 		}

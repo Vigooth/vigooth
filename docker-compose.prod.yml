@@ -17,6 +17,12 @@ services:
     networks:
       - backend
 
+  tor:
+    image: dperson/torproxy:latest
+    restart: unless-stopped
+    networks:
+      - backend
+
   api:
     build:
       context: ./services/api
@@ -32,9 +38,12 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
       COOKIE_DOMAIN: .${DOMAIN}
+      TOR_SOCKS_ADDR: tor:9050
     depends_on:
       postgres:
         condition: service_healthy
+      tor:
+        condition: service_started
     networks:
       - backend
 

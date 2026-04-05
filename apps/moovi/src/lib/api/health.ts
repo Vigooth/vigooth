@@ -13,5 +13,5 @@ export interface HealthResponse {
 }
 
 export async function getServiceHealth(): Promise<HealthResponse> {
-  return request<HealthResponse>('/api/health/services')
+  return request<HealthResponse>('/api/service/status')
 }

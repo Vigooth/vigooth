@@ -80,14 +80,6 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
           <span tw="text-cpc-green-900 text-xs flex-shrink-0">({entries.length})</span>
         </div>
         <div tw="flex items-center gap-2">
-          {!isAddingEntry && (
-            <button
-              onClick={handleAddClick}
-              tw="border border-cpc-cyan-500 text-cpc-cyan-500 px-2 py-0.5 text-xs hover:bg-cpc-cyan-500 hover:text-cpc-grey-900 transition-colors"
-            >
-              + {t('entry.add')}
-            </button>
-          )}
           <CpcMenu
             trigger={
               <button tw="border border-cpc-green-500 text-cpc-green-500 px-2 py-0.5 text-xs hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer">
@@ -116,14 +108,6 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
               <CpcMenuItem variant="danger" onClick={() => deleteFolder(folder.id)}>{t('menu.delete')}</CpcMenuItem>
             )}
           </CpcMenu>
-          {folder && (
-            <button
-              onClick={() => deleteFolder(folder.id)}
-              tw="text-cpc-red-500 hover:text-cpc-red-900 text-xs"
-            >
-              ✕
-            </button>
-          )}
         </div>
       </div>
 

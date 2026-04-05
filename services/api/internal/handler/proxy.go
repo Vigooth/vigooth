@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -374,4 +375,109 @@ func (h *ProxyHandler) proxyGet(c *gin.Context, targetURL string) {
 	}
 
 	c.Data(resp.StatusCode, "application/json", body)
+}
+
+type serviceStatus struct {
+	Name      string `json:"name"`
+	Status    string `json:"status"`
+	LatencyMs int64  `json:"latency_ms"`
+	Error     string `json:"error,omitempty"`
+}
+
+func (h *ProxyHandler) ServiceHealth(c *gin.Context) {
+	services := make([]serviceStatus, 5)
+	var wg sync.WaitGroup
+	wg.Add(5)
+
+	check := func(idx int, name string, fn func() error) {
+		defer wg.Done()
+		start := time.Now()
+		err := fn()
+		ms := time.Since(start).Milliseconds()
+		s := serviceStatus{Name: name, LatencyMs: ms, Status: "ok"}
+		if err != nil {
+			s.Status = "error"
+			s.Error = err.Error()
+		}
+		services[idx] = s
+	}
+
+	// TMDB
+	go check(0, "TMDB", func() error {
+		u := fmt.Sprintf("https://api.themoviedb.org/3/search/movie?api_key=%s&query=test&page=1", h.tmdbApiKey)
+		resp, err := h.client.Get(u)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("HTTP %d", resp.StatusCode)
+		}
+		return nil
+	})
+
+	// OMDB
+	go check(1, "OMDB", func() error {
+		u := fmt.Sprintf("https://www.omdbapi.com/?apikey=%s&i=tt0137523", h.omdbApiKey)
+		resp, err := h.client.Get(u)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("HTTP %d", resp.StatusCode)
+		}
+		return nil
+	})
+
+	// Allocine (Wikidata)
+	go check(2, "Allocine (Wikidata)", func() error {
+		sparql := `SELECT ?id WHERE { ?item wdt:P345 "tt0137523" . ?item wdt:P1265 ?id . } LIMIT 1`
+		u := fmt.Sprintf("https://query.wikidata.org/sparql?format=json&query=%s", url.QueryEscape(sparql))
+		req, err := http.NewRequest("GET", u, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("User-Agent", "MovieDB/1.0")
+		resp, err := h.client.Do(req)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("HTTP %d", resp.StatusCode)
+		}
+		return nil
+	})
+
+	// Tor SOCKS5
+	go check(3, "Tor SOCKS5", func() error {
+		conn, err := net.DialTimeout("tcp", "127.0.0.1:9150", 3*time.Second)
+		if err != nil {
+			return fmt.Errorf("proxy unreachable")
+		}
+		conn.Close()
+		return nil
+	})
+
+	// YTS (via Tor)
+	go check(4, "YTS", func() error {
+		client := h.getTorClient()
+		resp, err := client.Get("https://yts.bz/api/v2/list_movies.json?query_term=tt0137523&limit=1")
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("HTTP %d", resp.StatusCode)
+		}
+		return nil
+	})
+
+	wg.Wait()
+
+	c.JSON(http.StatusOK, gin.H{
+		"services":   services,
+		"checked_at": time.Now().UTC().Format(time.RFC3339),
+	})
 }

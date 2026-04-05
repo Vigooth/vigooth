@@ -8,6 +8,7 @@ import { SearchPage } from './pages/SearchPage'
 import { MoviePage } from './pages/MoviePage'
 import { RecommendationsPage } from './pages/RecommendationsPage'
 import { WishlistPage } from './pages/WishlistPage'
+import { StatusPage } from './pages/StatusPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -77,6 +78,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MoviePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/status"
+        element={
+          <ProtectedRoute>
+            <StatusPage />
           </ProtectedRoute>
         }
       />

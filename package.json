@@ -19,6 +19,7 @@
     "format": "prettier --write .",
     "type-check": "pnpm -r type-check",
     "prepare": "husky install",
+    "tui": "pnpm --filter @vigooth/tui dev",
     "storybook": "pnpm --filter @vigooth/storybook dev",
     "build-storybook": "pnpm --filter @vigooth/storybook build"
   },

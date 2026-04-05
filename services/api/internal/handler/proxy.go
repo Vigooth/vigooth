@@ -279,10 +279,9 @@ func (h *ProxyHandler) YtsLookup(c *gin.Context) {
 
 	targetURL := fmt.Sprintf("https://yts.bz/api/v2/list_movies.json?query_term=%s&limit=1", url.QueryEscape(imdbID))
 
-	client := h.getTorClient()
-	resp, err := client.Get(targetURL)
+	resp, err := h.ytsGet(targetURL)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to reach YTS API (is Tor running?)"})
+		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to reach YTS API: %v", err)})
 		return
 	}
 	defer resp.Body.Close()
@@ -358,6 +357,23 @@ func (h *ProxyHandler) YtsLookup(c *gin.Context) {
 		"title":    movie.Title,
 		"torrents": torrents,
 	})
+}
+
+// ytsGet tries a direct request first, then falls back to Tor if blocked.
+func (h *ProxyHandler) ytsGet(targetURL string) (*http.Response, error) {
+	resp, err := h.client.Get(targetURL)
+	if err == nil && resp.StatusCode == http.StatusOK {
+		return resp, nil
+	}
+	if resp != nil {
+		resp.Body.Close()
+	}
+
+	torClient := h.getTorClient()
+	if torClient == h.client {
+		return nil, fmt.Errorf("direct request failed and Tor is not available")
+	}
+	return torClient.Get(targetURL)
 }
 
 func (h *ProxyHandler) proxyGet(c *gin.Context, targetURL string) {
@@ -450,27 +466,23 @@ func (h *ProxyHandler) ServiceHealth(c *gin.Context) {
 		return nil
 	})
 
-	// Tor SOCKS5
+	// Tor SOCKS5 (optional)
 	go check(3, "Tor SOCKS5", func() error {
 		conn, err := net.DialTimeout("tcp", "127.0.0.1:9150", 3*time.Second)
 		if err != nil {
-			return fmt.Errorf("proxy unreachable")
+			return fmt.Errorf("not available (optional)")
 		}
 		conn.Close()
 		return nil
 	})
 
-	// YTS (via Tor)
+	// YTS (direct, fallback Tor)
 	go check(4, "YTS", func() error {
-		client := h.getTorClient()
-		resp, err := client.Get("https://yts.bz/api/v2/list_movies.json?query_term=tt0137523&limit=1")
+		resp, err := h.ytsGet("https://yts.bz/api/v2/list_movies.json?query_term=tt0137523&limit=1")
 		if err != nil {
 			return err
 		}
 		resp.Body.Close()
-		if resp.StatusCode != 200 {
-			return fmt.Errorf("HTTP %d", resp.StatusCode)
-		}
 		return nil
 	})
 

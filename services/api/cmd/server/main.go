@@ -68,7 +68,7 @@ func main() {
 	vaultHandler := handler.NewVaultHandler(vaultService)
 	movieHandler := handler.NewMovieHandler(movieService)
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
-	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey)
+	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey, os.Getenv("TOR_SOCKS_ADDR"))
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
 		Domain: cookieDomain,
 		Secure: cookieSecure,

@@ -89,7 +89,7 @@ export function useRecommendations() {
     setError(null)
   }, [history, setHistoryParam])
 
-  const startStream = useCallback((streamFn: typeof streamRecommendations, movieIds: string[] = [], vibe: number = 50) => {
+  const startStream = useCallback((streamFn: typeof streamRecommendations, movieIds: string[] = [], vibe: number = 50, yearFrom?: number, yearTo?: number) => {
     if (abortRef.current) {
       abortRef.current.abort()
     }
@@ -106,7 +106,7 @@ export function useRecommendations() {
     abortRef.current = controller
 
     streamFn(
-      { movieIds, vibe },
+      { movieIds, vibe, yearFrom, yearTo },
       (event) => {
         setEvents((prev) => [...prev, event])
 
@@ -132,12 +132,12 @@ export function useRecommendations() {
     )
   }, [refreshHistory, setHistoryParam])
 
-  const generate = useCallback((movieIds: string[] = [], vibe: number = 50) => {
-    startStream(streamRecommendations, movieIds, vibe)
+  const generate = useCallback((movieIds: string[] = [], vibe: number = 50, yearFrom?: number, yearTo?: number) => {
+    startStream(streamRecommendations, movieIds, vibe, yearFrom, yearTo)
   }, [startStream])
 
-  const generateSimple = useCallback((movieIds: string[] = [], vibe: number = 50) => {
-    startStream(streamRecommendationsSimple, movieIds, vibe)
+  const generateSimple = useCallback((movieIds: string[] = [], vibe: number = 50, yearFrom?: number, yearTo?: number) => {
+    startStream(streamRecommendationsSimple, movieIds, vibe, yearFrom, yearTo)
   }, [startStream])
 
   const cancel = useCallback(() => {

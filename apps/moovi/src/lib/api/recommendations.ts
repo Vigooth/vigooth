@@ -36,6 +36,8 @@ export async function getRecommendationHistory(): Promise<HistoryResponse> {
 export interface StreamOptions {
   movieIds?: string[]
   vibe?: number
+  yearFrom?: number
+  yearTo?: number
 }
 
 export function streamRecommendationsSimple(
@@ -66,7 +68,12 @@ function streamFromEndpoint(
       'Content-Type': 'application/json',
     },
     credentials: 'include',
-    body: JSON.stringify({ movie_ids: options.movieIds ?? [], vibe: options.vibe ?? 50 }),
+    body: JSON.stringify({
+      movie_ids: options.movieIds ?? [],
+      vibe: options.vibe ?? 50,
+      year_from: options.yearFrom || undefined,
+      year_to: options.yearTo || undefined,
+    }),
     signal,
   })
     .then((response) => {

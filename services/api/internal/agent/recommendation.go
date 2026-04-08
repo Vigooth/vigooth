@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -61,6 +62,28 @@ func NewRecommendationAgent(provider llm.Provider, tmdbAPIKey string) *Recommend
 	}
 }
 
+type YearRange struct {
+	From int
+	To   int
+}
+
+func (yr YearRange) Active() bool {
+	return yr.From > 0 || yr.To > 0
+}
+
+func (yr YearRange) Matches(year int) bool {
+	if year == 0 {
+		return true
+	}
+	if yr.From > 0 && year < yr.From {
+		return false
+	}
+	if yr.To > 0 && year > yr.To {
+		return false
+	}
+	return true
+}
+
 type TokenUsage struct {
 	InputTokens  int `json:"input_tokens"`
 	OutputTokens int `json:"output_tokens"`
@@ -68,7 +91,7 @@ type TokenUsage struct {
 }
 
 // RunSimple generates recommendations without AI by using TMDB candidates sorted by relevance.
-func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
+func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, yearRange YearRange, onEvent func(Event)) (*RecommendationResult, error) {
 	ctx, cancel := context.WithTimeout(ctx, agentTimeout)
 	defer cancel()
 
@@ -93,6 +116,23 @@ func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.
 
 	onEvent(Event{Type: "tool_call", Message: "Recherche TMDB des films similaires..."})
 	candidates := a.fetchTMDBCandidates(ctx, topMovies, existingTMDBIDs, onEvent)
+
+	// When year range is active, also discover movies in that period
+	if yearRange.Active() {
+		topGenres := extractTopGenres(userMovies, 3)
+		discoverCandidates := a.fetchTMDBDiscoverByYear(ctx, yearRange, existingTMDBIDs, topGenres, onEvent)
+		// Merge, avoiding duplicates
+		seen := make(map[int]bool)
+		for _, c := range candidates {
+			seen[c.ID] = true
+		}
+		for _, c := range discoverCandidates {
+			if !seen[c.ID] {
+				candidates = append(candidates, c)
+				seen[c.ID] = true
+			}
+		}
+	}
 
 	if len(candidates) == 0 {
 		onEvent(Event{Type: "error", Message: "Aucun candidat trouvé sur TMDB"})
@@ -149,6 +189,9 @@ func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.
 		if len(c.Year) >= 4 {
 			fmt.Sscanf(c.Year[:4], "%d", &year)
 		}
+		if !yearRange.Matches(year) {
+			continue
+		}
 		final = append(final, Recommendation{
 			Title:      c.Title,
 			Year:       year,
@@ -178,6 +221,9 @@ func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.
 			year := 0
 			if len(c.Year) >= 4 {
 				fmt.Sscanf(c.Year[:4], "%d", &year)
+			}
+			if !yearRange.Matches(year) {
+				continue
 			}
 			final = append(final, Recommendation{
 				Title:      c.Title,
@@ -216,7 +262,7 @@ func (a *RecommendationAgent) RunSimple(ctx context.Context, userMovies []model.
 	return result, nil
 }
 
-func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, onEvent func(Event)) (*RecommendationResult, error) {
+func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie, excludeTmdbIDs []int, vibe int, yearRange YearRange, onEvent func(Event)) (*RecommendationResult, error) {
 	ctx, cancel := context.WithTimeout(ctx, agentTimeout)
 	defer cancel()
 
@@ -261,8 +307,21 @@ func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie,
 
 	prompt := fmt.Sprintf("## COLLECTION DE L'UTILISATEUR\n%s\n\n## CANDIDATS TMDB\n%s", collectionSummary, candidatesSummary)
 
+	systemPrompt := buildSystemPrompt(vibe)
+	if yearRange.Active() {
+		yearConstraint := ""
+		if yearRange.From > 0 && yearRange.To > 0 {
+			yearConstraint = fmt.Sprintf("\n\nCONTRAINTE ANNÉE: Ne recommande QUE des films sortis entre %d et %d inclus.", yearRange.From, yearRange.To)
+		} else if yearRange.From > 0 {
+			yearConstraint = fmt.Sprintf("\n\nCONTRAINTE ANNÉE: Ne recommande QUE des films sortis à partir de %d.", yearRange.From)
+		} else {
+			yearConstraint = fmt.Sprintf("\n\nCONTRAINTE ANNÉE: Ne recommande QUE des films sortis jusqu'en %d inclus.", yearRange.To)
+		}
+		systemPrompt += yearConstraint
+	}
+
 	messages := []llm.Message{
-		{Role: "system", Content: buildSystemPrompt(vibe)},
+		{Role: "system", Content: systemPrompt},
 		{Role: "user", Content: prompt},
 	}
 
@@ -306,10 +365,13 @@ func (a *RecommendationAgent) Run(ctx context.Context, userMovies []model.Movie,
 	// Step 5: Enrich hidden gems (tmdb_id=0) by searching TMDB + get overview
 	filtered = a.enrichRecommendations(ctx, filtered, onEvent)
 
-	// Step 6: Re-filter after enrichment (hidden gems now have real TMDB IDs)
+	// Step 6: Re-filter after enrichment (hidden gems now have real TMDB IDs) + year range
 	var final []Recommendation
 	for _, r := range filtered {
 		if r.TmdbID != 0 && existingTMDBIDs[r.TmdbID] {
+			continue
+		}
+		if !yearRange.Matches(r.Year) {
 			continue
 		}
 		final = append(final, r)
@@ -414,6 +476,56 @@ func (a *RecommendationAgent) fetchTMDBCandidates(ctx context.Context, topMovies
 	return candidates
 }
 
+// fetchTMDBDiscoverByYear fetches popular movies from TMDB discover in the given year range
+func (a *RecommendationAgent) fetchTMDBDiscoverByYear(ctx context.Context, yearRange YearRange, existingIDs map[int]bool, genres []string, onEvent func(Event)) []tmdbCandidate {
+	var candidates []tmdbCandidate
+	seen := make(map[int]bool)
+
+	params := url.Values{
+		"sort_by":        {"vote_average.desc"},
+		"vote_count.gte": {"50"},
+	}
+	if yearRange.From > 0 {
+		params.Set("primary_release_date.gte", fmt.Sprintf("%d-01-01", yearRange.From))
+	}
+	if yearRange.To > 0 {
+		params.Set("primary_release_date.lte", fmt.Sprintf("%d-12-31", yearRange.To))
+	}
+
+	// Discover with user's top genres
+	if len(genres) > 0 {
+		for _, g := range genres {
+			genreParams := url.Values{}
+			for k, v := range params {
+				genreParams[k] = v
+			}
+			genreParams.Set("with_genres", g)
+
+			onEvent(Event{Type: "tool_call", Message: fmt.Sprintf("TMDB discover %d-%d genre %s...", yearRange.From, yearRange.To, g)})
+			result, err := a.exec.tmdbGet(ctx, "/discover/movie", genreParams)
+			if err != nil {
+				continue
+			}
+			overviews := make(map[int]string)
+			raw, _ := a.exec.tmdbGetRaw(ctx, "/discover/movie", genreParams)
+			extractOverviews(raw, overviews)
+			candidates = appendCandidates(candidates, result, seen, existingIDs, "discover", overviews)
+		}
+	}
+
+	// Also a general discover without genre filter
+	onEvent(Event{Type: "tool_call", Message: fmt.Sprintf("TMDB discover %d-%d tous genres...", yearRange.From, yearRange.To)})
+	result, err := a.exec.tmdbGet(ctx, "/discover/movie", params)
+	if err == nil {
+		overviews := make(map[int]string)
+		raw, _ := a.exec.tmdbGetRaw(ctx, "/discover/movie", params)
+		extractOverviews(raw, overviews)
+		candidates = appendCandidates(candidates, result, seen, existingIDs, "discover", overviews)
+	}
+
+	return candidates
+}
+
 type tmdbCandidate struct {
 	ID         int     `json:"id"`
 	Title      string  `json:"title"`
@@ -481,6 +593,54 @@ func extractOverviews(raw []byte, out map[int]string) {
 			}
 		}
 	}
+}
+
+// TMDB genre name → ID mapping
+var genreIDMap = map[string]string{
+	"action": "28", "adventure": "12", "animation": "16", "comedy": "35",
+	"crime": "80", "documentary": "99", "drama": "18", "family": "10751",
+	"fantasy": "14", "history": "36", "horror": "27", "music": "10402",
+	"mystery": "9648", "romance": "10749", "science fiction": "878", "sci-fi": "878",
+	"thriller": "53", "war": "10752", "western": "37",
+}
+
+// extractTopGenres returns the N most frequent TMDB genre IDs from the user's collection
+func extractTopGenres(movies []model.Movie, n int) []string {
+	counts := make(map[string]int)
+	for _, m := range movies {
+		var genres []string
+		if json.Unmarshal([]byte(m.Genres), &genres) == nil {
+			for _, g := range genres {
+				lower := strings.ToLower(g)
+				if id, ok := genreIDMap[lower]; ok {
+					counts[id]++
+				}
+			}
+		}
+	}
+
+	// Sort by count
+	type kv struct {
+		id    string
+		count int
+	}
+	var sorted []kv
+	for id, count := range counts {
+		sorted = append(sorted, kv{id, count})
+	}
+	for i := 0; i < len(sorted); i++ {
+		for j := i + 1; j < len(sorted); j++ {
+			if sorted[j].count > sorted[i].count {
+				sorted[i], sorted[j] = sorted[j], sorted[i]
+			}
+		}
+	}
+
+	var result []string
+	for i := 0; i < n && i < len(sorted); i++ {
+		result = append(result, sorted[i].id)
+	}
+	return result
 }
 
 func buildCandidatesSummary(candidates []tmdbCandidate) string {

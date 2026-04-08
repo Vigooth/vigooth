@@ -38,6 +38,8 @@ export function RecommendationsPage() {
   const [showPicker, setShowPicker] = useState(false)
   const [vibe, setVibe] = useState(50)
   const [minRating, setMinRating] = useState(0)
+  const [yearFrom, setYearFrom] = useState('')
+  const [yearTo, setYearTo] = useState('')
 
   const toggleMovie = (id: string) => {
     setSelectedIds((prev) => {
@@ -49,6 +51,9 @@ export function RecommendationsPage() {
   }
 
   const allMovies = data?.movies ?? []
+
+  const fromYear = yearFrom ? parseInt(yearFrom, 10) : undefined
+  const toYear = yearTo ? parseInt(yearTo, 10) : undefined
 
   const filteredMovies = allMovies.filter((m) => {
     if (minRating > 0) {
@@ -65,12 +70,12 @@ export function RecommendationsPage() {
       : []
 
   const handleGenerate = () => {
-    generateSimple(movieIds, vibe)
+    generateSimple(movieIds, vibe, fromYear, toYear)
     setShowPicker(false)
   }
 
   const handleGenerateIA = () => {
-    generate(movieIds, vibe)
+    generate(movieIds, vibe, fromYear, toYear)
     setShowPicker(false)
   }
 
@@ -144,6 +149,36 @@ export function RecommendationsPage() {
                       {preset.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Year range filter */}
+              <div tw="mb-3">
+                <div tw="text-cpc-green-900 text-xs mb-1">ANNÉE</div>
+                <div tw="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="De"
+                    value={yearFrom}
+                    onChange={(e) => setYearFrom(e.target.value)}
+                    tw="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 w-20 outline-none focus:border-cpc-cyan-500"
+                  />
+                  <span tw="text-cpc-green-900 text-xs">→</span>
+                  <input
+                    type="number"
+                    placeholder="À"
+                    value={yearTo}
+                    onChange={(e) => setYearTo(e.target.value)}
+                    tw="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 w-20 outline-none focus:border-cpc-cyan-500"
+                  />
+                  {(yearFrom || yearTo) && (
+                    <button
+                      onClick={() => { setYearFrom(''); setYearTo('') }}
+                      tw="text-cpc-green-900 text-xs hover:text-cpc-red-500 transition-colors"
+                    >
+                      RESET
+                    </button>
+                  )}
                 </div>
               </div>
 

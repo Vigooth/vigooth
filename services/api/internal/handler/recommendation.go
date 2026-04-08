@@ -37,6 +37,8 @@ func NewRecommendationHandler(movieService *service.MovieService, wishlistServic
 type streamRequest struct {
 	MovieIDs []string `json:"movie_ids"`
 	Vibe     *int     `json:"vibe"`
+	YearFrom *int     `json:"year_from"`
+	YearTo   *int     `json:"year_to"`
 }
 
 func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
@@ -102,8 +104,16 @@ func (h *RecommendationHandler) StreamRecommendations(c *gin.Context) {
 		vibe = *req.Vibe
 	}
 
+	yearRange := agent.YearRange{}
+	if req.YearFrom != nil {
+		yearRange.From = *req.YearFrom
+	}
+	if req.YearTo != nil {
+		yearRange.To = *req.YearTo
+	}
+
 	var tokensUsed int
-	result, err := recoAgent.Run(c.Request.Context(), movies, excludeTmdbIDs, vibe, func(event agent.Event) {
+	result, err := recoAgent.Run(c.Request.Context(), movies, excludeTmdbIDs, vibe, yearRange, func(event agent.Event) {
 		// Capture tokens from done event
 		if event.Type == "done" {
 			if data, ok := event.Data.(map[string]interface{}); ok {
@@ -214,7 +224,15 @@ func (h *RecommendationHandler) StreamRecommendationsSimple(c *gin.Context) {
 		vibe = *req.Vibe
 	}
 
-	result, err := recoAgent.RunSimple(c.Request.Context(), movies, excludeTmdbIDs, vibe, func(event agent.Event) {
+	yearRangeSimple := agent.YearRange{}
+	if req.YearFrom != nil {
+		yearRangeSimple.From = *req.YearFrom
+	}
+	if req.YearTo != nil {
+		yearRangeSimple.To = *req.YearTo
+	}
+
+	result, err := recoAgent.RunSimple(c.Request.Context(), movies, excludeTmdbIDs, vibe, yearRangeSimple, func(event agent.Event) {
 		data, _ := json.Marshal(event)
 		fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Type, string(data))
 		c.Writer.Flush()

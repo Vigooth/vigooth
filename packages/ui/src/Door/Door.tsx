@@ -1,56 +1,57 @@
 import { useState } from 'react'
 import tw from 'twin.macro'
-import { animateEnterDoor, animateZoomIn, animatePulse } from '@vigooth/styles'
+import { css, keyframes } from '@emotion/react'
+import { animatePulse } from '@vigooth/styles'
+
+import type { ReactNode } from 'react'
 
 interface DoorProps {
   onOpen?: () => void
+  showLock?: boolean
+  icon?: ReactNode
 }
 
-export function Door({ onOpen }: DoorProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isEntering, setIsEntering] = useState(false)
+const doorSwing = keyframes`
+  0% { transform: perspective(1000px) rotateY(0deg); }
+  100% { transform: perspective(1000px) rotateY(-105deg); }
+`
+
+export function Door({ onOpen, showLock, icon }: DoorProps) {
+  const [phase, setPhase] = useState<'idle' | 'opening'>('idle')
 
   const handleClick = () => {
-    setIsOpen(true)
-
-    // Start entering animation almost immediately for smooth transition
-    setTimeout(() => {
-      setIsEntering(true)
-      onOpen?.()
-    }, 300)
+    if (phase !== 'idle') return
+    setPhase('opening')
+    setTimeout(() => onOpen?.(), 700)
   }
 
   return (
-    <div tw="flex flex-col items-center justify-center gap-8 p-8 relative">
-      {/* Door frame and structure */}
-      <div css={[tw`relative transition-all`, isEntering && animateEnterDoor]}>
+    <div tw="flex flex-col items-center justify-center p-2 sm:p-8 relative">
+      <div tw="relative">
         {/* Door frame */}
-        <div tw="relative border-4 border-cpc-yellow-500 bg-cpc-grey-900 p-2" style={{ width: '200px', height: '300px' }}>
-          {/* Dark space behind door (shows when door opens) */}
-          {isOpen && (
-            <div
-              css={[tw`absolute inset-0 bg-black transition-opacity duration-300`, !isEntering && tw`opacity-100`, isEntering && animateZoomIn]}
-            >
-              <div tw="w-full h-full flex items-center justify-center">
-                <div tw="text-cpc-green-500 text-center">
-                  <div css={[tw`text-2xl mb-4`, animatePulse]}>···</div>
-                  <div tw="text-sm">ENTERING...</div>
-                </div>
+        <div tw="relative border-4 border-cpc-yellow-500 p-2 overflow-hidden" style={{ width: '200px', height: '300px', background: '#0a0a0a' }}>
+          {/* Room behind door */}
+          <div tw="absolute inset-0 flex items-center justify-center">
+            {phase !== 'idle' && (
+              <div tw="text-cpc-green-500 text-center">
+                <div css={[tw`text-2xl mb-4`, animatePulse]}>···</div>
+                <div tw="text-sm">ENTERING...</div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Door itself */}
+          {/* Door panel */}
           <div
             css={[
-              tw`relative w-full h-full border-4 border-cpc-green-500 bg-gradient-to-b from-cpc-grey-900 to-cpc-blue-900 cursor-pointer transition-all duration-500 origin-left`,
-              isOpen ? tw`opacity-0` : tw`opacity-100 hover:brightness-110`
+              tw`relative w-full h-full border-4 border-cpc-green-500 bg-gradient-to-b from-cpc-grey-900 to-cpc-blue-900 cursor-pointer origin-left`,
+              phase === 'idle' && tw`hover:brightness-110 transition-all duration-300`,
+              phase !== 'idle' && css`
+                animation: ${doorSwing} 0.7s ease-in-out forwards;
+                backface-visibility: hidden;
+              `,
             ]}
             onClick={handleClick}
-            style={{
-              transformStyle: 'preserve-3d',
-              transform: isOpen ? 'perspective(1000px) rotateY(-90deg)' : 'perspective(1000px) rotateY(0deg)',
-            }}
+            style={{ transformStyle: 'preserve-3d' }}
           >
             {/* Door panels */}
             <div tw="absolute inset-4 border-2 border-cpc-cyan-500" />
@@ -60,6 +61,20 @@ export function Door({ onOpen }: DoorProps) {
             <div tw="absolute right-4 top-1/2 -translate-y-1/2">
               <div tw="w-3 h-3 bg-cpc-yellow-500 border-2 border-cpc-yellow-500 rounded-full shadow-lg shadow-cpc-yellow-500/50" />
             </div>
+
+            {/* Door icon */}
+            {(showLock || icon) && (
+              <div tw="absolute inset-0 flex items-center justify-center">
+                {showLock ? (
+                  <svg width="40" height="52" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 22V16C10 9.4 14.5 4 20 4C25.5 4 30 9.4 30 16V22" stroke="#00FF00" strokeWidth="3" fill="none" strokeLinecap="round" />
+                    <rect x="4" y="22" width="32" height="26" rx="2" fill="#1a1a1a" stroke="#00FF00" strokeWidth="2.5" />
+                    <circle cx="20" cy="33" r="4" fill="#00FF00" />
+                    <rect x="18.5" y="36" width="3" height="6" rx="1" fill="#00FF00" />
+                  </svg>
+                ) : icon}
+              </div>
+            )}
 
             {/* Door texture lines */}
             <div tw="absolute inset-0 flex flex-col justify-around p-6">
@@ -76,14 +91,6 @@ export function Door({ onOpen }: DoorProps) {
         {/* Door step */}
         <div tw="w-full h-2 bg-cpc-yellow-500 border-2 border-cpc-yellow-500" />
       </div>
-
-      {/* Instruction text */}
-      {!isOpen && (
-        <div css={[tw`text-center text-cpc-green-500`, animatePulse]}>
-          <div tw="text-lg mb-2">CLICK THE DOOR TO ENTER</div>
-          <div tw="text-sm text-cpc-cyan-500">▼</div>
-        </div>
-      )}
     </div>
   )
 }

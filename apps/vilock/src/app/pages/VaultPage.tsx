@@ -18,6 +18,7 @@ import {
   VaultProvider,
   EntryFormData,
 } from '../../components/vault'
+import { TotpSetup, TotpDisable } from '../../components/totp'
 import type { SidebarView } from '../../components/vault/SidebarContext'
 import { ColorType } from '@/types/colors'
 import {
@@ -44,6 +45,7 @@ export function VaultPage() {
   // Active view in sidebar (folder or note)
   const [activeView, setActiveView] = useState<SidebarView>({ type: 'folder', folderId: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [totpDrawer, setTotpDrawer] = useState<'setup' | 'disable' | null>(null)
 
   // Terminal state
   const [currentFolder, setCurrentFolder] = useState<{ id: string; name: string } | null>(null)
@@ -178,6 +180,8 @@ export function VaultPage() {
     updateEntry: handleUpdateEntry,
     generatePassword,
     generateId,
+    openTotpSetup: () => setTotpDrawer('setup'),
+    openTotpDisable: () => setTotpDrawer('disable'),
   }), [vault, currentFolder, handleAddEntry, addFolderToVault, handleDeleteFolder, handleDeleteEntry, handleMoveEntries, handleUpdateEntry])
 
   const getEntriesForFolder = (folderId: string | null) =>
@@ -328,6 +332,21 @@ export function VaultPage() {
 
             <Terminal context={terminalContext} />
           </div>
+
+          {/* TOTP 2FA Drawer */}
+          <CpcDrawer
+            open={totpDrawer !== null}
+            onOpenChange={(open) => { if (!open) setTotpDrawer(null) }}
+            side="right"
+            noPadding
+          >
+            {totpDrawer === 'setup' && (
+              <TotpSetup onClose={() => setTotpDrawer(null)} />
+            )}
+            {totpDrawer === 'disable' && (
+              <TotpDisable onClose={() => setTotpDrawer(null)} />
+            )}
+          </CpcDrawer>
         </CpcLayout>
       </SidebarProvider>
     </VaultProvider>

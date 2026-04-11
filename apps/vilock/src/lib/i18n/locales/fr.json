@@ -45,6 +45,7 @@
   "terminal.help.gen": "GEN [longueur] - Générer mot de passe",
   "terminal.help.edit": "EDIT <n.m> <champ>=<valeur> - Modifier une entrée",
   "terminal.help.pwd": "PWD - Dossier courant",
+  "terminal.help.2fa": "2FA [STATUS|SETUP|DISABLE] - Gérer la double authentification",
   "terminal.errors.folderNotFound": "ERREUR: Dossier \"{{name}}\" non trouvé",
   "terminal.errors.folderExists": "ERREUR: Le dossier \"{{name}}\" existe déjà",
   "terminal.errors.invalidColor": "ERREUR: Couleur invalide",

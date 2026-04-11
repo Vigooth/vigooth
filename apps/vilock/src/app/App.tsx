@@ -3,6 +3,7 @@ import { AuthProvider } from '../stores/AuthProvider'
 import { useAuth } from '../stores/auth'
 import { QueryProvider } from './providers'
 import { LoginPage } from './pages/LoginPage'
+import { TotpVerifyPage } from './pages/TotpVerifyPage'
 import { UnlockPage } from './pages/UnlockPage'
 import { VaultPage } from './pages/VaultPage'
 
@@ -41,6 +42,7 @@ function AppRoutes() {
           </AuthRoute>
         }
       />
+      <Route path="/totp-verify" element={<TotpVerifyPage />} />
       <Route path="/unlock" element={<UnlockPage />} />
       <Route
         path="/vault"

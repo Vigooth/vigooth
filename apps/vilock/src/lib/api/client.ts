@@ -33,6 +33,7 @@ export interface AuthResponse {
     email: string
     created_at: string
   }
+  totp_required?: boolean
 }
 
 export async function register(email: string, password: string): Promise<AuthResponse> {
@@ -51,6 +52,56 @@ export async function login(email: string, password: string): Promise<AuthRespon
 
 export async function logout(): Promise<void> {
   await request('/auth/logout', { method: 'POST' })
+}
+
+// TOTP 2FA
+export async function verifyTotpLogin(code: string): Promise<AuthResponse> {
+  return request<AuthResponse>('/auth/totp/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
+}
+
+export async function verifyRecoveryCode(recovery: string): Promise<AuthResponse> {
+  return request<AuthResponse>('/auth/totp/verify', {
+    method: 'POST',
+    body: JSON.stringify({ recovery }),
+  })
+}
+
+export interface TotpSetupResponse {
+  secret: string
+  qr_code_uri: string
+}
+
+export interface TotpEnableResponse {
+  recovery_codes: string[]
+}
+
+export interface TotpStatusResponse {
+  enabled: boolean
+}
+
+export async function getTotpStatus(): Promise<TotpStatusResponse> {
+  return request<TotpStatusResponse>('/api/totp/status')
+}
+
+export async function setupTotp(): Promise<TotpSetupResponse> {
+  return request<TotpSetupResponse>('/api/totp/setup', { method: 'POST' })
+}
+
+export async function enableTotp(code: string): Promise<TotpEnableResponse> {
+  return request<TotpEnableResponse>('/api/totp/enable', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
+}
+
+export async function disableTotp(code: string): Promise<void> {
+  await request('/api/totp/disable', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
 }
 
 // Vault

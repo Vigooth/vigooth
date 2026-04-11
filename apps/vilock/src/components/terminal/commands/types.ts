@@ -13,6 +13,8 @@ export interface CommandContext {
   updateEntry: (entryId: string, data: Partial<{ name: string; username: string; password: string; url: string }>) => Promise<void>
   generatePassword: (length: number) => string
   generateId: () => string
+  openTotpSetup?: () => void
+  openTotpDisable?: () => void
 }
 
 export interface CommandResult {

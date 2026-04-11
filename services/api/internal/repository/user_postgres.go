@@ -35,9 +35,9 @@ func (r *PostgresUserRepository) Create(user *model.User) error {
 func (r *PostgresUserRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := r.pool.QueryRow(context.Background(),
-		`SELECT id, email, password, created_at FROM users WHERE email = $1`,
+		`SELECT id, email, password, totp_secret, totp_enabled, recovery_codes, created_at FROM users WHERE email = $1`,
 		email,
-	).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Password, &user.TotpSecret, &user.TotpEnabled, &user.RecoveryCodes, &user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -51,9 +51,9 @@ func (r *PostgresUserRepository) FindByEmail(email string) (*model.User, error) 
 func (r *PostgresUserRepository) FindByID(id string) (*model.User, error) {
 	var user model.User
 	err := r.pool.QueryRow(context.Background(),
-		`SELECT id, email, password, created_at FROM users WHERE id = $1`,
+		`SELECT id, email, password, totp_secret, totp_enabled, recovery_codes, created_at FROM users WHERE id = $1`,
 		id,
-	).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Password, &user.TotpSecret, &user.TotpEnabled, &user.RecoveryCodes, &user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -62,4 +62,36 @@ func (r *PostgresUserRepository) FindByID(id string) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *PostgresUserRepository) UpdateTotpSecret(id string, secret string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE users SET totp_secret = $2 WHERE id = $1`,
+		id, secret,
+	)
+	return err
+}
+
+func (r *PostgresUserRepository) EnableTotp(id string, recoveryCodes string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE users SET totp_enabled = TRUE, recovery_codes = $2 WHERE id = $1`,
+		id, recoveryCodes,
+	)
+	return err
+}
+
+func (r *PostgresUserRepository) DisableTotp(id string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE users SET totp_enabled = FALSE, totp_secret = '', recovery_codes = '' WHERE id = $1`,
+		id,
+	)
+	return err
+}
+
+func (r *PostgresUserRepository) UpdateRecoveryCodes(id string, codes string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE users SET recovery_codes = $2 WHERE id = $1`,
+		id, codes,
+	)
+	return err
 }

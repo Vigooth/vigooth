@@ -11,6 +11,7 @@ import { ls } from './ls'
 import { cat } from './cat'
 import { gen } from './gen'
 import { edit } from './edit'
+import { totp } from './totp'
 
 export type { CommandContext, CommandResult, CommandFn } from './types'
 
@@ -27,4 +28,5 @@ export const commands: Record<string, CommandFn> = {
   LS: ls,
   CAT: cat,
   GEN: gen,
+  '2FA': totp,
 }

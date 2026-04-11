@@ -81,6 +81,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	if resp.TotpRequired {
+		// Set a short-lived pending cookie instead of full auth
+		c.SetCookie("auth_token", resp.Token, 300, "/", h.cookieConfig.Domain, h.cookieConfig.Secure, true)
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.JSON(http.StatusOK, gin.H{
+			"totp_required": true,
+		})
+		return
+	}
+
 	h.setAuthCookie(c, resp.Token)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -99,4 +109,109 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		true,
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+}
+
+func (h *AuthHandler) VerifyTotpLogin(c *gin.Context) {
+	var req model.TotpVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID := c.GetString("userID")
+	token, err := h.authService.VerifyTotpLogin(userID, req)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidTotpCode) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid code"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "verification failed"})
+		return
+	}
+
+	h.setAuthCookie(c, token)
+
+	user, _ := h.authService.GetUser(userID)
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
+}
+
+func (h *AuthHandler) GetTotpStatus(c *gin.Context) {
+	userID := c.GetString("userID")
+	enabled, err := h.authService.GetTotpStatus(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get status"})
+		return
+	}
+	c.JSON(http.StatusOK, model.TotpStatusResponse{Enabled: enabled})
+}
+
+func (h *AuthHandler) SetupTotp(c *gin.Context) {
+	userID := c.GetString("userID")
+	resp, err := h.authService.SetupTotp(userID)
+	if err != nil {
+		if errors.Is(err, service.ErrTotpAlreadyEnabled) {
+			c.JSON(http.StatusConflict, gin.H{"error": "2FA already enabled"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "setup failed"})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *AuthHandler) EnableTotp(c *gin.Context) {
+	var req model.TotpVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID := c.GetString("userID")
+	codes, err := h.authService.EnableTotp(userID, req.Code)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidTotpCode) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid code"})
+			return
+		}
+		if errors.Is(err, service.ErrTotpAlreadyEnabled) {
+			c.JSON(http.StatusConflict, gin.H{"error": "2FA already enabled"})
+			return
+		}
+		if errors.Is(err, service.ErrTotpNotSetup) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "call setup first"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "enable failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"recovery_codes": codes,
+	})
+}
+
+func (h *AuthHandler) DisableTotp(c *gin.Context) {
+	var req model.TotpVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID := c.GetString("userID")
+	if err := h.authService.DisableTotp(userID, req.Code); err != nil {
+		if errors.Is(err, service.ErrInvalidTotpCode) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid code"})
+			return
+		}
+		if errors.Is(err, service.ErrTotpNotEnabled) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "2FA not enabled"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "disable failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "2FA disabled"})
 }

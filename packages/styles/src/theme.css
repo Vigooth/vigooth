@@ -5,6 +5,28 @@
   /* Font */
   --font-cpc: 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 
+  /* Text sizes — match Tailwind v3 fixed line-heights */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1;
+
   /* Colors — CPC palette */
   --color-cpc-blue-50: #8080FF;
   --color-cpc-blue-100: #6666FF;

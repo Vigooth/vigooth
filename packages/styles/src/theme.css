@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+@import "tailwindcss";
+
+/* ---- Content sources for monorepo ---- */
+@source "../../packages/ui/src/**/*.{ts,tsx}";
+@source "../../packages/styles/src/**/*.{ts,tsx}";
+
+/* ---- Custom theme (replaces tailwind.config.cjs) ---- */
+@theme {
+  /* Font */
+  --font-cpc: 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+
+  /* Colors — CPC palette */
+  --color-cpc-blue-50: #8080FF;
+  --color-cpc-blue-100: #6666FF;
+  --color-cpc-blue-200: #4D4DFF;
+  --color-cpc-blue-300: #3333FF;
+  --color-cpc-blue-400: #1A1AFF;
+  --color-cpc-blue-500: #0000FF;
+  --color-cpc-blue-600: #0000E6;
+  --color-cpc-blue-700: #0000CC;
+  --color-cpc-blue-800: #0000B3;
+  --color-cpc-blue-900: #000080;
+
+  --color-cpc-red-50: #FF8080;
+  --color-cpc-red-100: #FF6666;
+  --color-cpc-red-200: #FF4D4D;
+  --color-cpc-red-300: #FF3333;
+  --color-cpc-red-400: #FF1A1A;
+  --color-cpc-red-500: #FF0000;
+  --color-cpc-red-600: #E60000;
+  --color-cpc-red-700: #CC0000;
+  --color-cpc-red-800: #B30000;
+  --color-cpc-red-900: #800000;
+
+  --color-cpc-green-50: #80FF80;
+  --color-cpc-green-100: #66FF66;
+  --color-cpc-green-200: #4DFF4D;
+  --color-cpc-green-300: #33FF33;
+  --color-cpc-green-400: #1AFF1A;
+  --color-cpc-green-500: #00FF00;
+  --color-cpc-green-600: #00E600;
+  --color-cpc-green-700: #00CC00;
+  --color-cpc-green-800: #00B300;
+  --color-cpc-green-900: #008000;
+
+  --color-cpc-yellow-50: #FFFF80;
+  --color-cpc-yellow-100: #FFFF66;
+  --color-cpc-yellow-200: #FFFF4D;
+  --color-cpc-yellow-300: #FFFF33;
+  --color-cpc-yellow-400: #FFFF1A;
+  --color-cpc-yellow-500: #FFFF00;
+  --color-cpc-yellow-600: #E6E600;
+  --color-cpc-yellow-700: #CCCC00;
+  --color-cpc-yellow-800: #B3B300;
+  --color-cpc-yellow-900: #808000;
+
+  --color-cpc-magenta-50: #FF80FF;
+  --color-cpc-magenta-100: #FF66FF;
+  --color-cpc-magenta-200: #FF4DFF;
+  --color-cpc-magenta-300: #FF33FF;
+  --color-cpc-magenta-400: #FF1AFF;
+  --color-cpc-magenta-500: #FF00FF;
+  --color-cpc-magenta-600: #E600E6;
+  --color-cpc-magenta-700: #CC00CC;
+  --color-cpc-magenta-800: #B300B3;
+  --color-cpc-magenta-900: #800080;
+
+  --color-cpc-cyan-50: #80FFFF;
+  --color-cpc-cyan-100: #66FFFF;
+  --color-cpc-cyan-200: #4DFFFF;
+  --color-cpc-cyan-300: #33FFFF;
+  --color-cpc-cyan-400: #1AFFFF;
+  --color-cpc-cyan-500: #00FFFF;
+  --color-cpc-cyan-600: #00E6E6;
+  --color-cpc-cyan-700: #00CCCC;
+  --color-cpc-cyan-800: #00B3B3;
+  --color-cpc-cyan-900: #008080;
+
+  --color-cpc-orange-500: #FF8000;
+
+  --color-cpc-grey-50: #C0C0C0;
+  --color-cpc-grey-500: #808080;
+  --color-cpc-grey-900: #0a0a0a;
+
+  /* Animations */
+  --animate-blink: blink 1s infinite;
+  --animate-cursor: cursor 1.2s infinite;
+  --animate-fade-in: fade-in 0.5s ease-in;
+  --animate-pulse-cpc: pulse-cpc 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-enter-door: enter-door 2s ease-in forwards;
+  --animate-zoom-in: zoom-in 2s ease-in forwards;
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  @keyframes cursor {
+    0%, 50% { background-color: currentColor; }
+    51%, 100% { background-color: transparent; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pulse-cpc {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes enter-door {
+    0% { transform: scale(1); filter: brightness(1); }
+    30% { transform: scale(1.1); }
+    60% { transform: scale(1.5); filter: brightness(0.8); }
+    100% { transform: scale(3); filter: brightness(0.3) blur(4px); opacity: 0; }
+  }
+  @keyframes zoom-in {
+    0% { transform: scale(1); }
+    100% { transform: scale(10); opacity: 0; }
+  }
+}
+
+/* ---- Shared utility classes (replaces @vigooth/styles Emotion exports) ---- */
+
+@utility cpc-screen {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 0, 0.03) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 255, 0, 0.03) 100%
+  );
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 0, 0.05) 2px,
+      rgba(0, 255, 0, 0.05) 4px
+    );
+    pointer-events: none;
+  }
+}
+
+@utility cpc-screen-cyan {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.03) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 255, 255, 0.03) 100%
+  );
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 255, 0.05) 2px,
+      rgba(0, 255, 255, 0.05) 4px
+    );
+    pointer-events: none;
+  }
+}
+
+@utility cpc-text-shadow {
+  text-shadow: 0 0 5px currentColor;
+}
+
+@utility cpc-cursor {
+  background-color: #00FF00;
+  animation: var(--animate-cursor);
+}
+
+/* ---- Button utilities (CSS variables: --btn-color, --btn-dark) ---- */
+
+@utility cpc-btn {
+  @apply inline-flex items-center px-3 py-1 text-xs font-cpc cursor-pointer transition-colors outline-none bg-transparent border-2;
+
+  &:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+}
+
+@utility cpc-btn-outlined {
+  border-color: var(--btn-color);
+  color: var(--btn-color);
+
+  &:hover:not(:disabled) {
+    background: var(--btn-color);
+    color: black;
+  }
+}
+
+@utility cpc-btn-filled {
+  border-color: var(--btn-color);
+  background: var(--btn-color);
+  color: black;
+
+  &:hover:not(:disabled) {
+    background: var(--btn-dark);
+    border-color: var(--btn-dark);
+  }
+}
+
+@utility cpc-btn-text {
+  border-color: transparent;
+  color: var(--btn-color);
+
+  &:hover:not(:disabled) {
+    color: var(--btn-dark);
+    background: color-mix(in srgb, var(--btn-color) 10%, transparent);
+  }
+}
+
+/* ---- Menu utilities (CSS variable: --menu-color) ---- */
+
+@utility cpc-menu-popup {
+  @apply p-1 min-w-[180px] z-50 outline-none;
+  background: #0a0a0a;
+  border: 2px solid var(--menu-color);
+}
+
+@utility cpc-menu-item {
+  @apply px-3 py-1.5 text-sm cursor-pointer outline-none select-none;
+  color: var(--menu-color);
+
+  &[data-highlighted] {
+    background: var(--menu-color);
+    color: #0a0a0a;
+  }
+  &[data-highlighted] span {
+    color: #0a0a0a;
+  }
+}
+
+@utility cpc-menu-item-danger {
+  @apply px-3 py-1.5 text-sm cursor-pointer outline-none select-none;
+  color: #FF0000;
+
+  &[data-highlighted] {
+    background: #FF0000;
+    color: #0a0a0a;
+  }
+}
+
+@utility cpc-menu-separator {
+  @apply my-1;
+  border-top: 1px solid color-mix(in srgb, var(--menu-color) 25%, transparent);
+}
+
+@utility cpc-menu-group-label {
+  @apply px-3 py-1 text-xs uppercase tracking-wider;
+  color: color-mix(in srgb, var(--menu-color) 60%, transparent);
+}
+
+@utility cpc-menu-submenu-trigger {
+  @apply flex items-center w-full px-3 py-1.5 text-sm cursor-pointer outline-none select-none;
+  color: var(--menu-color);
+
+  &[data-highlighted] {
+    background: var(--menu-color);
+    color: #0a0a0a;
+  }
+}
+
+/* ---- Drawer utilities ---- */
+
+@utility cpc-drawer-backdrop {
+  @apply fixed inset-0 bg-black/60 z-40;
+  transition: opacity 300ms ease;
+
+  &[data-open] { opacity: 1; }
+  &[data-closed] { opacity: 0; }
+}
+
+@utility cpc-drawer-popup {
+  @apply fixed top-0 bottom-0 z-50 w-[85vw] max-w-[320px] bg-cpc-grey-900 border-cpc-green-500 p-6 overflow-y-auto flex flex-col;
+  transition: transform 300ms ease;
+}
+
+@utility cpc-drawer-left {
+  @apply left-0 border-r-4;
+
+  &[data-open] { transform: translateX(0); }
+  &[data-closed] { transform: translateX(-100%); }
+}
+
+@utility cpc-drawer-right {
+  @apply right-0 border-l-4;
+
+  &[data-open] { transform: translateX(0); }
+  &[data-closed] { transform: translateX(100%); }
+}
+
+/* ---- Door keyframe ---- */
+
+@keyframes door-swing {
+  0% { transform: perspective(1000px) rotateY(0deg); }
+  100% { transform: perspective(1000px) rotateY(-105deg); }
+}
+
+@utility door-swing {
+  animation: door-swing 0.7s ease-in-out forwards;
+  backface-visibility: hidden;
+}
+
+/* ---- Skeleton / shimmer animation ---- */
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@utility skeleton-bar {
+  border-radius: 2px;
+  background: linear-gradient(90deg, #1a2a1a 25%, #2a3a2a 50%, #1a2a1a 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ---- Movie drawer (swipe-based, right side) ---- */
+
+@utility moovi-drawer-backdrop {
+  @apply fixed inset-0 bg-black z-40;
+  --backdrop-opacity: 0.7;
+  opacity: calc(var(--backdrop-opacity) * (1 - var(--drawer-swipe-progress)));
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+
+  &[data-starting-style], &[data-ending-style] { opacity: 0; }
+  &[data-swiping] { transition-duration: 0ms; }
+  &[data-ending-style] { transition-duration: calc(var(--drawer-swipe-strength) * 400ms); }
+}
+
+@utility moovi-drawer-popup {
+  @apply fixed top-0 right-0 bottom-0 z-50 w-full bg-cpc-grey-900 border-l-4 border-cpc-cyan-500 flex flex-col;
+  transform: translateX(var(--drawer-swipe-movement-x));
+  transition-property: transform;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+
+  &[data-starting-style], &[data-ending-style] { transform: translateX(100%); }
+  &[data-swiping] { transition-duration: 0ms; user-select: none; }
+  &[data-ending-style] { transition-duration: calc(var(--drawer-swipe-strength) * 400ms); }
+}
+
+/* ---- Chevron flip (rotates when parent menu is open) ---- */
+
+@utility cpc-chevron-flip {
+  @apply ml-1 transition-transform duration-200;
+  [data-popup-open] & { @apply rotate-180; }
+}
+
+/* ---- Scrollbar hide ---- */
+
+@utility scrollbar-none {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}

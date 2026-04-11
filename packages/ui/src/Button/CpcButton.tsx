@@ -1,6 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { css } from '@emotion/react'
-import tw from 'twin.macro'
+import { cn } from '../utils/cn'
 
 type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange'
 type CpcVariant = 'outlined' | 'filled' | 'text'
@@ -21,59 +20,32 @@ const colorMap = {
   orange: { base: '#FF8000', dark: '#804000' },
 }
 
-function getStyles(variant: CpcVariant, color: CpcColor) {
-  const c = colorMap[color]
-
-  const base = css`
-    ${tw`inline-flex items-center px-3 py-1 text-xs font-cpc cursor-pointer transition-colors outline-none bg-transparent`}
-    &:disabled {
-      ${tw`opacity-40 cursor-not-allowed`}
-    }
-  `
-
-  switch (variant) {
-    case 'outlined':
-      return css`
-        ${base}
-        border: 2px solid ${c.base};
-        color: ${c.base};
-        &:hover:not(:disabled) {
-          background: ${c.base};
-          color: black;
-        }
-      `
-    case 'filled':
-      return css`
-        ${base}
-        border: 2px solid ${c.base};
-        background: ${c.base};
-        color: black;
-        &:hover:not(:disabled) {
-          background: ${c.dark};
-          border-color: ${c.dark};
-        }
-      `
-    case 'text':
-      return css`
-        ${base}
-        border: 2px solid transparent;
-        color: ${c.base};
-        &:hover:not(:disabled) {
-          color: ${c.dark};
-          background: ${c.base}1a;
-        }
-      `
-  }
+const variantClass: Record<CpcVariant, string> = {
+  outlined: 'cpc-btn-outlined',
+  filled: 'cpc-btn-filled',
+  text: 'cpc-btn-text',
 }
 
 export function CpcButton({
   children,
   variant = 'outlined',
   color = 'green',
+  className,
+  style,
   ...props
 }: CpcButtonProps) {
+  const c = colorMap[color]
+
   return (
-    <button css={getStyles(variant, color)} {...props}>
+    <button
+      className={cn('cpc-btn', variantClass[variant], className)}
+      style={{
+        '--btn-color': c.base,
+        '--btn-dark': c.dark,
+        ...style,
+      } as React.CSSProperties}
+      {...props}
+    >
       {children}
     </button>
   )

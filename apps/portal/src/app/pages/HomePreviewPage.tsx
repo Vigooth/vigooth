@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Door, CpcLayout } from '@vigooth/ui'
+import { Door, CpcLayout, cn } from '@vigooth/ui'
 import { getAppUrl } from '@vigooth/config'
-import { animatePulse } from '@vigooth/styles'
-import tw from 'twin.macro'
 
 export function HomePreviewPage() {
   const navigate = useNavigate()
@@ -45,31 +43,31 @@ export function HomePreviewPage() {
 
   return (
     <CpcLayout>
-      <div tw="p-2 h-full overflow-x-hidden overflow-y-auto flex flex-col items-center justify-center">
-        <div tw="text-center mb-4 sm:mb-8 border-b-2 border-cpc-green-500 pb-2 sm:pb-4">
-          <div tw="text-cpc-yellow-500 text-lg sm:text-2xl font-bold">WELCOME TO</div>
-          <div tw="text-cpc-cyan-500 text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">VIGOOTH SYSTEM</div>
-          <div tw="text-cpc-green-500 text-xs sm:text-sm mt-1 sm:mt-2">v1.0 - Amstrad CPC 6128</div>
+      <div className="p-2 h-full overflow-x-hidden overflow-y-auto flex flex-col items-center justify-center">
+        <div className="text-center mb-4 sm:mb-8 border-b-2 border-cpc-green-500 pb-2 sm:pb-4">
+          <div className="text-cpc-yellow-500 text-lg sm:text-2xl font-bold">WELCOME TO</div>
+          <div className="text-cpc-cyan-500 text-2xl sm:text-4xl font-bold mt-1 sm:mt-2">VIGOOTH SYSTEM</div>
+          <div className="text-cpc-green-500 text-xs sm:text-sm mt-1 sm:mt-2">v1.0 - Amstrad CPC 6128</div>
         </div>
 
         <div
-          css={[
-            tw`flex items-end gap-0 sm:gap-6 lg:gap-12 transition-opacity duration-700 ease-in`,
-            tw`scale-[0.42] sm:scale-[0.65] lg:scale-100`,
-            tw`-my-16 sm:-my-8 lg:my-0`,
-            isEntering ? tw`opacity-0` : tw`opacity-100`,
-          ]}
+          className={cn(
+            'flex items-end gap-0 sm:gap-6 lg:gap-12 transition-opacity duration-700 ease-in',
+            'scale-[0.42] sm:scale-[0.65] lg:scale-100',
+            '-my-16 sm:-my-8 lg:my-0',
+            isEntering ? 'opacity-0' : 'opacity-100',
+          )}
         >
           <Door onOpen={handlePortalDoorOpen} />
           <Door onOpen={handleVilockDoorOpen} showLock />
           <Door onOpen={handleMooviDoorOpen} icon={filmIcon} />
         </div>
 
-        <div css={[tw`text-center text-cpc-green-500 mt-2 sm:mt-4`, animatePulse]}>
-          <div tw="text-sm sm:text-lg">CLICK A DOOR TO ENTER</div>
+        <div className="text-center text-cpc-green-500 mt-2 sm:mt-4 animate-pulse-cpc">
+          <div className="text-sm sm:text-lg">CLICK A DOOR TO ENTER</div>
         </div>
 
-        <div tw="text-center mt-4 sm:mt-8 text-cpc-cyan-500 text-xs">
+        <div className="text-center mt-4 sm:mt-8 text-cpc-cyan-500 text-xs">
           <div>Copyright 2025 - Retro Computing Experience</div>
         </div>
       </div>

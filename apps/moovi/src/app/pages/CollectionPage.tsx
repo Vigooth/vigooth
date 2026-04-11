@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CpcLayout } from '@vigooth/ui'
-import tw from 'twin.macro'
+import { CpcLayout, cn } from '@vigooth/ui'
 import { useAuth } from '@/stores/auth'
 import { useMoviesQuery } from '@/hooks/useMoviesQuery'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -58,16 +57,16 @@ export function CollectionPage() {
 
   return (
     <CpcLayout>
-      <div tw="h-full flex flex-col">
+      <div className="h-full flex flex-col">
         <Header />
 
-        <div tw="p-3 space-y-2">
+        <div className="p-3 space-y-2">
           <SearchBar
             value={search}
             onChange={setSearch}
             placeholder="Search collection..."
           />
-          <div tw="flex gap-1">
+          <div className="flex gap-1">
             {[
               { label: 'TOUT', value: 0 },
               { label: '5+', value: 5 },
@@ -78,12 +77,12 @@ export function CollectionPage() {
               <button
                 key={preset.value}
                 onClick={() => setMinRating(preset.value)}
-                css={[
-                  tw`border px-3 py-1 text-xs transition-colors`,
+                className={cn(
+                  "border px-3 py-1 text-xs transition-colors",
                   minRating === preset.value
-                    ? tw`border-cpc-cyan-500 text-cpc-cyan-500`
-                    : tw`border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500`,
-                ]}
+                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
+                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                )}
               >
                 {preset.label}
               </button>
@@ -91,18 +90,18 @@ export function CollectionPage() {
           </div>
         </div>
 
-        <div ref={scrollRef} tw="flex-1 overflow-auto px-3 pb-3">
+        <div ref={scrollRef} className="flex-1 overflow-auto px-3 pb-3">
           {isLoading ? (
-            <div tw="flex items-center justify-center h-full">
-              <div tw="text-cpc-cyan-500">LOADING COLLECTION...</div>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-cpc-cyan-500">LOADING COLLECTION...</div>
             </div>
           ) : isError ? (
-            <div tw="flex items-center justify-center h-full">
-              <div tw="text-cpc-red-500">ERROR LOADING COLLECTION</div>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-cpc-red-500">ERROR LOADING COLLECTION</div>
             </div>
           ) : (
             <>
-              <div tw="text-cpc-green-500 text-xs mb-3">
+              <div className="text-cpc-green-500 text-xs mb-3">
                 {debouncedSearch || minRating > 0
                   ? `${movies.length}/${total}`
                   : `${total}`}{' '}
@@ -113,9 +112,9 @@ export function CollectionPage() {
                 onMovieClick={openDrawer}
                 emptyMessage={debouncedSearch || minRating > 0 ? 'NO RESULTS' : 'NO MOVIES YET'}
               />
-              <div ref={sentinelRef} tw="h-4" />
+              <div ref={sentinelRef} className="h-4" />
               {isFetchingNextPage && (
-                <div tw="text-center py-3 text-cpc-cyan-500 text-xs">
+                <div className="text-center py-3 text-cpc-cyan-500 text-xs">
                   LOADING MORE...
                 </div>
               )}

@@ -1,6 +1,4 @@
-import { ReactNode } from 'react'
-import tw from 'twin.macro'
-import { cpcScreen, cpcTextShadow } from '@vigooth/styles'
+import type { ReactNode } from 'react'
 
 interface CpcLayoutProps {
   children: ReactNode
@@ -8,8 +6,8 @@ interface CpcLayoutProps {
 
 export function CpcLayout({ children }: CpcLayoutProps) {
   return (
-    <div css={[tw`h-full w-full bg-cpc-grey-900 box-border overflow-hidden text-cpc-green-500 font-cpc border-2 border-amber-400`, cpcScreen]}>
-      <div css={[tw`border-4 border-cpc-blue-900 h-full w-full`, cpcTextShadow]}>
+    <div className="h-full w-full bg-cpc-grey-900 box-border overflow-hidden text-cpc-green-500 font-cpc border-2 border-amber-400 cpc-screen">
+      <div className="border-4 border-cpc-blue-900 h-full w-full cpc-text-shadow">
         {children}
       </div>
     </div>

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import 'twin.macro'
 import { useTranslation } from 'react-i18next'
 import { commands, CommandContext } from './commands'
 
@@ -121,29 +120,29 @@ export function Terminal({ context }: TerminalProps) {
   const prompt = context.currentFolder ? `${context.currentFolder.name}>` : 'ROOT>'
 
   return (
-    <div tw="border-t-2 border-cpc-green-500 p-3 cursor-text" onClick={focusInput}>
+    <div className="border-t-2 border-cpc-green-500 p-3 cursor-text" onClick={focusInput}>
       {/* History */}
       {history.length > 0 && (
-        <div ref={historyRef} tw="max-h-32 overflow-y-auto mb-2 text-xs font-mono">
+        <div ref={historyRef} className="max-h-32 overflow-y-auto mb-2 text-xs font-mono">
           {history.slice(-5).map((entry, i) => (
-            <div key={i} tw="mb-1">
-              <div tw="text-cpc-yellow-500">&gt; {entry.command}</div>
-              <div tw="text-cpc-green-500 whitespace-pre-wrap pl-2">{entry.output}</div>
+            <div key={i} className="mb-1">
+              <div className="text-cpc-yellow-500">&gt; {entry.command}</div>
+              <div className="text-cpc-green-500 whitespace-pre-wrap pl-2">{entry.output}</div>
             </div>
           ))}
         </div>
       )}
 
       {/* Input */}
-      <div tw="flex items-center gap-2">
-        <span tw="text-cpc-yellow-500 text-sm font-mono">{prompt}</span>
+      <div className="flex items-center gap-2">
+        <span className="text-cpc-yellow-500 text-sm font-mono">{prompt}</span>
         <input
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          tw="flex-1 bg-transparent text-cpc-green-500 text-sm font-mono outline-none"
+          className="flex-1 bg-transparent text-cpc-green-500 text-sm font-mono outline-none"
           placeholder={t('terminal.placeholder')}
           autoComplete="off"
         />

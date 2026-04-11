@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import tw from 'twin.macro'
+import { cn } from '@vigooth/ui'
 import type { TmdbSearchResult } from '@/types/movie'
 import { getPosterUrl } from '@/utils/tmdbImage'
 import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb'
@@ -118,51 +118,45 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
         if (window.getSelection()?.toString()) return
         navigate(isTv ? `/tv/${result.id}` : `/movie/${result.id}`)
       }}
-      className="search-result"
-      tw="border-2 border-cpc-green-900 flex hover:border-cpc-cyan-500 transition-colors cursor-pointer"
+      className="group border-2 border-cpc-green-900 flex hover:border-cpc-cyan-500 transition-colors cursor-pointer"
     >
       {/* Poster */}
-      <div tw="w-20 flex-shrink-0 bg-cpc-grey-900"
-        css={{
-          transition: 'width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-          '.search-result:hover &': { width: '8rem' },
-        }}
-      >
+      <div className="w-20 flex-shrink-0 bg-cpc-grey-900 transition-[width] duration-400 group-hover:w-32">
         {posterUrl ? (
-          <img src={posterUrl} alt={result.title} tw="w-full h-full object-cover" />
+          <img src={posterUrl} alt={result.title} className="w-full h-full object-cover" />
         ) : (
-          <div tw="w-full h-28 flex items-center justify-center text-cpc-green-900 text-xs">
+          <div className="w-full h-28 flex items-center justify-center text-cpc-green-900 text-xs">
             N/A
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div tw="flex-1 p-3 flex flex-col justify-between min-w-0">
+      <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
         <div>
-          <div tw="text-cpc-cyan-500 font-bold text-sm truncate">
+          <div className="text-cpc-cyan-500 font-bold text-sm truncate">
             {displayTitle}
-            {isTv && <span tw="text-cpc-yellow-500 ml-1 text-xs font-normal">SÉRIE</span>}
+            {isTv && <span className="text-cpc-yellow-500 ml-1 text-xs font-normal">SERIE</span>}
           </div>
           {displayOriginalTitle !== displayTitle && (
-            <div tw="text-cpc-green-900 text-xs truncate">{displayOriginalTitle}</div>
+            <div className="text-cpc-green-900 text-xs truncate">{displayOriginalTitle}</div>
           )}
-          <div tw="text-cpc-green-900 text-xs">{year || '—'}</div>
-          <div tw="text-cpc-green-500 text-xs mt-1 line-clamp-2">{result.overview}</div>
+          <div className="text-cpc-green-900 text-xs">{year || '\u2014'}</div>
+          <div className="text-cpc-green-500 text-xs mt-1 line-clamp-2">{result.overview}</div>
         </div>
 
-        <div tw="mt-2">
+        <div className="mt-2">
           <button
             onClick={handleAdd}
             disabled={added || adding}
-            css={[
-              tw`border-2 px-3 py-1 text-xs transition-colors`,
+            className={cn(
+              "border-2 px-3 py-1 text-xs transition-colors",
               added
-                ? tw`border-cpc-green-500 text-cpc-green-500 cursor-default`
+                ? "border-cpc-green-500 text-cpc-green-500 cursor-default"
                 : adding
-                  ? tw`border-cpc-yellow-500 text-cpc-yellow-500 opacity-50 cursor-wait`
-                  : tw`border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black`,
-            ]}
+                  ? "border-cpc-yellow-500 text-cpc-yellow-500 opacity-50 cursor-wait"
+                  : "border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black",
+            )}
           >
             {added ? 'IN COLLECTION' : adding ? 'ADDING...' : 'ADD'}
           </button>

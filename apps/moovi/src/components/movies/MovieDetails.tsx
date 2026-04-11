@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { css, keyframes } from '@emotion/react'
-import tw from 'twin.macro'
+import { cn } from '@vigooth/ui'
 import { useTmdbMovieDetail, useTmdbMovieCredits, useTmdbTvDetail, useTmdbTvCredits } from '@/hooks/useTmdbSearch'
 import { useOmdbRatings } from '@/hooks/useOmdbRatings'
 import { useAllocineRatings } from '@/hooks/useAllocineRatings'
@@ -66,8 +65,8 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
 
   if (!loadingTmdb && !tmdbDetails) {
     return (
-      <div tw="flex-1 flex items-center justify-center">
-        <div tw="text-cpc-cyan-500">MOVIE NOT FOUND</div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-cpc-cyan-500">MOVIE NOT FOUND</div>
       </div>
     )
   }
@@ -157,51 +156,51 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
     <>
       {/* Backdrop */}
       {backdropUrl && (
-        <div tw="relative h-48 md:h-64 overflow-hidden">
+        <div className="relative h-48 md:h-64 overflow-hidden">
           <img
             src={backdropUrl}
             alt=""
-            tw="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-30"
           />
-          <div tw="absolute inset-0 bg-gradient-to-b from-transparent to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black" />
         </div>
       )}
 
-      <div tw="p-4 max-w-4xl mx-auto" css={backdropUrl ? tw`-mt-20 relative` : undefined}>
-        <div tw="mb-6">
+      <div className={cn("p-4 max-w-4xl mx-auto", backdropUrl && "-mt-20 relative")}>
+        <div className="mb-6">
           {/* Poster — floated left, content wraps around it */}
           {posterUrl && (
-            <div className="group" tw="float-left w-32 md:w-48 mr-4 mb-2 overflow-hidden">
+            <div className="group float-left w-32 md:w-48 mr-4 mb-2 overflow-hidden">
               <img
                 src={posterUrl}
                 alt={title}
-                tw="w-full border-2 border-cpc-green-500 transition-transform duration-300 group-hover:scale-110"
+                className="w-full border-2 border-cpc-green-500 transition-transform duration-300 group-hover:scale-110"
               />
             </div>
           )}
 
-          <h1 tw="text-cpc-cyan-500 text-xl md:text-2xl font-bold">{title}</h1>
+          <h1 className="text-cpc-cyan-500 text-xl md:text-2xl font-bold">{title}</h1>
           {originalTitle && originalTitle !== title && (
-            <div tw="text-cpc-green-900 text-sm">{originalTitle}</div>
+            <div className="text-cpc-green-900 text-sm">{originalTitle}</div>
           )}
 
-          <div tw="text-cpc-green-500 text-sm mt-1 flex flex-wrap gap-2 items-center">
+          <div className="text-cpc-green-500 text-sm mt-1 flex flex-wrap gap-2 items-center">
             <span>{year}</span>
             {director && (
               <>
-                <span tw="text-cpc-green-900">|</span>
+                <span className="text-cpc-green-900">|</span>
                 <span>{director}</span>
               </>
             )}
             {seasonInfo && (
               <>
-                <span tw="text-cpc-green-900">|</span>
+                <span className="text-cpc-green-900">|</span>
                 <span>{seasonInfo}</span>
               </>
             )}
             {runtime && (
               <>
-                <span tw="text-cpc-green-900">|</span>
+                <span className="text-cpc-green-900">|</span>
                 <span>{runtime}</span>
               </>
             )}
@@ -209,11 +208,11 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
 
           {/* Genres */}
           {genres.length > 0 && (
-            <div tw="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-1 mt-2">
               {genres.map((genre) => (
                 <span
                   key={genre}
-                  tw="border border-cpc-green-900 text-cpc-green-500 px-2 py-0.5 text-xs"
+                  className="border border-cpc-green-900 text-cpc-green-500 px-2 py-0.5 text-xs"
                 >
                   {genre}
                 </span>
@@ -222,7 +221,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
           )}
 
           {/* Ratings */}
-          <div tw="flex flex-wrap gap-3 mt-3">
+          <div className="flex flex-wrap gap-3 mt-3">
             <RatingBadge label="IMDb" value={imdbRating} max={10} />
             <RatingBadge label="Metascore" value={metascore} max={100} />
             <RatingBadge label="RT" value={rottenTomatoes} max={100} suffix="%" />
@@ -231,7 +230,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
           </div>
 
           {/* External links */}
-          <div tw="mt-3">
+          <div className="mt-3">
             <ExternalLinks
               imdbId={imdbId}
               tmdbId={tmdbId}
@@ -243,7 +242,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
           </div>
 
           {/* Personal rating */}
-          <div tw="mt-3">
+          <div className="mt-3">
             <PersonalRating
               value={personalRating}
               onChange={handleRatingChange}
@@ -253,7 +252,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
 
           {/* Wishlist button - only when not in collection */}
           {!inCollection && (
-            <div tw="mt-3">
+            <div className="mt-3">
               <button
                 onClick={() => {
                   if (isWishlisted) {
@@ -268,12 +267,12 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
                   }
                 }}
                 disabled={addToWishlist.isPending || removeFromWishlist.isPending}
-                css={[
-                  tw`border-2 px-4 py-1 text-xs transition-colors`,
+                className={cn(
+                  "border-2 px-4 py-1 text-xs transition-colors",
                   isWishlisted
-                    ? tw`border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black`
-                    : tw`border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black`,
-                ]}
+                    ? "border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black"
+                    : "border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black",
+                )}
               >
                 {isWishlisted ? 'WISHLISTED' : 'ADD TO WISHLIST'}
               </button>
@@ -283,21 +282,21 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
 
         {/* Overview */}
         {overview && (
-          <div tw="mb-6">
-            <div tw="text-cpc-cyan-500 text-sm font-bold mb-1">SYNOPSIS</div>
-            <div tw="text-cpc-green-500 text-sm leading-relaxed">{overview}</div>
+          <div className="mb-6">
+            <div className="text-cpc-cyan-500 text-sm font-bold mb-1">SYNOPSIS</div>
+            <div className="text-cpc-green-500 text-sm leading-relaxed">{overview}</div>
           </div>
         )}
 
         {/* Cast */}
         {credits && credits.cast.length > 0 && (
-          <div tw="mb-6">
-            <div tw="text-cpc-cyan-500 text-sm font-bold mb-1">CAST</div>
-            <div tw="flex flex-wrap gap-2">
+          <div className="mb-6">
+            <div className="text-cpc-cyan-500 text-sm font-bold mb-1">CAST</div>
+            <div className="flex flex-wrap gap-2">
               {credits.cast.slice(0, 10).map((actor) => (
                 <span
                   key={actor.id}
-                  tw="border border-cpc-green-900 text-cpc-green-500 px-2 py-0.5 text-xs"
+                  className="border border-cpc-green-900 text-cpc-green-500 px-2 py-0.5 text-xs"
                 >
                   {actor.name}
                 </span>
@@ -308,33 +307,33 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
 
         {/* Notes - only when in collection */}
         {inCollection && (
-          <div tw="mb-6">
+          <div className="mb-6">
             <textarea
               value={currentNotes}
               onChange={(e) => setNotes(e.target.value)}
               onBlur={handleNotesBlur}
               placeholder="Add your notes..."
-              tw="w-full bg-transparent border-2 border-cpc-green-900 text-cpc-green-500 px-3 py-2 font-cpc outline-none focus:border-cpc-cyan-500 placeholder:text-cpc-green-900 min-h-[80px] resize-y text-sm"
+              className="w-full bg-transparent border-2 border-cpc-green-900 text-cpc-green-500 px-3 py-2 font-cpc outline-none focus:border-cpc-cyan-500 placeholder:text-cpc-green-900 min-h-[80px] resize-y text-sm"
             />
           </div>
         )}
 
         {/* Delete - only when in collection */}
         {inCollection && (
-          <div tw="border-t-2 border-cpc-green-900 pt-4">
+          <div className="border-t-2 border-cpc-green-900 pt-4">
             {showDeleteConfirm ? (
-              <div tw="flex items-center gap-3">
-                <span tw="text-cpc-red-500 text-sm">CONFIRM DELETE?</span>
+              <div className="flex items-center gap-3">
+                <span className="text-cpc-red-500 text-sm">CONFIRM DELETE?</span>
                 <button
                   onClick={handleDelete}
                   disabled={deleteMovie.isPending}
-                  tw="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
+                  className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
                 >
                   {deleteMovie.isPending ? 'DELETING...' : 'YES, DELETE'}
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  tw="border-2 border-cpc-green-500 text-cpc-green-500 px-3 py-1 text-xs hover:bg-cpc-green-500 hover:text-black transition-colors"
+                  className="border-2 border-cpc-green-500 text-cpc-green-500 px-3 py-1 text-xs hover:bg-cpc-green-500 hover:text-black transition-colors"
                 >
                   CANCEL
                 </button>
@@ -342,7 +341,7 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
             ) : (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                tw="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
+                className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
               >
                 REMOVE FROM COLLECTION
               </button>
@@ -354,72 +353,60 @@ export function MovieDetails({ tmdbId: tmdbIdNum, mediaType = 'movie', onDeleted
   )
 }
 
-const shimmer = keyframes`
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-`
-
-const skeletonBar = css`
-  ${tw`rounded-sm`}
-  background: linear-gradient(90deg, #1a2a1a 25%, #2a3a2a 50%, #1a2a1a 75%);
-  background-size: 400px 100%;
-  animation: ${shimmer} 1.5s ease-in-out infinite;
-`
-
 function SkeletonBlock({ width = '100%', height = '14px' }: { width?: string; height?: string }) {
-  return <div css={skeletonBar} style={{ width, height }} />
+  return <div className="skeleton-bar" style={{ width, height }} />
 }
 
 function MovieDetailsSkeleton() {
   return (
     <>
       {/* Backdrop skeleton */}
-      <div tw="relative h-48 md:h-64 overflow-hidden">
-        <div css={skeletonBar} tw="w-full h-full" />
+      <div className="relative h-48 md:h-64 overflow-hidden">
+        <div className="skeleton-bar w-full h-full" />
       </div>
 
-      <div tw="p-4 max-w-4xl mx-auto -mt-20 relative">
-        <div tw="mb-6">
+      <div className="p-4 max-w-4xl mx-auto -mt-20 relative">
+        <div className="mb-6">
           {/* Poster skeleton — float left */}
-          <div tw="float-left w-32 md:w-48 mr-4 mb-2">
-            <div css={skeletonBar} tw="w-full border-2 border-cpc-green-900" style={{ aspectRatio: '2/3' }} />
+          <div className="float-left w-32 md:w-48 mr-4 mb-2">
+            <div className="skeleton-bar w-full border-2 border-cpc-green-900" style={{ aspectRatio: '2/3' }} />
           </div>
 
           {/* Title */}
           <SkeletonBlock width="70%" height="24px" />
-          <div tw="mt-2" />
+          <div className="mt-2" />
           <SkeletonBlock width="40%" height="14px" />
 
           {/* Year | Director | Runtime */}
-          <div tw="mt-3 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <SkeletonBlock width="40px" height="14px" />
             <SkeletonBlock width="100px" height="14px" />
             <SkeletonBlock width="50px" height="14px" />
           </div>
 
           {/* Genres */}
-          <div tw="flex gap-1 mt-3">
+          <div className="flex gap-1 mt-3">
             <SkeletonBlock width="60px" height="22px" />
             <SkeletonBlock width="80px" height="22px" />
             <SkeletonBlock width="50px" height="22px" />
           </div>
 
           {/* Ratings */}
-          <div tw="flex gap-3 mt-3">
+          <div className="flex gap-3 mt-3">
             <SkeletonBlock width="55px" height="20px" />
             <SkeletonBlock width="75px" height="20px" />
             <SkeletonBlock width="45px" height="20px" />
           </div>
 
           {/* External links */}
-          <div tw="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3">
             <SkeletonBlock width="50px" height="28px" />
             <SkeletonBlock width="50px" height="28px" />
             <SkeletonBlock width="70px" height="28px" />
           </div>
 
           {/* Personal rating */}
-          <div tw="flex gap-1 mt-3">
+          <div className="flex gap-1 mt-3">
             {Array.from({ length: 10 }, (_, i) => (
               <SkeletonBlock key={i} width="32px" height="32px" />
             ))}
@@ -427,9 +414,9 @@ function MovieDetailsSkeleton() {
         </div>
 
         {/* Synopsis */}
-        <div tw="mb-6">
+        <div className="mb-6">
           <SkeletonBlock width="80px" height="14px" />
-          <div tw="mt-2 flex flex-col gap-2">
+          <div className="mt-2 flex flex-col gap-2">
             <SkeletonBlock width="100%" height="14px" />
             <SkeletonBlock width="100%" height="14px" />
             <SkeletonBlock width="60%" height="14px" />
@@ -437,9 +424,9 @@ function MovieDetailsSkeleton() {
         </div>
 
         {/* Cast */}
-        <div tw="mb-6">
+        <div className="mb-6">
           <SkeletonBlock width="50px" height="14px" />
-          <div tw="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {Array.from({ length: 6 }, (_, i) => (
               <SkeletonBlock key={i} width="80px" height="22px" />
             ))}

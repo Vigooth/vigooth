@@ -1,17 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import macrosPlugin from 'vite-plugin-babel-macros'
+import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
   plugins: [
-    macrosPlugin(),
-    react({
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: ['babel-plugin-macros', '@emotion/babel-plugin']
-      }
-    }),
+    tailwindcss(),
+    react(),
   ],
   resolve: {
     alias: {

@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from 'react'
-import tw from 'twin.macro'
 import { useTranslation } from 'react-i18next'
 import { Note } from '../../lib/crypto/vault'
 import { useVault } from './VaultContext'
@@ -55,20 +54,20 @@ export function InlineNoteEditor({ note, onDelete }: InlineNoteEditorProps) {
   }, [height])
 
   return (
-    <div tw="flex flex-col" style={{ height, flexShrink: 0 }}>
-      <div tw="flex items-center justify-end px-4 py-1">
+    <div className="flex flex-col" style={{ height, flexShrink: 0 }}>
+      <div className="flex items-center justify-end px-4 py-1">
         <button
           onClick={onDelete}
-          tw="text-cpc-red-500 hover:text-cpc-red-900 text-xs"
+          className="text-cpc-red-500 hover:text-cpc-red-900 text-xs"
         >
           ✕
         </button>
       </div>
-      <div tw="flex-1 overflow-hidden min-h-0">
+      <div className="flex-1 overflow-hidden min-h-0">
         <textarea
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
-          tw="w-full h-full bg-transparent text-cpc-green-500 text-xs p-4 pt-0 outline-none resize-none font-mono"
+          className="w-full h-full bg-transparent text-cpc-green-500 text-xs p-4 pt-0 outline-none resize-none font-mono"
           placeholder={t('note.contentPlaceholder')}
           spellCheck={false}
         />
@@ -76,9 +75,9 @@ export function InlineNoteEditor({ note, onDelete }: InlineNoteEditorProps) {
       {/* Resize handle */}
       <div
         onMouseDown={handleMouseDown}
-        css={[tw`h-1.5 cursor-row-resize border-b border-cpc-green-500/30 flex items-center justify-center hover:bg-cpc-green-500/10 transition-colors`]}
+        className="h-1.5 cursor-row-resize border-b border-cpc-green-500/30 flex items-center justify-center hover:bg-cpc-green-500/10 transition-colors"
       >
-        <div tw="w-8 h-0.5 bg-cpc-green-500/30 rounded" />
+        <div className="w-8 h-0.5 bg-cpc-green-500/30 rounded" />
       </div>
     </div>
   )

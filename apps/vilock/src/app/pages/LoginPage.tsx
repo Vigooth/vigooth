@@ -9,7 +9,7 @@ import { useAuth } from '../../stores/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { login: authLogin } = useAuth()
+  const { login: authLogin, setTotpPending } = useAuth()
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -43,6 +43,12 @@ export function LoginPage() {
       const response = isRegister
         ? await register(email, password)
         : await login(email, password)
+
+      if (response.totp_required) {
+        setTotpPending(true)
+        navigate('/totp-verify')
+        return
+      }
 
       authLogin({
         id: response.user.id,

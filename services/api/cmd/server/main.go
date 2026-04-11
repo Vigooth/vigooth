@@ -109,6 +109,7 @@ func main() {
 	r.POST("/auth/register", authHandler.Register)
 	r.POST("/auth/login", authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+	r.POST("/auth/totp/verify", authMiddleware.RequirePendingTotp(), authHandler.VerifyTotpLogin)
 
 	// Protected routes
 	api := r.Group("/api")
@@ -139,6 +140,11 @@ func main() {
 		api.GET("/allocine/ratings", proxyHandler.AllocineRatings)
 		api.GET("/yts", proxyHandler.YtsLookup)
 		api.GET("/service/status", proxyHandler.ServiceHealth)
+
+		api.GET("/totp/status", authHandler.GetTotpStatus)
+		api.POST("/totp/setup", authHandler.SetupTotp)
+		api.POST("/totp/enable", authHandler.EnableTotp)
+		api.POST("/totp/disable", authHandler.DisableTotp)
 
 		if recoHandler != nil {
 			api.POST("/recommendations/stream", recoHandler.StreamRecommendations)

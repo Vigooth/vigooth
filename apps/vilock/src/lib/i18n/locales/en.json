@@ -45,6 +45,7 @@
   "terminal.help.gen": "GEN [length] - Generate password",
   "terminal.help.edit": "EDIT <n.m> <field>=<value> - Edit an entry",
   "terminal.help.pwd": "PWD - Current folder",
+  "terminal.help.2fa": "2FA [STATUS|SETUP|DISABLE] - Manage 2FA",
   "terminal.errors.folderNotFound": "ERROR: Folder \"{{name}}\" not found",
   "terminal.errors.folderExists": "ERROR: Folder \"{{name}}\" already exists",
   "terminal.errors.invalidColor": "ERROR: Invalid color",

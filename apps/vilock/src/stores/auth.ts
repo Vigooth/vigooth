@@ -9,6 +9,7 @@ export interface AuthState {
   user: User | null
   isAuthenticated: boolean
   masterPassword: string | null // Kept in memory only, never persisted
+  totpPending: boolean // True when awaiting TOTP verification
 }
 
 export interface AuthContextType extends AuthState {
@@ -16,6 +17,7 @@ export interface AuthContextType extends AuthState {
   logout: () => void
   setMasterPassword: (password: string) => void
   clearMasterPassword: () => void
+  setTotpPending: (pending: boolean) => void
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null)
@@ -45,5 +47,6 @@ export function getInitialAuthState(): AuthState {
     user,
     isAuthenticated: !!user,
     masterPassword: null, // Never persisted
+    totpPending: false,
   }
 }

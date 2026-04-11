@@ -16,6 +16,10 @@ type UserRepository interface {
 	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
 	FindByID(id string) (*model.User, error)
+	UpdateTotpSecret(id string, secret string) error
+	EnableTotp(id string, recoveryCodes string) error
+	DisableTotp(id string) error
+	UpdateRecoveryCodes(id string, codes string) error
 }
 
 // InMemoryUserRepository - for development, replace with DB later
@@ -66,4 +70,55 @@ func (r *InMemoryUserRepository) FindByID(id string) (*model.User, error) {
 		return nil, ErrUserNotFound
 	}
 	return user, nil
+}
+
+func (r *InMemoryUserRepository) UpdateTotpSecret(id string, secret string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.TotpSecret = secret
+	return nil
+}
+
+func (r *InMemoryUserRepository) EnableTotp(id string, recoveryCodes string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.TotpEnabled = true
+	user.RecoveryCodes = recoveryCodes
+	return nil
+}
+
+func (r *InMemoryUserRepository) DisableTotp(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.TotpEnabled = false
+	user.TotpSecret = ""
+	user.RecoveryCodes = ""
+	return nil
+}
+
+func (r *InMemoryUserRepository) UpdateRecoveryCodes(id string, codes string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.RecoveryCodes = codes
+	return nil
 }

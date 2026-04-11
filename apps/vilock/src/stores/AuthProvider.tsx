@@ -16,6 +16,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       ...prev,
       user,
       isAuthenticated: true,
+      totpPending: false,
     }))
   }, [])
 
@@ -27,7 +28,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user: null,
       isAuthenticated: false,
       masterPassword: null,
+      totpPending: false,
     })
+  }, [])
+
+  const setTotpPending = useCallback((pending: boolean) => {
+    setState(prev => ({
+      ...prev,
+      totpPending: pending,
+    }))
   }, [])
 
   const setMasterPassword = useCallback((password: string) => {
@@ -52,6 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         logout,
         setMasterPassword,
         clearMasterPassword,
+        setTotpPending,
       }}
     >
       {children}

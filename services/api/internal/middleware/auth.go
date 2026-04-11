@@ -20,31 +20,14 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := m.extractToken(c)
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authentication"})
-			c.Abort()
-			return
-		}
-
-		// Parse and validate token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.ErrSignatureInvalid
-			}
-			return []byte(m.jwtSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
-			return
-		}
-
-		// Extract user ID from claims
-		claims, ok := token.Claims.(jwt.MapClaims)
+		claims, ok := m.parseToken(c)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			return
+		}
+
+		// Reject pending TOTP tokens — they are not full auth
+		if purpose, exists := claims["purpose"].(string); exists && purpose == "totp_pending" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "2FA verification required"})
 			c.Abort()
 			return
 		}
@@ -56,10 +39,66 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		// Set user ID in context for handlers
 		c.Set("userID", userID)
 		c.Next()
 	}
+}
+
+func (m *AuthMiddleware) RequirePendingTotp() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims, ok := m.parseToken(c)
+		if !ok {
+			return
+		}
+
+		purpose, _ := claims["purpose"].(string)
+		if purpose != "totp_pending" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "pending TOTP token required"})
+			c.Abort()
+			return
+		}
+
+		userID, ok := claims["sub"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id in token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("userID", userID)
+		c.Next()
+	}
+}
+
+func (m *AuthMiddleware) parseToken(c *gin.Context) (jwt.MapClaims, bool) {
+	tokenString := m.extractToken(c)
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authentication"})
+		c.Abort()
+		return nil, false
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte(m.jwtSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		c.Abort()
+		return nil, false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+		c.Abort()
+		return nil, false
+	}
+
+	return claims, true
 }
 
 // extractToken reads the JWT from the HttpOnly cookie first, then falls back to

@@ -1,72 +1,12 @@
-import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import tw from 'twin.macro'
-import { setupTotp, enableTotp, getTotpStatus } from '../../lib/api/client'
-
-type Step = 'loading' | 'already-enabled' | 'qr' | 'recovery' | 'error'
+import { useTotpSetup } from './useTotpSetup'
 
 export function TotpSetup({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState<Step>('loading')
-  const [qrUri, setQrUri] = useState('')
-  const [secret, setSecret] = useState('')
-  const [code, setCode] = useState('')
-  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState(false)
-
-  const initSetup = async () => {
-    try {
-      const status = await getTotpStatus()
-      if (status.enabled) {
-        setStep('already-enabled')
-        return
-      }
-      const resp = await setupTotp()
-      setQrUri(resp.qr_code_uri)
-      setSecret(resp.secret)
-      setStep('qr')
-    } catch {
-      setStep('error')
-    }
-  }
-
-  // Trigger setup on first render
-  if (step === 'loading') {
-    initSetup()
-  }
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    if (code.length !== 6) {
-      setError('CODE MUST BE 6 DIGITS')
-      return
-    }
-    setLoading(true)
-    try {
-      const resp = await enableTotp(code)
-      setRecoveryCodes(resp.recovery_codes)
-      setStep('recovery')
-    } catch (err) {
-      setError(err instanceof Error ? err.message.toUpperCase() : 'VERIFICATION FAILED')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCopyAll = () => {
-    navigator.clipboard.writeText(recoveryCodes.join('\n'))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const { step, qrUri, secret, code, setCode, recoveryCodes, error, verifying, copied, verify, copyAll } = useTotpSetup()
 
   if (step === 'loading') {
-    return (
-      <div tw="p-6 text-cpc-green-500 text-center">
-        LOADING...
-      </div>
-    )
+    return <div tw="p-6 text-cpc-green-500 text-center">LOADING...</div>
   }
 
   if (step === 'error') {
@@ -119,7 +59,7 @@ export function TotpSetup({ onClose }: { onClose: () => void }) {
         </div>
 
         <button
-          onClick={handleCopyAll}
+          onClick={copyAll}
           tw="w-full border-2 border-cpc-cyan-500 text-cpc-cyan-500 py-2 mb-2 hover:bg-cpc-cyan-500 hover:text-cpc-grey-900 transition-colors text-sm"
         >
           {copied ? 'COPIED!' : 'COPY ALL'}
@@ -158,15 +98,12 @@ export function TotpSetup({ onClose }: { onClose: () => void }) {
         {secret}
       </div>
 
-      <form onSubmit={handleVerify}>
+      <form onSubmit={(e) => { e.preventDefault(); verify() }}>
         <div tw="text-cpc-cyan-500 text-sm mb-2">ENTER CODE FROM APP:</div>
         <input
           type="text"
           value={code}
-          onChange={(e) => {
-            setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
-            setError('')
-          }}
+          onChange={(e) => setCode(e.target.value)}
           placeholder="000000"
           maxLength={6}
           autoComplete="one-time-code"
@@ -182,15 +119,15 @@ export function TotpSetup({ onClose }: { onClose: () => void }) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={verifying}
           css={[
             tw`w-full border-2 border-cpc-green-500 text-cpc-green-500 py-2 transition-colors mb-2`,
-            loading
+            verifying
               ? tw`opacity-50 cursor-not-allowed`
               : tw`hover:bg-cpc-green-500 hover:text-cpc-grey-900`,
           ]}
         >
-          {loading ? 'VERIFYING...' : 'VERIFY & ENABLE'}
+          {verifying ? 'VERIFYING...' : 'VERIFY & ENABLE'}
         </button>
 
         <button

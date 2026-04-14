@@ -41,4 +41,13 @@ export const services: ServiceConfig[] = [
     urlTemplate: 'http://localhost:{port}',
     processPattern: /vite.*moovi/,
   },
+  {
+    id: 'storybook',
+    name: 'storybook',
+    command: 'pnpm',
+    args: ['--filter', '@vigooth/storybook', 'dev'],
+    defaultPort: 6006,
+    urlTemplate: 'http://localhost:{port}',
+    processPattern: /storybook/,
+  },
 ];

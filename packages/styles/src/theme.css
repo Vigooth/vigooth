@@ -212,11 +212,11 @@
 
   .cpc-btn-text {
     border-color: transparent;
-    color: var(--btn-color);
+    color: var(--btn-dark);
   }
   .cpc-btn-text:hover:not(:disabled) {
-    color: var(--btn-dark);
-    background: color-mix(in srgb, var(--btn-color) 10%, transparent);
+    color: var(--btn-color);
+    text-shadow: 0 0 5px var(--btn-color);
   }
 
   /* Menu (CSS var: --menu-color) */

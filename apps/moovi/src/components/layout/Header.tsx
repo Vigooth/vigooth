@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { cn } from '@vigooth/ui'
+import { CpcButton } from '@vigooth/ui'
 import { useAuth } from '@/stores/auth'
 
 export function Header() {
@@ -20,68 +20,49 @@ export function Header() {
       <nav
         className="flex gap-2 overflow-x-auto min-w-0 flex-1 scrollbar-none"
       >
-          <button
+          <CpcButton
+            variant="text"
+            color={isActive('/collection') ? 'cyan' : 'green'}
             onClick={() => navigate('/collection')}
-            className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors shrink-0",
-              isActive('/collection')
-                ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                : "border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500",
-            )}
           >
             COLLECTION
-          </button>
-          <button
+          </CpcButton>
+          <CpcButton
+            variant="text"
+            color={isActive('/search') ? 'cyan' : 'green'}
             onClick={() => navigate('/search')}
-            className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors shrink-0",
-              isActive('/search')
-                ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                : "border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500",
-            )}
           >
             SEARCH
-          </button>
-          <button
+          </CpcButton>
+          <CpcButton
+            variant="text"
+            color={isActive('/wishlist') ? 'cyan' : 'yellow'}
             onClick={() => navigate('/wishlist')}
-            className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors shrink-0",
-              isActive('/wishlist')
-                ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                : "border-cpc-yellow-900 text-cpc-yellow-900 hover:border-cpc-yellow-500 hover:text-cpc-yellow-500",
-            )}
           >
             WISHLIST
-          </button>
-          <button
+          </CpcButton>
+          <CpcButton
+            variant="text"
+            color={isActive('/recommendations') ? 'cyan' : 'magenta'}
             onClick={() => navigate('/recommendations')}
-            className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors shrink-0",
-              isActive('/recommendations')
-                ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                : "border-cpc-magenta-900 text-cpc-magenta-900 hover:border-cpc-magenta-500 hover:text-cpc-magenta-500",
-            )}
           >
             RECO
-          </button>
-          <button
+          </CpcButton>
+          <CpcButton
+            variant="text"
+            color={isActive('/status') ? 'cyan' : 'green'}
             onClick={() => navigate('/status')}
-            className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors shrink-0",
-              isActive('/status')
-                ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                : "border-cpc-green-900 text-cpc-green-900 hover:border-cpc-green-500 hover:text-cpc-green-500",
-            )}
           >
             STATUS
-          </button>
+          </CpcButton>
       </nav>
-      <button
+      <CpcButton
+        variant="outlined"
+        color="red"
         onClick={handleLogout}
-        className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs shrink-0"
       >
         LOGOUT
-      </button>
+      </CpcButton>
     </div>
   )
 }

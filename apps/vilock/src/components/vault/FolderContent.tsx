@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import tw from 'twin.macro'
+import { cn } from '@vigooth/ui'
 import { useTranslation } from 'react-i18next'
 import { Folder, PasswordEntry, Note } from '../../lib/crypto/vault'
 import { colorStyles } from './types'
@@ -60,29 +60,29 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
   }
 
   return (
-    <div tw="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
       {/* Folder header */}
-      <div tw="flex items-center justify-between px-4 py-2 border-b border-cpc-green-500/30 bg-cpc-green-500/10">
-        <div tw="flex-1 flex items-center gap-2 mr-4">
-          <span tw="text-cpc-green-500 opacity-50 text-sm flex-shrink-0">[{folderIndex}]</span>
+      <div className="flex items-center justify-between px-4 py-2 border-b border-cpc-green-500/30 bg-cpc-green-500/10">
+        <div className="flex-1 flex items-center gap-2 mr-4">
+          <span className="text-cpc-green-500 opacity-50 text-sm flex-shrink-0">[{folderIndex}]</span>
           {folder ? (
             <input
               type="text"
               value={folderName}
               onChange={(e) => handleNameChange(e.target.value)}
-              css={[tw`w-full bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-current transition-colors`, colors.text]}
+              className={cn("w-full bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-current transition-colors", colors.text)}
             />
           ) : (
-            <span css={[tw`font-bold text-sm`, colors.text]}>
+            <span className={cn("font-bold text-sm", colors.text)}>
               {t('vault.unsorted')}
             </span>
           )}
-          <span tw="text-cpc-green-900 text-xs flex-shrink-0">({entries.length})</span>
+          <span className="text-cpc-green-900 text-xs flex-shrink-0">({entries.length})</span>
         </div>
-        <div tw="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <CpcMenu
             trigger={
-              <button tw="border border-cpc-green-500 text-cpc-green-500 px-2 py-0.5 text-xs hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer">
+              <button className="border border-cpc-green-500 text-cpc-green-500 px-2 py-0.5 text-xs hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer">
                 ⋮
               </button>
             }
@@ -93,10 +93,9 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
               <CpcSubmenu label={t('menu.color')}>
                 {VALID_COLORS.map((c) => (
                   <CpcMenuItem key={c} onClick={() => updateFolder(folder.id, { color: c })}>
-                    <span tw="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2">
                       <span
-                        tw="inline-block w-3 h-3 border border-current"
-                        css={[colorStyles[c].bg]}
+                        className={cn("inline-block w-3 h-3 border border-current", colorStyles[c].bg)}
                       />
                       {c.toUpperCase()}
                     </span>
@@ -112,7 +111,7 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
       </div>
 
       {/* Note tabs */}
-      <div tw="flex items-center gap-0 px-3 pt-2 overflow-x-auto flex-shrink-0">
+      <div className="flex items-center gap-0 px-3 pt-2 overflow-x-auto flex-shrink-0">
         {notes.map(note => (
           <NoteTab
             key={note.id}
@@ -129,7 +128,7 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
             setActiveNoteId(noteId)
             setEditingNoteId(noteId)
           }}
-          tw="px-3 py-1.5 text-xs text-cpc-green-900 hover:text-cpc-green-500 transition-colors whitespace-nowrap"
+          className="px-3 py-1.5 text-xs text-cpc-green-900 hover:text-cpc-green-500 transition-colors whitespace-nowrap"
           style={{ borderBottom: '2px solid transparent' }}
         >
           +
@@ -146,21 +145,21 @@ export function FolderContent({ folder, entries, notes, folderIndex, initialNote
       )}
 
       {/* Entries list — pushed to bottom */}
-      <div tw="flex-1 flex flex-col justify-end overflow-y-auto p-3">
+      <div className="flex-1 flex flex-col justify-end overflow-y-auto p-3">
         {entries.length === 0 && notes.length === 0 && !isAddingEntry && (
-          <div tw="text-center py-8 text-cpc-green-900 text-sm">
+          <div className="text-center py-8 text-cpc-green-900 text-sm">
             {t('vault.empty.subtitle')}
           </div>
         )}
 
-        <div tw="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1">
           {entries.map((entry, index) => (
             <EntryCard key={entry.id} entry={entry} index={index + 1} />
           ))}
         </div>
 
         {isAddingEntry && (
-          <div tw="mt-3">
+          <div className="mt-3">
             <AddEntryForm folderId={folderId} />
           </div>
         )}
@@ -214,10 +213,10 @@ function NoteTab({ note, isActive, startEditing: startEditingProp, onSelect, onE
           if (e.key === 'Enter') handleSubmit()
           if (e.key === 'Escape') { setTitle(note.title); setEditing(false); setTabWidth(undefined) }
         }}
-        css={[
-          tw`px-3 py-1.5 text-xs font-bold bg-transparent outline-none`,
+        className={cn(
+          "px-3 py-1.5 text-xs font-bold bg-transparent outline-none",
           nc.text,
-        ]}
+        )}
         style={{
           borderBottom: '2px solid currentColor',
           minWidth: tabWidth,
@@ -232,11 +231,11 @@ function NoteTab({ note, isActive, startEditing: startEditingProp, onSelect, onE
       ref={tabRef}
       onClick={onSelect}
       onDoubleClick={startEditing}
-      css={[
-        tw`flex items-center gap-1 px-3 py-1.5 text-xs font-bold whitespace-nowrap cursor-pointer`,
+      className={cn(
+        "flex items-center gap-1 px-3 py-1.5 text-xs font-bold whitespace-nowrap cursor-pointer",
         isActive && nc.text,
-        !isActive && tw`text-cpc-green-900 hover:bg-cpc-green-500/5`,
-      ]}
+        !isActive && "text-cpc-green-900 hover:bg-cpc-green-500/5",
+      )}
       style={{
         borderBottom: isActive ? '2px solid currentColor' : '2px solid transparent',
       }}

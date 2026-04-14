@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import tw from 'twin.macro'
 import { CpcButton } from './CpcButton'
 
 const meta = {
@@ -64,11 +63,11 @@ export const Disabled: Story = {
 
 export const AllVariants: Story = {
   render: () => (
-    <div css={tw`flex flex-col gap-6`}>
+    <div className="flex flex-col gap-6">
       {(['outlined', 'filled', 'text'] as const).map((variant) => (
-        <div key={variant} css={tw`flex flex-col gap-2`}>
-          <span css={tw`text-cpc-green-500/60 text-xs font-cpc uppercase`}>{variant}</span>
-          <div css={tw`flex flex-wrap gap-2`}>
+        <div key={variant} className="flex flex-col gap-2">
+          <span className="text-cpc-green-500/60 text-xs font-cpc uppercase">{variant}</span>
+          <div className="flex flex-wrap gap-2">
             {(['green', 'cyan', 'red', 'yellow', 'magenta', 'blue', 'orange'] as const).map((color) => (
               <CpcButton key={color} variant={variant} color={color}>
                 {color.toUpperCase()}

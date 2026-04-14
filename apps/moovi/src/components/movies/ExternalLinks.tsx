@@ -1,4 +1,3 @@
-import tw, { css } from 'twin.macro'
 import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui'
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine'
 import { useYtsMovie } from '@/hooks/useYtsMovie'
@@ -17,7 +16,7 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null)
 
   return (
-    <div tw="flex flex-wrap gap-2 items-center">
+    <div className="flex flex-wrap gap-2 items-center">
       {imdbId && (
         <CpcButton
           variant="outlined"
@@ -47,7 +46,7 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
           trigger={
             <CpcButton variant="outlined" color="red">
               YIFY
-              <ChevronDownIcon size="sm" css={chevronStyles} />
+              <ChevronDownIcon size="sm" className="cpc-chevron-flip" />
             </CpcButton>
           }
         >
@@ -65,7 +64,7 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
               onClick={() => { window.location.href = torrent.magnet }}
             >
               <span>{torrent.quality}</span>
-              <span tw="opacity-60 ml-1">
+              <span className="opacity-60 ml-1">
                 {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
               </span>
             </CpcMenuItem>
@@ -75,10 +74,3 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
     </div>
   )
 }
-
-const chevronStyles = css`
-  ${tw`ml-1 transition-transform duration-200`}
-  [data-popup-open] & {
-    ${tw`rotate-180`}
-  }
-`

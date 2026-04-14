@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CpcLayout, CpcDrawer } from '@vigooth/ui'
-import 'twin.macro'
 import { useAuth } from '../../stores/auth'
 import {
   generatePassword,
@@ -203,8 +202,8 @@ export function VaultPage() {
   if (loading) {
     return (
       <CpcLayout>
-        <div tw="h-full flex items-center justify-center">
-          <div tw="text-cpc-green-500">{t('vault.loading')}</div>
+        <div className="h-full flex items-center justify-center">
+          <div className="text-cpc-green-500">{t('vault.loading')}</div>
         </div>
       </CpcLayout>
     )
@@ -246,34 +245,34 @@ export function VaultPage() {
         onDeleteNote={handleDeleteNote}
       >
         <CpcLayout>
-          <div tw="h-full flex flex-col">
+          <div className="h-full flex flex-col">
             {/* Header */}
-            <div tw="flex justify-between items-center p-3 border-b-2 border-cpc-green-500">
-              <div tw="flex items-center gap-2">
+            <div className="flex justify-between items-center p-3 border-b-2 border-cpc-green-500">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setDrawerOpen(true)}
-                  tw="text-cpc-green-500 text-sm hover:text-cpc-green-500/80 transition-colors md:hidden cursor-pointer"
+                  className="text-cpc-green-500 text-sm hover:text-cpc-green-500/80 transition-colors md:hidden cursor-pointer"
                 >
                   ☰
                 </button>
-                <span tw="text-cpc-red-500 font-bold">{t('app.name')}</span>
-                {saving && <span tw="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
-                {isSyncing && <span tw="text-cpc-cyan-500 text-xs animate-pulse">{t('status.syncing')}</span>}
-                {!isOnline && <span tw="text-cpc-red-500 text-xs animate-pulse">{t('status.offline')}</span>}
+                <span className="text-cpc-red-500 font-bold">{t('app.name')}</span>
+                {saving && <span className="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
+                {isSyncing && <span className="text-cpc-cyan-500 text-xs animate-pulse">{t('status.syncing')}</span>}
+                {!isOnline && <span className="text-cpc-red-500 text-xs animate-pulse">{t('status.offline')}</span>}
                 {isOnline && hasPending && !isSyncing && (
-                  <span tw="text-cpc-yellow-500 text-xs">{t('status.pending')}</span>
+                  <span className="text-cpc-yellow-500 text-xs">{t('status.pending')}</span>
                 )}
               </div>
-              <div tw="flex gap-2">
+              <div className="flex gap-2">
                 <button
                   onClick={handleLock}
-                  tw="border-2 border-cpc-yellow-500 text-cpc-yellow-500 px-3 py-1 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900 transition-colors text-xs"
+                  className="border-2 border-cpc-yellow-500 text-cpc-yellow-500 px-3 py-1 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900 transition-colors text-xs"
                 >
                   {t('auth.lock')}
                 </button>
                 <button
                   onClick={handleLogout}
-                  tw="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs"
+                  className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs"
                 >
                   {t('auth.logout')}
                 </button>
@@ -281,9 +280,9 @@ export function VaultPage() {
             </div>
 
             {/* Sidebar + Content */}
-            <div tw="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden">
               {/* Desktop sidebar */}
-              <div tw="hidden md:block">
+              <div className="hidden md:block">
                 <Sidebar
                   folders={vault?.folders ?? []}
                   entries={vault?.entries ?? []}

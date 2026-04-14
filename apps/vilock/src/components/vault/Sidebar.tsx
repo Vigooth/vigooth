@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import tw from 'twin.macro'
+import { cn } from '@vigooth/ui'
 import { useTranslation } from 'react-i18next'
 import { Folder, PasswordEntry, Note } from '../../lib/crypto/vault'
 import { colorStyles, ColorType } from './types'
@@ -44,14 +44,14 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
   const rootNotes = getNotesForFolder(null)
 
   return (
-    <div tw="w-56 min-w-56 md:border-r-2 border-cpc-green-500 flex flex-col h-full overflow-hidden max-md:w-full max-md:min-w-0">
-      <div tw="flex-1 overflow-y-auto">
+    <div className="w-56 min-w-56 md:border-r-2 border-cpc-green-500 flex flex-col h-full overflow-hidden max-md:w-full max-md:min-w-0">
+      <div className="flex-1 overflow-y-auto">
         {/* === PASSWORDS SECTION === */}
-        <div tw="px-2 pt-2 pb-1 flex items-center justify-between">
-          <span tw="text-cpc-green-900 text-xs font-bold tracking-wider">{t('sidebar.passwords')}</span>
+        <div className="px-2 pt-2 pb-1 flex items-center justify-between">
+          <span className="text-cpc-green-900 text-xs font-bold tracking-wider">{t('sidebar.passwords')}</span>
           <button
             onClick={() => setShowAddFolder(!showAddFolder)}
-            tw="text-cpc-green-900 text-xs hover:text-cpc-green-500 transition-colors"
+            className="text-cpc-green-900 text-xs hover:text-cpc-green-500 transition-colors"
           >
             +
           </button>
@@ -82,7 +82,7 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
 
         {/* Add folder form */}
         {showAddFolder && (
-          <div tw="p-2">
+          <div className="p-2">
             <AddFolderForm
               name={newFolder.name}
               color={newFolder.color}
@@ -105,8 +105,8 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
         {/* === TRASH SECTION (unsorted) === */}
         {(rootEntries.length > 0 || rootNotes.length > 0) && (
           <>
-            <div tw="px-2 pt-4 pb-1 flex items-center justify-between border-t border-cpc-green-500/20 mt-2">
-              <span tw="text-cpc-green-900 text-xs font-bold tracking-wider">{t('sidebar.trash')}</span>
+            <div className="px-2 pt-4 pb-1 flex items-center justify-between border-t border-cpc-green-500/20 mt-2">
+              <span className="text-cpc-green-900 text-xs font-bold tracking-wider">{t('sidebar.trash')}</span>
             </div>
 
             <FolderItem
@@ -173,15 +173,15 @@ function FolderItem({
     <div>
       {/* Folder row */}
       <div
-        css={[
-          tw`flex items-center gap-1 px-2 py-1.5 cursor-pointer transition-colors text-sm`,
-          isSelected ? tw`bg-cpc-green-500/10 border-l-2 border-cpc-green-500` : tw`border-l-2 border-transparent hover:bg-cpc-green-500/5`,
-        ]}
+        className={cn(
+          "flex items-center gap-1 px-2 py-1.5 cursor-pointer transition-colors text-sm",
+          isSelected ? "bg-cpc-green-500/10 border-l-2 border-cpc-green-500" : "border-l-2 border-transparent hover:bg-cpc-green-500/5",
+        )}
       >
         {/* Expand toggle */}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleExpand() }}
-          tw="text-cpc-green-900 hover:text-cpc-green-500 text-xs w-4 flex-shrink-0"
+          className="text-cpc-green-900 hover:text-cpc-green-500 text-xs w-4 flex-shrink-0"
         >
           {isExpanded ? '▼' : '▶'}
         </button>
@@ -189,19 +189,21 @@ function FolderItem({
         {/* Folder info */}
         <div
           onClick={handleFolderClick}
-          tw="flex-1 flex items-center gap-1 min-w-0"
+          className="flex-1 flex items-center gap-1 min-w-0"
         >
-          <span tw="text-cpc-green-500 opacity-50 text-xs flex-shrink-0">[{index}]</span>
-          <span css={[tw`truncate font-bold text-xs`, colors.text]}>{label}</span>
-          <span tw="text-cpc-green-900 text-xs flex-shrink-0">({count})</span>
+          <span className="text-cpc-green-500 opacity-50 text-xs flex-shrink-0">[{index}]</span>
+          <span className={cn("truncate font-bold text-xs", colors.text)}>{label}</span>
+          <span className="text-cpc-green-900 text-xs flex-shrink-0">({count})</span>
         </div>
 
         {/* Delete button */}
         {onDelete && (
           <button
             onClick={(e) => { e.stopPropagation(); onDelete() }}
-            tw="text-cpc-red-500 hover:text-cpc-red-900 text-xs flex-shrink-0 opacity-0 hover:opacity-100"
-            css={[isSelected && tw`opacity-60`]}
+            className={cn(
+              "text-cpc-red-500 hover:text-cpc-red-900 text-xs flex-shrink-0 opacity-0 hover:opacity-100",
+              isSelected && "opacity-60",
+            )}
           >
             ✕
           </button>
@@ -210,7 +212,7 @@ function FolderItem({
 
       {/* Expanded entries & notes */}
       {isExpanded && (entries.length > 0 || folderNotes.length > 0) && (
-        <div tw="pl-7">
+        <div className="pl-7">
           {entries.map((entry, i) => (
             <EntryItem key={entry.id} entry={entry} index={i + 1} />
           ))}
@@ -220,7 +222,7 @@ function FolderItem({
               <div
                 key={note.id}
                 onClick={() => onSelectNote?.(note.id)}
-                css={[tw`text-xs py-0.5 px-2 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity`, nc.text]}
+                className={cn("text-xs py-0.5 px-2 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity", nc.text)}
               >
                 ■ {note.title}
               </div>
@@ -232,7 +234,7 @@ function FolderItem({
   )
 }
 
-const inputStyles = tw`w-full bg-transparent border border-cpc-green-500/40 text-cpc-green-500 text-xs px-2 py-1 outline-none focus:border-cpc-green-500`
+const inputClassName = "w-full bg-transparent border border-cpc-green-500/40 text-cpc-green-500 text-xs px-2 py-1 outline-none focus:border-cpc-green-500"
 
 function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
   const { t } = useTranslation()
@@ -246,8 +248,8 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
   return (
     <CpcMenu
       trigger={
-        <div tw="text-xs py-0.5 px-2 text-cpc-green-500 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity">
-          <span tw="opacity-50">{index}.</span> {entry.name}
+        <div className="text-xs py-0.5 px-2 text-cpc-green-500 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity">
+          <span className="opacity-50">{index}.</span> {entry.name}
         </div>
       }
     >
@@ -261,14 +263,14 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
       )}
       <CpcMenuSeparator />
       <CpcSubmenu label={t('menu.edit')}>
-        <div tw="p-2 space-y-2 w-48" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
-          <input css={inputStyles} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('entry.name')} />
-          <input css={inputStyles} value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder={t('entry.username')} />
-          <input css={inputStyles} type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={t('entry.password')} />
-          <input css={inputStyles} value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder={t('entry.url')} />
+        <div className="p-2 space-y-2 w-48" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+          <input className={inputClassName} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('entry.name')} />
+          <input className={inputClassName} value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder={t('entry.username')} />
+          <input className={inputClassName} type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder={t('entry.password')} />
+          <input className={inputClassName} value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder={t('entry.url')} />
           <button
             onClick={handleSave}
-            tw="w-full border border-cpc-green-500 text-cpc-green-500 text-xs py-1 hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer"
+            className="w-full border border-cpc-green-500 text-cpc-green-500 text-xs py-1 hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer"
           >
             {t('menu.edit.save')}
           </button>
@@ -278,4 +280,3 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
     </CpcMenu>
   )
 }
-

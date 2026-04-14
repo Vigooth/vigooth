@@ -1,145 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+@import "../../../packages/styles/src/theme.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
 
-/* CPC Terminal effects */
-@layer components {
-  .cpc-screen {
-    background: linear-gradient(
-      180deg,
-      rgba(0, 255, 0, 0.03) 0%,
-      rgba(0, 0, 0, 0) 50%,
-      rgba(0, 255, 0, 0.03) 100%
-    );
-    position: relative;
+@layer base {
+  :root {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #000000;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .cpc-screen::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 255, 0, 0.05) 2px,
-        rgba(0, 255, 0, 0.05) 4px
-      );
-    pointer-events: none;
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000000;
   }
 
-  .cpc-text-shadow {
-    text-shadow: 0 0 5px currentColor;
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
-  .cpc-cursor {
-    background-color: #00FF00;
-    animation: cursor-blink 1.06s infinite;
+  button {
+    border-radius: 0;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    background-color: transparent;
+    cursor: pointer;
   }
-
-  @keyframes cursor-blink {
-    0%, 50% {
-      background-color: #00FF00;
-    }
-    51%, 100% {
-      background-color: transparent;
-    }
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-in;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  .animate-enter-door {
-    animation: enter-door 2s ease-in forwards;
-  }
-
-  @keyframes enter-door {
-    0% {
-      transform: scale(1);
-      filter: brightness(1);
-    }
-    30% {
-      transform: scale(1.1);
-    }
-    60% {
-      transform: scale(1.5);
-      filter: brightness(0.8);
-    }
-    100% {
-      transform: scale(3);
-      filter: brightness(0.3) blur(4px);
-      opacity: 0;
-    }
-  }
-
-  .animate-zoom-in {
-    animation: zoom-in 2s ease-in forwards;
-  }
-
-  @keyframes zoom-in {
-    0% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(10);
-      opacity: 0;
-    }
-  }
-}
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #000000;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: #000000;
-}
-
-#root {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-button {
-  border-radius: 0;
-  border: none;
-  padding: 0;
-  font-size: inherit;
-  font-weight: inherit;
-  font-family: inherit;
-  background-color: transparent;
-  cursor: pointer;
 }

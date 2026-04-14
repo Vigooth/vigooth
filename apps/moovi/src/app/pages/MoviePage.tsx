@@ -1,6 +1,5 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { CpcLayout } from '@vigooth/ui'
-import 'twin.macro'
 import { Header } from '@/components/layout/Header'
 import { MovieDetails } from '@/components/movies/MovieDetails'
 
@@ -14,10 +13,10 @@ export function MoviePage() {
   if (!tmdbIdNum) {
     return (
       <CpcLayout>
-        <div tw="h-full flex flex-col">
+        <div className="h-full flex flex-col">
           <Header />
-          <div tw="flex-1 flex items-center justify-center">
-            <div tw="text-cpc-cyan-500">MOVIE NOT FOUND</div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-cpc-cyan-500">MOVIE NOT FOUND</div>
           </div>
         </div>
       </CpcLayout>
@@ -26,9 +25,9 @@ export function MoviePage() {
 
   return (
     <CpcLayout>
-      <div tw="h-full flex flex-col">
+      <div className="h-full flex flex-col">
         <Header />
-        <div tw="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto">
           <MovieDetails
             tmdbId={tmdbIdNum}
             mediaType={mediaType}

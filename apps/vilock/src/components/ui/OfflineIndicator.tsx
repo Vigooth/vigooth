@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import 'twin.macro'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 
 export function OfflineIndicator() {
@@ -11,7 +10,7 @@ export function OfflineIndicator() {
   }
 
   return (
-    <span tw="text-cpc-red-500 text-xs animate-pulse">
+    <span className="text-cpc-red-500 text-xs animate-pulse">
       {t('status.offline')}
     </span>
   )

@@ -1,6 +1,5 @@
 import { useRef, useEffect, useCallback, useMemo } from 'react'
 import { CpcLayout } from '@vigooth/ui'
-import 'twin.macro'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useQueryParam } from '@/hooks/useQueryParam'
 import {
@@ -106,10 +105,10 @@ export function SearchPage() {
 
   return (
     <CpcLayout>
-      <div tw="h-full flex flex-col">
+      <div className="h-full flex flex-col">
         <Header />
 
-        <div tw="p-3">
+        <div className="p-3">
           <SearchBar
             value={query}
             onChange={setQuery}
@@ -117,25 +116,25 @@ export function SearchPage() {
           />
         </div>
 
-        <div tw="flex-1 overflow-auto px-3 pb-3">
+        <div className="flex-1 overflow-auto px-3 pb-3">
           {!debouncedQuery || debouncedQuery.length < 2 ? (
-            <div tw="text-center py-12 text-cpc-green-900">
-              <div tw="text-lg mb-2">SEARCH MOVIES</div>
-              <div tw="text-sm">Type a movie title or director name to search TMDB</div>
+            <div className="text-center py-12 text-cpc-green-900">
+              <div className="text-lg mb-2">SEARCH MOVIES</div>
+              <div className="text-sm">Type a movie title or director name to search TMDB</div>
             </div>
           ) : searching ? (
-            <div tw="text-center py-12 text-cpc-cyan-500">
+            <div className="text-center py-12 text-cpc-cyan-500">
               SEARCHING...
             </div>
           ) : (
             <>
               {/* Director filmography section */}
               {director && directorResults.length > 0 && (
-                <div tw="mb-6">
-                  <div tw="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
+                <div className="mb-6">
+                  <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
                     FILMS DE {director.name.toUpperCase()}
                   </div>
-                  <div tw="space-y-2">
+                  <div className="space-y-2">
                     {directorResults.map((result) => (
                       <SearchResultCard
                         key={`director-${result.id}`}
@@ -147,26 +146,26 @@ export function SearchPage() {
 
                   <div
                     ref={directorSentinelRef}
-                    tw="h-8 flex items-center justify-center"
+                    className="h-8 flex items-center justify-center"
                   >
                     {isFetchingNextDirectorPage && (
-                      <span tw="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
+                      <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
                     )}
                   </div>
 
-                  <div tw="border-t border-cpc-green-900/30 mt-4 pt-4" />
+                  <div className="border-t border-cpc-green-900/30 mt-4 pt-4" />
                 </div>
               )}
 
               {/* Movie search results */}
               {results.length === 0 && !director ? (
-                <div tw="text-center py-12 text-cpc-green-900">
-                  <div tw="text-lg">NO RESULTS</div>
-                  <div tw="text-sm mt-1">Try a different search term</div>
+                <div className="text-center py-12 text-cpc-green-900">
+                  <div className="text-lg">NO RESULTS</div>
+                  <div className="text-sm mt-1">Try a different search term</div>
                 </div>
               ) : results.length > 0 ? (
-                <div tw="space-y-2">
-                  <div tw="text-cpc-green-900 text-xs mb-2">
+                <div className="space-y-2">
+                  <div className="text-cpc-green-900 text-xs mb-2">
                     {totalResults} RESULT{totalResults !== 1 ? 'S' : ''}
                   </div>
                   {results.map((result) => (
@@ -178,9 +177,9 @@ export function SearchPage() {
                   ))}
 
                   {/* Sentinel for infinite scroll */}
-                  <div ref={sentinelRef} tw="h-8 flex items-center justify-center">
+                  <div ref={sentinelRef} className="h-8 flex items-center justify-center">
                     {isFetchingNextPage && (
-                      <span tw="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
+                      <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
                     )}
                   </div>
                 </div>

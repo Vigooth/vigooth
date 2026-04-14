@@ -1,4 +1,3 @@
-import 'twin.macro'
 import { getRatingColor } from '@/utils/ratings'
 
 interface RatingBadgeProps {
@@ -14,10 +13,10 @@ export function RatingBadge({ label, value, max, suffix = '' }: RatingBadgeProps
   const color = getRatingColor(value, max)
 
   return (
-    <div tw="flex items-center gap-1">
-      <span tw="text-cpc-green-900 text-xs uppercase">{label}</span>
+    <div className="flex items-center gap-1">
+      <span className="text-cpc-green-900 text-xs uppercase">{label}</span>
       <span
-        tw="text-xs font-bold px-1 border"
+        className="text-xs font-bold px-1 border"
         style={{ color, borderColor: color }}
       >
         {value}{suffix}

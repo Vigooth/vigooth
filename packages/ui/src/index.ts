@@ -8,6 +8,8 @@ export {
   DownloadIcon,
   ExternalLinkIcon,
   StarIcon,
+  ListIcon,
+  GridCompactIcon,
 } from './Icons'
 export type { CreateIconProps, IconConfig, VariantDef, Size, IconVariant } from './Icons'
 export { Door } from './Door'

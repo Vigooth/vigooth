@@ -113,3 +113,11 @@ func (s *MovieService) UpdateMovie(id string, userID string, req *model.UpdateMo
 func (s *MovieService) DeleteMovie(id string, userID string) error {
 	return s.movieRepo.Delete(id, userID)
 }
+
+func (s *MovieService) FindWithEmptyOverview(userID string) ([]model.Movie, error) {
+	return s.movieRepo.FindWithEmptyOverview(userID)
+}
+
+func (s *MovieService) UpdateOverview(id string, overview string) error {
+	return s.movieRepo.UpdateOverview(id, overview)
+}

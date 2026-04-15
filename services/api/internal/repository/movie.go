@@ -21,6 +21,8 @@ type MovieRepository interface {
 	Update(movie *model.Movie) error
 	Delete(id string, userID string) error
 	ExistsByTmdbID(userID string, tmdbID int) (bool, error)
+	FindWithEmptyOverview(userID string) ([]model.Movie, error)
+	UpdateOverview(id string, overview string) error
 }
 
 // InMemoryMovieRepository - for development
@@ -139,4 +141,30 @@ func (r *InMemoryMovieRepository) ExistsByTmdbID(userID string, tmdbID int) (boo
 		}
 	}
 	return false, nil
+}
+
+func (r *InMemoryMovieRepository) FindWithEmptyOverview(userID string) ([]model.Movie, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var result []model.Movie
+	for _, m := range r.movies {
+		if m.UserID == userID && m.Overview == "" && m.TmdbID > 0 {
+			result = append(result, *m)
+		}
+	}
+	return result, nil
+}
+
+func (r *InMemoryMovieRepository) UpdateOverview(id string, overview string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	movie, ok := r.movies[id]
+	if !ok {
+		return ErrMovieNotFound
+	}
+	movie.Overview = overview
+	movie.UpdatedAt = time.Now()
+	return nil
 }

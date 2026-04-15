@@ -6,6 +6,8 @@ import { Search } from './svg/Search'
 import { Download } from './svg/Download'
 import { ExternalLink } from './svg/ExternalLink'
 import { StarOutlined, StarFilled } from './svg/Star'
+import { List } from './svg/List'
+import { GridCompact } from './svg/GridCompact'
 
 export const ChevronDownIcon = createIcon('ChevronDown', {
   default: { size: 'md', variant: 'outlined' },
@@ -43,4 +45,14 @@ export const StarIcon = createIcon('Star', {
     { size: 'md', variant: 'outlined', component: StarOutlined },
     { size: 'md', variant: 'filled', component: StarFilled },
   ],
+})
+
+export const ListIcon = createIcon('List', {
+  default: { size: 'md', variant: 'outlined' },
+  variants: [{ size: 'md', variant: 'outlined', component: List }],
+})
+
+export const GridCompactIcon = createIcon('GridCompact', {
+  default: { size: 'md', variant: 'outlined' },
+  variants: [{ size: 'md', variant: 'outlined', component: GridCompact }],
 })

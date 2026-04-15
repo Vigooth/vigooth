@@ -66,7 +66,7 @@ func main() {
 	cookieSecure := cookieDomain != ""          // HTTPS-only when domain is set (prod)
 
 	vaultHandler := handler.NewVaultHandler(vaultService)
-	movieHandler := handler.NewMovieHandler(movieService)
+	movieHandler := handler.NewMovieHandler(movieService, tmdbApiKey)
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey, os.Getenv("TOR_SOCKS_ADDR"))
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
@@ -123,6 +123,7 @@ func main() {
 		api.POST("/movies", movieHandler.AddMovie)
 		api.PUT("/movies/:id", movieHandler.UpdateMovie)
 		api.DELETE("/movies/:id", movieHandler.DeleteMovie)
+		api.POST("/movies/backfill-overviews", movieHandler.BackfillOverviews)
 
 		api.GET("/wishlist", wishlistHandler.GetWishlist)
 		api.POST("/wishlist", wishlistHandler.AddToWishlist)

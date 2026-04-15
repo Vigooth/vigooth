@@ -1,0 +1,34 @@
+import { STEAM_API_KEY, STEAM_ID } from '@/config'
+import type { OwnedGamesResponse } from '@/types/game'
+
+export async function fetchOwnedGames(steamId?: string): Promise<OwnedGamesResponse> {
+  const id = steamId || STEAM_ID
+  const params = new URLSearchParams({
+    key: STEAM_API_KEY,
+    steamid: id,
+    include_appinfo: '1',
+    include_played_free_games: '1',
+    format: 'json',
+  })
+
+  const res = await fetch(`/api/steam/IPlayerService/GetOwnedGames/v1/?${params}`)
+  if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
+  return res.json()
+}
+
+export async function resolveVanityUrl(vanityUrl: string): Promise<string> {
+  const params = new URLSearchParams({
+    key: STEAM_API_KEY,
+    vanityurl: vanityUrl,
+  })
+
+  const res = await fetch(`/api/steam/ISteamUser/ResolveVanityURL/v1/?${params}`)
+  if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
+  const data = await res.json()
+
+  if (data.response.success !== 1) {
+    throw new Error('Could not resolve Steam vanity URL')
+  }
+
+  return data.response.steamid
+}

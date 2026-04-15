@@ -53,6 +53,8 @@ services:
     working_dir: /app
     environment:
       VITE_API_URL: https://api.${DOMAIN}
+      VITE_STEAM_API_KEY: ${VITE_STEAM_API_KEY}
+      VITE_STEAM_ID: ${VITE_STEAM_ID}
     volumes:
       - .:/app
       - frontend_portal:/app/apps/portal/dist

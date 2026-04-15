@@ -83,9 +83,9 @@ app-steam.{$DOMAIN} {
 		}
 	}
 	handle_path /api/store/* {
+		rewrite * /api{uri}
 		reverse_proxy https://store.steampowered.com {
 			header_up Host store.steampowered.com
-			rewrite * /api{uri}
 		}
 	}
 

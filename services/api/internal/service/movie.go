@@ -121,3 +121,7 @@ func (s *MovieService) FindWithEmptyOverview(userID string) ([]model.Movie, erro
 func (s *MovieService) UpdateOverview(id string, overview string) error {
 	return s.movieRepo.UpdateOverview(id, overview)
 }
+
+func (s *MovieService) GetTmdbIDs(userID string) ([]int, error) {
+	return s.movieRepo.FindTmdbIDsByUserID(userID)
+}

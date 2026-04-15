@@ -9,6 +9,7 @@ import { MoviePage } from './pages/MoviePage'
 import { RecommendationsPage } from './pages/RecommendationsPage'
 import { WishlistPage } from './pages/WishlistPage'
 import { StatusPage } from './pages/StatusPage'
+import { PublicCollectionPage } from './pages/PublicCollectionPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -97,6 +98,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/u/:userId" element={<PublicCollectionPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

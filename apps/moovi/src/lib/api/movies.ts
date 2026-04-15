@@ -39,3 +39,17 @@ export async function deleteMovie(id: string): Promise<void> {
 export async function backfillOverviews(): Promise<{ updated: number; total: number }> {
   return request('/api/movies/backfill-overviews', { method: 'POST' })
 }
+
+export async function getMyTmdbIds(): Promise<{ tmdb_ids: number[] }> {
+  return request<{ tmdb_ids: number[] }>('/api/movies/tmdb-ids')
+}
+
+export async function getPublicCollection(userId: string, query: MovieListQuery = {}): Promise<MovieListResponse> {
+  const params = new URLSearchParams()
+  if (query.search) params.set('search', query.search)
+  if (query.limit != null) params.set('limit', String(query.limit))
+  if (query.offset != null) params.set('offset', String(query.offset))
+  if (query.min_rating) params.set('min_rating', String(query.min_rating))
+  const qs = params.toString()
+  return request<MovieListResponse>(`/public/collection/${userId}${qs ? `?${qs}` : ''}`)
+}

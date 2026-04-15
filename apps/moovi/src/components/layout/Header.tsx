@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CpcButton } from '@vigooth/ui'
+import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui'
+import { getAppsConfig } from '@vigooth/config'
 import { useAuth } from '@/stores/auth'
+
+const otherApps = getAppsConfig('movies')
 
 export function Header() {
   const navigate = useNavigate()
@@ -16,7 +19,20 @@ export function Header() {
 
   return (
     <div className="flex items-center p-3 border-b-2 border-cpc-green-500 gap-4 min-w-0">
-      <span className="text-cpc-cyan-500 font-bold shrink-0">MOOVI</span>
+      <CpcMenu
+        color="cyan"
+        trigger={
+          <button className="text-cpc-cyan-500 font-bold shrink-0 cursor-pointer hover:text-cpc-yellow-500 transition-colors">
+            MOOVI
+          </button>
+        }
+      >
+        {otherApps.map((app) => (
+          <CpcMenuItem key={app.id} onClick={() => { window.location.href = app.url }}>
+            {app.name}
+          </CpcMenuItem>
+        ))}
+      </CpcMenu>
       <nav
         className="flex gap-2 overflow-x-auto min-w-0 flex-1 scrollbar-none"
       >

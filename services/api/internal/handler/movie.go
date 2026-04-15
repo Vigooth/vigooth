@@ -54,6 +54,30 @@ func (h *MovieHandler) GetMovies(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *MovieHandler) GetPublicCollection(c *gin.Context) {
+	userID := c.Param("userId")
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	search := c.Query("search")
+	minRating, _ := strconv.Atoi(c.DefaultQuery("min_rating", "0"))
+
+	query := model.MovieListQuery{
+		Search:    search,
+		Limit:     limit,
+		Offset:    offset,
+		MinRating: minRating,
+	}
+
+	resp, err := h.movieService.GetMovies(userID, query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get movies"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func (h *MovieHandler) GetMovie(c *gin.Context) {
 	userID := c.GetString("userID")
 	id := c.Param("id")
@@ -131,6 +155,18 @@ func (h *MovieHandler) DeleteMovie(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "movie deleted"})
+}
+
+func (h *MovieHandler) GetTmdbIDs(c *gin.Context) {
+	userID := c.GetString("userID")
+
+	ids, err := h.movieService.GetTmdbIDs(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get tmdb ids"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"tmdb_ids": ids})
 }
 
 func (h *MovieHandler) BackfillOverviews(c *gin.Context) {

@@ -216,3 +216,26 @@ func (r *PostgresMovieRepository) UpdateOverview(id string, overview string) err
 	)
 	return err
 }
+
+func (r *PostgresMovieRepository) FindTmdbIDsByUserID(userID string) ([]int, error) {
+	rows, err := r.pool.Query(context.Background(),
+		`SELECT tmdb_id FROM movies WHERE user_id = $1`, userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if ids == nil {
+		ids = []int{}
+	}
+	return ids, nil
+}

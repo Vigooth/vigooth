@@ -58,6 +58,7 @@ services:
       - frontend_portal:/app/apps/portal/dist
       - frontend_vilock:/app/apps/vilock/dist
       - frontend_moovi:/app/apps/moovi/dist
+      - frontend_steam:/app/apps/steam/dist
       - pnpm_store:/app/.pnpm-store
     command: >
       sh -c "
@@ -67,7 +68,8 @@ services:
         pnpm install --frozen-lockfile &&
         pnpm build:portal &&
         pnpm build:vilock &&
-        pnpm build:moovi
+        pnpm build:moovi &&
+        pnpm build:steam
       "
     networks: []
 
@@ -86,6 +88,7 @@ services:
       - frontend_portal:/srv/portal:ro
       - frontend_vilock:/srv/vilock:ro
       - frontend_moovi:/srv/moovi:ro
+      - frontend_steam:/srv/steam:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -98,6 +101,7 @@ volumes:
   frontend_portal:
   frontend_vilock:
   frontend_moovi:
+  frontend_steam:
   pnpm_store:
   caddy_data:
   caddy_config:

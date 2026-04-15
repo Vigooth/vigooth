@@ -42,7 +42,7 @@ jobs:
       - name: Restart Caddy
         if: inputs.target == 'all' || inputs.target == 'frontend' || inputs.target == ''
         run: |
-          ssh root@${{ secrets.SERVER_IP }} "cd /opt/vigooth && docker compose -f docker-compose.prod.yml restart caddy"
+          ssh root@${{ secrets.SERVER_IP }} "cd /opt/vigooth && docker compose -f docker-compose.prod.yml up -d caddy --force-recreate"
 
       - name: Build API
         if: inputs.target == 'all' || inputs.target == 'api' || inputs.target == ''

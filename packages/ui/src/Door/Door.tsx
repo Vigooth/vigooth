@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { cn } from '../utils/cn'
-
 import type { ReactNode } from 'react'
 
 interface DoorProps {
@@ -11,11 +9,23 @@ interface DoorProps {
 
 export function Door({ onOpen, showLock, icon }: DoorProps) {
   const [phase, setPhase] = useState<'idle' | 'opening'>('idle')
+  const [hovered, setHovered] = useState(false)
 
   const handleClick = () => {
     if (phase !== 'idle') return
     setPhase('opening')
-    setTimeout(() => onOpen?.(), 700)
+    setTimeout(() => onOpen?.(), 600)
+  }
+
+  const angle = phase === 'opening' ? -105 : hovered ? -18 : 0
+  const duration = phase === 'opening' ? '0.6s' : '0.4s'
+  const easing = phase === 'opening' ? 'ease-in' : hovered ? 'ease-out' : 'ease-in'
+
+  const doorStyle: React.CSSProperties = {
+    transformStyle: 'preserve-3d',
+    backfaceVisibility: 'hidden',
+    transform: `perspective(1000px) rotateY(${angle}deg)`,
+    transition: `transform ${duration} ${easing}`,
   }
 
   return (
@@ -25,23 +35,27 @@ export function Door({ onOpen, showLock, icon }: DoorProps) {
         <div className="relative border-4 border-cpc-yellow-500 p-2 overflow-hidden" style={{ width: '200px', height: '300px', background: '#0a0a0a' }}>
           {/* Room behind door */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {phase !== 'idle' && (
+            {(phase !== 'idle' || hovered) && (
               <div className="text-cpc-green-500 text-center">
-                <div className="text-2xl mb-4 animate-pulse-cpc">···</div>
-                <div className="text-sm">ENTERING...</div>
+                {phase !== 'idle' ? (
+                  <>
+                    <div className="text-2xl mb-4 animate-pulse-cpc">···</div>
+                    <div className="text-sm">ENTERING...</div>
+                  </>
+                ) : (
+                  <div className="text-sm opacity-60 animate-pulse-cpc">···</div>
+                )}
               </div>
             )}
           </div>
 
           {/* Door panel */}
           <div
-            className={cn(
-              'relative w-full h-full border-4 border-cpc-green-500 bg-gradient-to-b from-cpc-grey-900 to-cpc-blue-900 cursor-pointer origin-left',
-              phase === 'idle' && 'hover:brightness-110 transition-all duration-300',
-              phase !== 'idle' && 'door-swing',
-            )}
+            className="relative w-full h-full border-4 border-cpc-green-500 bg-gradient-to-b from-cpc-grey-900 to-cpc-blue-900 cursor-pointer origin-left"
             onClick={handleClick}
-            style={{ transformStyle: 'preserve-3d' }}
+            onMouseEnter={() => phase === 'idle' && setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={doorStyle}
           >
             {/* Door panels */}
             <div className="absolute inset-4 border-2 border-cpc-cyan-500" />

@@ -39,6 +39,16 @@ export const apps: AppDefinition[] = [
     prodPath: '/movies',
     prodSubdomain: 'app-moovi',
   },
+  {
+    id: 'steam',
+    name: 'STEAM',
+    description: 'Browse your Steam game library',
+    icon: '🎮',
+    color: 'magenta',
+    devPort: 5177,
+    prodPath: '/steam',
+    prodSubdomain: 'app-steam',
+  },
 ]
 
 function isDev(): boolean {

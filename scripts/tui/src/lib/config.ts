@@ -42,6 +42,15 @@ export const services: ServiceConfig[] = [
     processPattern: /vite.*moovi/,
   },
   {
+    id: 'steam',
+    name: 'steam',
+    command: 'pnpm',
+    args: ['--filter', '@vigooth/steam', 'dev'],
+    defaultPort: 5177,
+    urlTemplate: 'http://localhost:{port}',
+    processPattern: /vite.*steam/,
+  },
+  {
     id: 'storybook',
     name: 'storybook',
     command: 'pnpm',

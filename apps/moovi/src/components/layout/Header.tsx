@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator } from '@vigooth/ui'
+import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui'
 import { getAppsConfig } from '@vigooth/config'
 import { useAuth } from '@/stores/auth'
 

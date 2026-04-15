@@ -35,3 +35,7 @@ export async function deleteMovie(id: string): Promise<void> {
     method: 'DELETE',
   })
 }
+
+export async function backfillOverviews(): Promise<{ updated: number; total: number }> {
+  return request('/api/movies/backfill-overviews', { method: 'POST' })
+}

@@ -8,4 +8,6 @@ export {
   DownloadIcon,
   ExternalLinkIcon,
   StarIcon,
+  ListIcon,
+  GridCompactIcon,
 } from './icons'

@@ -174,3 +174,45 @@ func (r *PostgresMovieRepository) ExistsByTmdbID(userID string, tmdbID int) (boo
 
 	return exists, err
 }
+
+func (r *PostgresMovieRepository) FindWithEmptyOverview(userID string) ([]model.Movie, error) {
+	rows, err := r.pool.Query(context.Background(),
+		`SELECT id, user_id, tmdb_id, imdb_id, media_type, title, original_title, year,
+			poster_path, backdrop_path, overview, genres, director, runtime,
+			metascore, imdb_rating, rotten_tomatoes, personal_rating, notes, added_at, updated_at
+		 FROM movies WHERE user_id = $1 AND (overview IS NULL OR overview = '') AND tmdb_id > 0`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []model.Movie
+	for rows.Next() {
+		var movie model.Movie
+		err := rows.Scan(
+			&movie.ID, &movie.UserID, &movie.TmdbID, &movie.ImdbID, &movie.MediaType, &movie.Title,
+			&movie.OriginalTitle, &movie.Year, &movie.PosterPath, &movie.BackdropPath,
+			&movie.Overview, &movie.Genres, &movie.Director, &movie.Runtime,
+			&movie.Metascore, &movie.ImdbRating, &movie.RottenTomatoes,
+			&movie.PersonalRating, &movie.Notes, &movie.AddedAt, &movie.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		movies = append(movies, movie)
+	}
+	if movies == nil {
+		movies = []model.Movie{}
+	}
+	return movies, nil
+}
+
+func (r *PostgresMovieRepository) UpdateOverview(id string, overview string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE movies SET overview = $1, updated_at = NOW() WHERE id = $2`,
+		overview, id,
+	)
+	return err
+}

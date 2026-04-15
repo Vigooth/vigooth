@@ -31,5 +31,14 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "tailwindcss": "^4.2.2"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "@inkjs/ui": {
+        "dependencies": {
+          "react": "18.3.1"
+        }
+      }
+    }
   }
 }

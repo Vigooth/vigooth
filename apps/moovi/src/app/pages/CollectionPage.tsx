@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CpcLayout, cn } from '@vigooth/ui'
+import { CpcLayout, cn, ListIcon, GridCompactIcon } from '@vigooth/ui'
 import { useAuth } from '@/stores/auth'
 import { useMoviesQuery } from '@/hooks/useMoviesQuery'
+import { useBackfillOverviews } from '@/hooks/useBackfillOverviews'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam'
@@ -19,6 +20,8 @@ export function CollectionPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [search, setSearch] = useQueryParam('q')
   const [minRating, setMinRating] = useQueryParamNumber('rating')
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid')
+  useBackfillOverviews()
   const debouncedSearch = useDebounce(search, 300)
 
   const openDrawer = (movie: Movie) => {
@@ -66,27 +69,53 @@ export function CollectionPage() {
             onChange={setSearch}
             placeholder="Search collection..."
           />
-          <div className="flex gap-1">
-            {[
-              { label: 'TOUT', value: 0 },
-              { label: '5+', value: 5 },
-              { label: '6+', value: 6 },
-              { label: '7+', value: 7 },
-              { label: '8+', value: 8 },
-            ].map((preset) => (
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1">
+              {[
+                { label: 'TOUT', value: 0 },
+                { label: '5+', value: 5 },
+                { label: '6+', value: 6 },
+                { label: '7+', value: 7 },
+                { label: '8+', value: 8 },
+              ].map((preset) => (
+                <button
+                  key={preset.value}
+                  onClick={() => setMinRating(preset.value)}
+                  className={cn(
+                    "border px-3 py-1 text-xs transition-colors",
+                    minRating === preset.value
+                      ? "border-cpc-cyan-500 text-cpc-cyan-500"
+                      : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                  )}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1">
               <button
-                key={preset.value}
-                onClick={() => setMinRating(preset.value)}
+                onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
                 className={cn(
-                  "border px-3 py-1 text-xs transition-colors",
-                  minRating === preset.value
+                  "border p-1.5 transition-colors",
+                  viewMode === 'list'
                     ? "border-cpc-cyan-500 text-cpc-cyan-500"
                     : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
                 )}
               >
-                {preset.label}
+                <ListIcon size="sm" />
               </button>
-            ))}
+              <button
+                onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
+                className={cn(
+                  "border p-1.5 transition-colors",
+                  viewMode === 'compact'
+                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
+                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                )}
+              >
+                <GridCompactIcon size="sm" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -109,6 +138,7 @@ export function CollectionPage() {
               </div>
               <MovieGrid
                 movies={movies}
+                viewMode={viewMode}
                 onMovieClick={openDrawer}
                 emptyMessage={debouncedSearch || minRating > 0 ? 'NO RESULTS' : 'NO MOVIES YET'}
               />

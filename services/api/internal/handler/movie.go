@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
 	"github.com/Vigooth/vigooth/services/api/internal/repository"
@@ -13,11 +17,13 @@ import (
 
 type MovieHandler struct {
 	movieService *service.MovieService
+	tmdbApiKey   string
 }
 
-func NewMovieHandler(movieService *service.MovieService) *MovieHandler {
+func NewMovieHandler(movieService *service.MovieService, tmdbApiKey string) *MovieHandler {
 	return &MovieHandler{
 		movieService: movieService,
+		tmdbApiKey:   tmdbApiKey,
 	}
 }
 
@@ -125,4 +131,55 @@ func (h *MovieHandler) DeleteMovie(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "movie deleted"})
+}
+
+func (h *MovieHandler) BackfillOverviews(c *gin.Context) {
+	userID := c.GetString("userID")
+
+	movies, err := h.movieService.FindWithEmptyOverview(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to find movies"})
+		return
+	}
+
+	if len(movies) == 0 {
+		c.JSON(http.StatusOK, gin.H{"updated": 0, "message": "all movies already have overviews"})
+		return
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	updated := 0
+
+	for _, movie := range movies {
+		endpoint := "movie"
+		if movie.MediaType == "tv" {
+			endpoint = "tv"
+		}
+		url := fmt.Sprintf("https://api.themoviedb.org/3/%s/%d?api_key=%s&language=fr-FR",
+			endpoint, movie.TmdbID, h.tmdbApiKey)
+
+		resp, err := client.Get(url)
+		if err != nil {
+			continue
+		}
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil || resp.StatusCode != 200 {
+			continue
+		}
+
+		var detail struct {
+			Overview string `json:"overview"`
+		}
+		if err := json.Unmarshal(body, &detail); err != nil || detail.Overview == "" {
+			continue
+		}
+
+		if err := h.movieService.UpdateOverview(movie.ID, detail.Overview); err != nil {
+			continue
+		}
+		updated++
+	}
+
+	c.JSON(http.StatusOK, gin.H{"updated": updated, "total": len(movies)})
 }

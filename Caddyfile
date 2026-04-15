@@ -70,13 +70,7 @@ app-moovi.{$DOMAIN} {
 
 # Steam — app-steam.vigooth.com
 app-steam.{$DOMAIN} {
-	root * /srv/steam
-	file_server
-
-	# SPA fallback
-	try_files {path} /index.html
-
-	# Proxy Steam API to avoid CORS
+	# Proxy Steam API to avoid CORS — must be before file_server
 	handle_path /api/steam/* {
 		reverse_proxy https://api.steampowered.com {
 			header_up Host api.steampowered.com
@@ -87,6 +81,13 @@ app-steam.{$DOMAIN} {
 		reverse_proxy https://store.steampowered.com {
 			header_up Host store.steampowered.com
 		}
+	}
+
+	# SPA static files
+	handle {
+		root * /srv/steam
+		try_files {path} /index.html
+		file_server
 	}
 
 	# Cache Vite hashed assets immutably

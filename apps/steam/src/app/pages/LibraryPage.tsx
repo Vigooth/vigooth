@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
+import { useParams } from 'react-router-dom'
 import { CpcLayout, CpcButton, CpcInput } from '@vigooth/ui'
 import { Header } from '@/components/layout/Header'
 import { GameGrid } from '@/components/games/GameGrid'
 import { GameDrawer } from '@/components/games/GameDrawer'
 import { useOwnedGames } from '@/hooks/useOwnedGames'
+import { usePlayerSummary } from '@/hooks/usePlayerSummary'
 import type { SteamGame, SortOption } from '@/types/game'
 
 function sortGames(a: SteamGame, b: SteamGame, sort: SortOption): number {
@@ -18,7 +20,9 @@ function sortGames(a: SteamGame, b: SteamGame, sort: SortOption): number {
 }
 
 export function LibraryPage() {
-  const { data, isLoading, error } = useOwnedGames()
+  const { steamId } = useParams<{ steamId?: string }>()
+  const { data, isLoading, error } = useOwnedGames(steamId)
+  const { data: player } = usePlayerSummary(steamId)
   const [selectedGame, setSelectedGame] = useState<SteamGame | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -50,6 +54,25 @@ export function LibraryPage() {
     <CpcLayout>
       <div className="h-full flex flex-col overflow-hidden">
         <Header />
+
+        {player && steamId && (
+          <div className="flex items-center gap-3 p-3 border-b border-cpc-magenta-500">
+            <img
+              src={player.avatarfull}
+              alt={player.personaname}
+              className="w-8 h-8 border border-cpc-magenta-500"
+            />
+            <span className="text-cpc-magenta-500 font-bold text-sm">{player.personaname}</span>
+            <a
+              href={player.profileurl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cpc-cyan-500 text-xs hover:underline"
+            >
+              STEAM PROFILE
+            </a>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 p-3 border-b border-cpc-green-900 flex-wrap">
           <CpcInput
@@ -99,7 +122,7 @@ export function LibraryPage() {
               <div className="text-lg mb-2">ERROR LOADING LIBRARY</div>
               <div className="text-sm">{error.message}</div>
               <div className="text-xs text-cpc-green-900 mt-2">
-                Make sure your Steam profile is public and your API key is valid.
+                Make sure the Steam profile is public and the API key is valid.
               </div>
             </div>
           )}

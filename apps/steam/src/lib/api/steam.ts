@@ -32,3 +32,26 @@ export async function resolveVanityUrl(vanityUrl: string): Promise<string> {
 
   return data.response.steamid
 }
+
+export interface PlayerSummary {
+  steamid: string
+  personaname: string
+  avatarfull: string
+  profileurl: string
+}
+
+export async function fetchPlayerSummary(steamId: string): Promise<PlayerSummary> {
+  const params = new URLSearchParams({
+    key: STEAM_API_KEY,
+    steamids: steamId,
+  })
+
+  const res = await fetch(`/api/steam/ISteamUser/GetPlayerSummaries/v2/?${params}`)
+  if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
+  const data = await res.json()
+
+  const player = data.response.players?.[0]
+  if (!player) throw new Error('Player not found')
+
+  return player
+}

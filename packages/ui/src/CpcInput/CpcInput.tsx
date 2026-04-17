@@ -19,19 +19,14 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
       }
     }
 
+    const showPlaceholder = !value && !focused && placeholder
     const showCursor = cursorBlink || focused
 
     return (
       <div className="relative inline-flex items-baseline">
-        {!value && !focused && (
-          <span className="font-cpc opacity-40">{placeholder}</span>
-        )}
-        {!value && focused && (
-          <span className="font-cpc invisible">{placeholder}</span>
-        )}
-        {value && (
-          <span className="font-cpc">{value}</span>
-        )}
+        <span className={cn('font-cpc', showPlaceholder && 'opacity-40')}>
+          {value || (showPlaceholder ? placeholder : '\u00A0')}
+        </span>
         <input
           ref={ref}
           type="text"

@@ -4,6 +4,8 @@ import { CpcLayout, CpcButton, CpcInput } from '@vigooth/ui'
 import { Header } from '@/components/layout/Header'
 import { GameGrid } from '@/components/games/GameGrid'
 import { GameDrawer } from '@/components/games/GameDrawer'
+import { LibraryStats } from '@/components/games/LibraryStats'
+import { FriendsSidebar } from '@/components/friends/FriendsSidebar'
 import { useOwnedGames } from '@/hooks/useOwnedGames'
 import { usePlayerSummary } from '@/hooks/usePlayerSummary'
 import type { SteamGame, SortOption } from '@/types/game'
@@ -74,6 +76,8 @@ export function LibraryPage() {
           </div>
         )}
 
+        {games && games.length > 0 && <LibraryStats games={games} />}
+
         <div className="flex items-center gap-3 p-3 border-b border-cpc-green-900 flex-wrap">
           <CpcInput
             value={search}
@@ -110,26 +114,29 @@ export function LibraryPage() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3">
-          {isLoading && (
-            <div className="text-cpc-green-500 text-center py-12 animate-pulse">
-              LOADING STEAM LIBRARY...
-            </div>
-          )}
-
-          {error && (
-            <div className="text-cpc-red-500 text-center py-12">
-              <div className="text-lg mb-2">ERROR LOADING LIBRARY</div>
-              <div className="text-sm">{error.message}</div>
-              <div className="text-xs text-cpc-green-900 mt-2">
-                Make sure the Steam profile is public and the API key is valid.
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-3">
+            {isLoading && (
+              <div className="text-cpc-green-500 text-center py-12 animate-pulse">
+                LOADING STEAM LIBRARY...
               </div>
-            </div>
-          )}
+            )}
 
-          {!isLoading && !error && (
-            <GameGrid games={filteredGames} onGameClick={handleGameClick} />
-          )}
+            {error && (
+              <div className="text-cpc-red-500 text-center py-12">
+                <div className="text-lg mb-2">ERROR LOADING LIBRARY</div>
+                <div className="text-sm">{error.message}</div>
+                <div className="text-xs text-cpc-green-900 mt-2">
+                  Make sure the Steam profile is public and the API key is valid.
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && (
+              <GameGrid games={filteredGames} onGameClick={handleGameClick} />
+            )}
+          </div>
+          <FriendsSidebar />
         </div>
 
         <GameDrawer

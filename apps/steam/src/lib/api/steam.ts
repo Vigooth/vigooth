@@ -33,6 +33,42 @@ export async function resolveVanityUrl(vanityUrl: string): Promise<string> {
   return data.response.steamid
 }
 
+export interface Friend {
+  steamid: string
+  relationship: string
+  friend_since: number
+}
+
+export interface FriendListResponse {
+  friendslist: {
+    friends: Friend[]
+  }
+}
+
+export async function fetchFriendList(steamId: string): Promise<FriendListResponse> {
+  const params = new URLSearchParams({
+    key: STEAM_API_KEY,
+    steamid: steamId,
+    relationship: 'friend',
+  })
+
+  const res = await fetch(`/api/steam/ISteamUser/GetFriendList/v1/?${params}`)
+  if (!res.ok) throw new Error('Friend list is private or unavailable')
+  return res.json()
+}
+
+export async function fetchPlayerSummaries(steamIds: string[]): Promise<PlayerSummary[]> {
+  const params = new URLSearchParams({
+    key: STEAM_API_KEY,
+    steamids: steamIds.join(','),
+  })
+
+  const res = await fetch(`/api/steam/ISteamUser/GetPlayerSummaries/v2/?${params}`)
+  if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
+  const data = await res.json()
+  return data.response.players ?? []
+}
+
 export interface PlayerSummary {
   steamid: string
   personaname: string

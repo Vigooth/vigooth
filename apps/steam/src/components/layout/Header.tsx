@@ -1,25 +1,14 @@
-import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CpcButton, CpcMenu, CpcMenuItem, CpcInput } from '@vigooth/ui'
+import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui'
 import { getAppsConfig } from '@vigooth/config'
-import { usePlayerSearch } from '@/hooks/usePlayerSearch'
 
 const otherApps = getAppsConfig('steam')
 
 export function Header() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [userInput, setUserInput] = useState('')
-  const { search, searching, error } = usePlayerSearch()
 
   const isActive = (path: string) => location.pathname.startsWith(path)
-
-  const handleSearch = () => {
-    if (userInput.trim()) {
-      search(userInput)
-      setUserInput('')
-    }
-  }
 
   return (
     <div className="flex items-center p-3 border-b-2 border-cpc-green-500 gap-4 min-w-0">
@@ -46,24 +35,6 @@ export function Header() {
           LIBRARY
         </CpcButton>
       </nav>
-      <div className="flex items-center gap-2 shrink-0">
-        <CpcInput
-          value={userInput}
-          onChange={setUserInput}
-          onEnter={handleSearch}
-          placeholder="Steam ID or username..."
-        />
-        <CpcButton
-          variant="outlined"
-          color="cyan"
-          onClick={handleSearch}
-        >
-          {searching ? '...' : 'GO'}
-        </CpcButton>
-      </div>
-      {error && (
-        <span className="text-cpc-red-500 text-xs shrink-0">{error}</span>
-      )}
     </div>
   )
 }

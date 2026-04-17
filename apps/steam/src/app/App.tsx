@@ -14,7 +14,7 @@ function AppRoutes() {
         element={hasConfig ? <LibraryPage /> : <Navigate to="/setup" replace />}
       />
       <Route path="/u/:steamId" element={<LibraryPage />} />
-      <Route path="/setup" element={<SetupPage />} />
+<Route path="/setup" element={<SetupPage />} />
       <Route path="*" element={<Navigate to={hasConfig ? '/library' : '/setup'} replace />} />
     </Routes>
   )

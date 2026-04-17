@@ -23,7 +23,15 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
 
     return (
       <div className="relative inline-flex items-baseline">
-        <span className="font-cpc">{value || <span className="invisible">{placeholder}</span>}</span>
+        {!value && !focused && (
+          <span className="font-cpc opacity-40">{placeholder}</span>
+        )}
+        {!value && focused && (
+          <span className="font-cpc invisible">{placeholder}</span>
+        )}
+        {value && (
+          <span className="font-cpc">{value}</span>
+        )}
         <input
           ref={ref}
           type="text"
@@ -32,11 +40,7 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
           onKeyPress={handleKeyPress}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder={placeholder}
-          className={cn(
-            'absolute inset-0 bg-transparent border-none outline-none font-cpc w-full',
-            value ? 'text-transparent' : 'text-cpc-green-900',
-          )}
+          className="absolute inset-0 bg-transparent border-none outline-none font-cpc text-transparent w-full"
           style={{ caretColor: 'transparent' }}
         />
         <span className={cn('inline-block w-2 h-4 ml-0.5', showCursor ? 'cpc-cursor' : 'bg-transparent')} />

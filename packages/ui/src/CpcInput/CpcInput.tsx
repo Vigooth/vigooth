@@ -25,7 +25,7 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
     return (
       <div className="relative inline-flex items-baseline">
         <span className={cn('font-cpc', showPlaceholder && 'opacity-40')}>
-          {value || (showPlaceholder ? placeholder : '\u00A0')}
+          {value || (showPlaceholder ? placeholder : '')}
         </span>
         <input
           ref={ref}

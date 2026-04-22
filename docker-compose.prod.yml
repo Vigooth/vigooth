@@ -39,6 +39,8 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
       COOKIE_DOMAIN: .${DOMAIN}
       TOR_SOCKS_ADDR: tor:9050
+      STEAM_API_KEY: ${STEAM_API_KEY:-}
+      STEAM_BASE_URL: https://app-steam.${DOMAIN}
     depends_on:
       postgres:
         condition: service_healthy

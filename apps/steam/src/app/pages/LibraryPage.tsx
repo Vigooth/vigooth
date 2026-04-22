@@ -127,7 +127,7 @@ export function LibraryPage() {
                 <div className="text-lg mb-2">ERROR LOADING LIBRARY</div>
                 <div className="text-sm">{error.message}</div>
                 <div className="text-xs text-cpc-green-900 mt-2">
-                  Make sure the Steam profile is public and the API key is valid.
+                  Make sure the Steam profile is public.
                 </div>
               </div>
             )}

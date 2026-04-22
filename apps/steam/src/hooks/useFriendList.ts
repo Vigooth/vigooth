@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchFriendList, fetchPlayerSummaries } from '@/lib/api/steam'
 import type { PlayerSummary } from '@/lib/api/steam'
-import { STEAM_ID } from '@/config'
+import { useAuth } from '@/app/providers'
 
 export interface FriendWithProfile {
   steamid: string
@@ -12,7 +12,8 @@ export interface FriendWithProfile {
 }
 
 export function useFriendList(steamId?: string) {
-  const id = steamId || STEAM_ID
+  const { user } = useAuth()
+  const id = steamId || user?.steamId || ''
 
   return useQuery({
     queryKey: ['friendList', id],

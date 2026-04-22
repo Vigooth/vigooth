@@ -1,21 +1,25 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryProvider } from './providers'
+import { QueryProvider, AuthProvider, useAuth } from './providers'
 import { LibraryPage } from './pages/LibraryPage'
-import { SetupPage } from './pages/SetupPage'
-import { STEAM_API_KEY, STEAM_ID } from '@/config'
+import { LoginPage } from './pages/LoginPage'
 
 function AppRoutes() {
-  const hasConfig = !!STEAM_API_KEY && !!STEAM_ID
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) return null
 
   return (
     <Routes>
       <Route
         path="/library"
-        element={hasConfig ? <LibraryPage /> : <Navigate to="/setup" replace />}
+        element={user ? <LibraryPage /> : <Navigate to="/login" replace />}
       />
-      <Route path="/u/:steamId" element={<LibraryPage />} />
-<Route path="/setup" element={<SetupPage />} />
-      <Route path="*" element={<Navigate to={hasConfig ? '/library' : '/setup'} replace />} />
+      <Route
+        path="/u/:steamId"
+        element={user ? <LibraryPage /> : <Navigate to="/login" replace />}
+      />
+      <Route path="/login" element={user ? <Navigate to="/library" replace /> : <LoginPage />} />
+      <Route path="*" element={<Navigate to={user ? '/library' : '/login'} replace />} />
     </Routes>
   )
 }
@@ -23,9 +27,11 @@ function AppRoutes() {
 export function App() {
   return (
     <QueryProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
     </QueryProvider>
   )
 }

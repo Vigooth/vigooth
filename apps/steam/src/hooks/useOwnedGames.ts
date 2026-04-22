@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchOwnedGames } from '@/lib/api/steam'
-import { STEAM_ID } from '@/config'
+import { useAuth } from '@/app/providers'
 
 export function useOwnedGames(steamId?: string) {
-  const id = steamId || STEAM_ID
+  const { user } = useAuth()
+  const id = steamId || user?.steamId || ''
 
   return useQuery({
     queryKey: ['ownedGames', id],

@@ -22,6 +22,8 @@ func main() {
 	jwtSecret := getEnv("JWT_SECRET", "dev-secret-change-in-production")
 	tmdbApiKey := os.Getenv("TMDB_API_KEY")
 	omdbApiKey := os.Getenv("OMDB_API_KEY")
+	steamApiKey := os.Getenv("STEAM_API_KEY")
+	steamBaseURL := getEnv("STEAM_BASE_URL", "http://localhost:5177")
 	databaseURL := os.Getenv("DATABASE_URL")
 
 	// Dependencies
@@ -78,6 +80,21 @@ func main() {
 		MaxAge: 86400, // 24h
 	})
 
+	// Steam handlers (optional — needs STEAM_API_KEY)
+	var steamAuthHandler *handler.SteamAuthHandler
+	var steamProxyHandler *handler.SteamProxyHandler
+	if steamApiKey != "" {
+		steamAuthHandler = handler.NewSteamAuthHandler(steamApiKey, jwtSecret, handler.CookieConfig{
+			Domain: cookieDomain,
+			Secure: cookieSecure,
+			MaxAge: 604800, // 7 days
+		}, steamBaseURL)
+		steamProxyHandler = handler.NewSteamProxyHandler(steamApiKey)
+		log.Println("Steam API enabled")
+	} else {
+		log.Println("Steam API disabled (no STEAM_API_KEY)")
+	}
+
 	// LLM provider (optional - recommendations feature)
 	var recoHandler *handler.RecommendationHandler
 	if os.Getenv("LLM_API_KEY") != "" {
@@ -113,6 +130,14 @@ func main() {
 	r.POST("/auth/login", authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
 
+	// Steam auth routes
+	if steamAuthHandler != nil {
+		r.GET("/auth/steam/login", steamAuthHandler.Login)
+		r.GET("/auth/steam/callback", steamAuthHandler.Callback)
+		r.GET("/auth/steam/me", steamAuthHandler.Me)
+		r.POST("/auth/steam/logout", steamAuthHandler.Logout)
+	}
+
 	// Public routes (no auth)
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
 
@@ -125,6 +150,20 @@ func main() {
 		pub.GET("/tmdb/tv/:id/credits", proxyHandler.TmdbTvCredits)
 		pub.GET("/omdb", proxyHandler.OmdbRatings)
 		pub.GET("/allocine/ratings", proxyHandler.AllocineRatings)
+	}
+
+	// Steam proxy routes (protected)
+	if steamProxyHandler != nil {
+		steam := r.Group("/api/steam")
+		steam.Use(authMiddleware.RequireAuth())
+		{
+			steam.GET("/owned-games/:steamId", steamProxyHandler.OwnedGames)
+			steam.GET("/player-summary/:steamId", steamProxyHandler.PlayerSummary)
+			steam.GET("/player-summaries", steamProxyHandler.PlayerSummaries)
+			steam.GET("/friend-list/:steamId", steamProxyHandler.FriendList)
+			steam.GET("/resolve-vanity/:vanityUrl", steamProxyHandler.ResolveVanity)
+			steam.GET("/store/app", steamProxyHandler.StoreAppDetails)
+		}
 	}
 
 	// Protected routes

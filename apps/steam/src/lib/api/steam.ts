@@ -1,28 +1,13 @@
-import { STEAM_API_KEY, STEAM_ID } from '@/config'
 import type { OwnedGamesResponse } from '@/types/game'
 
-export async function fetchOwnedGames(steamId?: string): Promise<OwnedGamesResponse> {
-  const id = steamId || STEAM_ID
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY,
-    steamid: id,
-    include_appinfo: '1',
-    include_played_free_games: '1',
-    format: 'json',
-  })
-
-  const res = await fetch(`/api/steam/IPlayerService/GetOwnedGames/v1/?${params}`)
+export async function fetchOwnedGames(steamId: string): Promise<OwnedGamesResponse> {
+  const res = await fetch(`/api/steam/owned-games/${steamId}`)
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
   return res.json()
 }
 
 export async function resolveVanityUrl(vanityUrl: string): Promise<string> {
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY,
-    vanityurl: vanityUrl,
-  })
-
-  const res = await fetch(`/api/steam/ISteamUser/ResolveVanityURL/v1/?${params}`)
+  const res = await fetch(`/api/steam/resolve-vanity/${encodeURIComponent(vanityUrl)}`)
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
   const data = await res.json()
 
@@ -46,24 +31,13 @@ export interface FriendListResponse {
 }
 
 export async function fetchFriendList(steamId: string): Promise<FriendListResponse> {
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY,
-    steamid: steamId,
-    relationship: 'friend',
-  })
-
-  const res = await fetch(`/api/steam/ISteamUser/GetFriendList/v1/?${params}`)
+  const res = await fetch(`/api/steam/friend-list/${steamId}`)
   if (!res.ok) throw new Error('Friend list is private or unavailable')
   return res.json()
 }
 
 export async function fetchPlayerSummaries(steamIds: string[]): Promise<PlayerSummary[]> {
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY,
-    steamids: steamIds.join(','),
-  })
-
-  const res = await fetch(`/api/steam/ISteamUser/GetPlayerSummaries/v2/?${params}`)
+  const res = await fetch(`/api/steam/player-summaries?steamids=${steamIds.join(',')}`)
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
   const data = await res.json()
   return data.response.players ?? []
@@ -77,12 +51,7 @@ export interface PlayerSummary {
 }
 
 export async function fetchPlayerSummary(steamId: string): Promise<PlayerSummary> {
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY,
-    steamids: steamId,
-  })
-
-  const res = await fetch(`/api/steam/ISteamUser/GetPlayerSummaries/v2/?${params}`)
+  const res = await fetch(`/api/steam/player-summary/${steamId}`)
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`)
   const data = await res.json()
 

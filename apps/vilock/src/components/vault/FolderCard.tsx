@@ -1,9 +1,9 @@
-import { cn } from "@vigooth/ui";
-import { Folder, PasswordEntry } from "../../lib/crypto/vault";
-import { colorStyles } from "./types";
-import { EntryCard } from "./EntryCard";
-import { AddEntryForm } from "./AddEntryForm";
-import { useVault } from "./VaultContext";
+import { cn } from '@vigooth/ui';
+import { Folder, PasswordEntry } from '../../lib/crypto/vault';
+import { colorStyles } from './types';
+import { EntryCard } from './EntryCard';
+import { AddEntryForm } from './AddEntryForm';
+import { useVault } from './VaultContext';
 
 interface FolderCardProps {
   folder: Folder;
@@ -13,7 +13,7 @@ interface FolderCardProps {
 
 export function FolderCard({ folder, entries, index }: FolderCardProps) {
   const { addingToFolder, setAddingToFolder, deleteFolder } = useVault();
-  const colors = colorStyles[folder.color || "green"];
+  const colors = colorStyles[folder.color || 'green'];
   const isAddingEntry = addingToFolder === folder.id;
 
   const handleHeaderClick = () => {
@@ -29,7 +29,7 @@ export function FolderCard({ folder, entries, index }: FolderCardProps) {
         <div
           onClick={handleHeaderClick}
           className={cn(
-            "font-bold flex items-center gap-2 cursor-pointer hover:opacity-80",
+            'font-bold flex items-center gap-2 cursor-pointer hover:opacity-80',
             colors.text,
           )}
         >

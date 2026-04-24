@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchVault, persistVault } from "@/lib/api/vault";
-import { VaultData, Folder, PasswordEntry, Note, generateId } from "@/lib/crypto/vault";
-import { ColorType } from "@/types/colors";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchVault, persistVault } from '@/lib/api/vault';
+import { VaultData, Folder, PasswordEntry, Note, generateId } from '@/lib/crypto/vault';
+import { ColorType } from '@/types/colors';
 
-export const VAULT_QUERY_KEY = ["vault"] as const;
+export const VAULT_QUERY_KEY = ['vault'] as const;
 
 interface UseVaultQueryOptions {
   masterPassword: string | null;
@@ -18,14 +18,14 @@ export function useVaultQuery({ masterPassword, onAuthError }: UseVaultQueryOpti
     queryKey: VAULT_QUERY_KEY,
     queryFn: async () => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
       return fetchVault(masterPassword);
     },
     enabled: !!masterPassword,
     retry: (failureCount, error) => {
       // Don't retry on auth errors
-      if (error instanceof Error && error.message.includes("401")) {
+      if (error instanceof Error && error.message.includes('401')) {
         onAuthError?.();
         return false;
       }
@@ -43,7 +43,7 @@ export function useVaultMutation({ masterPassword }: { masterPassword: string | 
   return useMutation({
     mutationFn: async (vault: VaultData) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
       await persistVault(vault, masterPassword);
       return vault;
@@ -66,12 +66,12 @@ export function useAddFolder({ masterPassword }: { masterPassword: string | null
   return useMutation({
     mutationFn: async ({ name, color }: { name: string; color: ColorType }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const folder: Folder = {
@@ -107,12 +107,12 @@ export function useDeleteFolder({ masterPassword }: { masterPassword: string | n
   return useMutation({
     mutationFn: async (folderId: string) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       // Move entries from deleted folder to root
@@ -153,12 +153,12 @@ export function useUpdateFolder({ masterPassword }: { masterPassword: string | n
       data: Partial<{ name: string; color: ColorType }>;
     }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const updatedVault: VaultData = {
@@ -194,20 +194,20 @@ export function useAddEntry({ masterPassword }: { masterPassword: string | null 
   return useMutation({
     mutationFn: async ({ folderId, data }: { folderId: string | null; data: AddEntryData }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const entry: PasswordEntry = {
         id: generateId(),
         folderId: folderId || undefined,
         name: data.name,
-        username: data.username || "",
-        password: data.password || "",
+        username: data.username || '',
+        password: data.password || '',
         url: data.url || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -239,12 +239,12 @@ export function useDeleteEntry({ masterPassword }: { masterPassword: string | nu
   return useMutation({
     mutationFn: async (entryId: string) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const updatedVault: VaultData = {
@@ -279,12 +279,12 @@ export function useUpdateEntry({ masterPassword }: { masterPassword: string | nu
       data: Partial<{ name: string; username: string; password: string; url: string }>;
     }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const updatedVault: VaultData = {
@@ -321,12 +321,12 @@ export function useMoveEntries({ masterPassword }: { masterPassword: string | nu
       targetFolderId: string | null;
     }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const idsSet = new Set(entryIds);
@@ -366,18 +366,18 @@ export function useAddNote({ masterPassword }: { masterPassword: string | null }
       folderId?: string;
     }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const note: Note = {
         id: generateId(),
         title: title.toUpperCase(),
-        content: "",
+        content: '',
         color,
         folderId,
         createdAt: new Date().toISOString(),
@@ -416,12 +416,12 @@ export function useUpdateNote({ masterPassword }: { masterPassword: string | nul
       data: Partial<{ title: string; content: string }>;
     }) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const updatedVault: VaultData = {
@@ -459,12 +459,12 @@ export function useDeleteNote({ masterPassword }: { masterPassword: string | nul
   return useMutation({
     mutationFn: async (noteId: string) => {
       if (!masterPassword) {
-        throw new Error("No master password");
+        throw new Error('No master password');
       }
 
       const currentData = queryClient.getQueryData<{ vault: VaultData }>(VAULT_QUERY_KEY);
       if (!currentData) {
-        throw new Error("No vault data");
+        throw new Error('No vault data');
       }
 
       const updatedVault: VaultData = {

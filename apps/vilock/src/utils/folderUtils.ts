@@ -1,4 +1,4 @@
-import { Folder, PasswordEntry, VaultData } from "../lib/crypto/vault";
+import { Folder, PasswordEntry, VaultData } from '../lib/crypto/vault';
 
 /**
  * Find a folder by name (case-insensitive, normalized)
@@ -42,17 +42,17 @@ export function getEntryByIndices(
   folderIndex: number,
   entryIndex: number,
 ): { entry: PasswordEntry | undefined; folderName: string } {
-  if (!vault) return { entry: undefined, folderName: "" };
+  if (!vault) return { entry: undefined, folderName: '' };
 
   let entries: PasswordEntry[] = [];
-  let folderName = "";
+  let folderName = '';
 
   if (folderIndex === 0) {
     entries = vault.entries.filter((e) => !e.folderId);
-    folderName = "ROOT";
+    folderName = 'ROOT';
   } else {
     const folder = vault.folders[folderIndex - 1];
-    if (!folder) return { entry: undefined, folderName: "" };
+    if (!folder) return { entry: undefined, folderName: '' };
     entries = vault.entries.filter((e) => e.folderId === folder.id);
     folderName = folder.name;
   }

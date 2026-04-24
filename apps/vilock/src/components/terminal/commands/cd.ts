@@ -1,12 +1,12 @@
-import { CommandFn } from "./types";
-import { findFolderByName, getFolderByIndex } from "@/utils/folderUtils";
+import { CommandFn } from './types';
+import { findFolderByName, getFolderByIndex } from '@/utils/folderUtils';
 
 export const cd: CommandFn = (args, ctx, t) => {
   const target = args[0];
 
-  if (!target || target === ".." || target === "/" || target === "ROOT" || target === "0") {
+  if (!target || target === '..' || target === '/' || target === 'ROOT' || target === '0') {
     ctx.setCurrentFolder(null);
-    return { output: t("terminal.success.cd", { folder: "ROOT" }) };
+    return { output: t('terminal.success.cd', { folder: 'ROOT' }) };
   }
 
   // Try by index first
@@ -21,9 +21,9 @@ export const cd: CommandFn = (args, ctx, t) => {
   }
 
   if (!folder) {
-    return { output: t("terminal.errors.folderNotFound", { name: target }) };
+    return { output: t('terminal.errors.folderNotFound', { name: target }) };
   }
 
   ctx.setCurrentFolder({ id: folder.id, name: folder.name });
-  return { output: t("terminal.success.cd", { folder: folder.name }) };
+  return { output: t('terminal.success.cd', { folder: folder.name }) };
 };

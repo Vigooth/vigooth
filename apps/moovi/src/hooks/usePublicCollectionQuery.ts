@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import * as moviesApi from "@/lib/api/movies";
+import { useMemo } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import * as moviesApi from '@/lib/api/movies';
 
 const PAGE_SIZE = 20;
 
@@ -8,11 +8,11 @@ export function usePublicCollectionQuery(
   userId: string,
   options?: { search?: string; minRating?: number },
 ) {
-  const search = options?.search ?? "";
+  const search = options?.search ?? '';
   const minRating = options?.minRating ?? 0;
 
   const query = useInfiniteQuery({
-    queryKey: ["public-collection", userId, { search, minRating }],
+    queryKey: ['public-collection', userId, { search, minRating }],
     queryFn: ({ pageParam = 0 }) =>
       moviesApi.getPublicCollection(userId, {
         search: search || undefined,

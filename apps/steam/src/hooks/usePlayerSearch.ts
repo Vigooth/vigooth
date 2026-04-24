@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { resolveVanityUrl } from "@/lib/api/steam";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { resolveVanityUrl } from '@/lib/api/steam';
 
 export function usePlayerSearch() {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export function usePlayerSearch() {
       const steamId = await resolveVanityUrl(vanity);
       navigate(`/u/${steamId}`);
     } catch {
-      setError("User not found");
+      setError('User not found');
     } finally {
       setSearching(false);
     }

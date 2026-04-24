@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CpcLayout, cn } from "@vigooth/ui";
-import { useAuth } from "@/stores/auth";
-import { useMoviesQuery } from "@/hooks/useMoviesQuery";
-import { useRecommendations } from "@/hooks/useRecommendations";
-import { Header } from "@/components/layout/Header";
-import { getPosterUrl } from "@/utils/tmdbImage";
-import type { Recommendation } from "@/lib/api/recommendations";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcLayout, cn } from '@vigooth/ui';
+import { useAuth } from '@/stores/auth';
+import { useMoviesQuery } from '@/hooks/useMoviesQuery';
+import { useRecommendations } from '@/hooks/useRecommendations';
+import { Header } from '@/components/layout/Header';
+import { getPosterUrl } from '@/utils/tmdbImage';
+import type { Recommendation } from '@/lib/api/recommendations';
 
 const RATING_PRESETS = [
-  { label: "TOUTES", value: 0 },
-  { label: "5+", value: 5 },
-  { label: "6+", value: 6 },
-  { label: "7+", value: 7 },
-  { label: "8+", value: 8 },
+  { label: 'TOUTES', value: 0 },
+  { label: '5+', value: 5 },
+  { label: '6+', value: 6 },
+  { label: '7+', value: 7 },
+  { label: '8+', value: 8 },
 ] as const;
 
 export function RecommendationsPage() {
@@ -23,7 +23,7 @@ export function RecommendationsPage() {
   const { data } = useMoviesQuery({
     onAuthError: () => {
       logout();
-      navigate("/login");
+      navigate('/login');
     },
   });
 
@@ -45,8 +45,8 @@ export function RecommendationsPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [vibe, setVibe] = useState(50);
   const [minRating, setMinRating] = useState(0);
-  const [yearFrom, setYearFrom] = useState("");
-  const [yearTo, setYearTo] = useState("");
+  const [yearFrom, setYearFrom] = useState('');
+  const [yearTo, setYearTo] = useState('');
 
   const toggleMovie = (id: string) => {
     setSelectedIds((prev) => {
@@ -100,7 +100,7 @@ export function RecommendationsPage() {
             <div className="text-cpc-cyan-500 text-sm font-bold">RECOMMENDATIONS</div>
             {history.length > 0 && (
               <select
-                value={activeHistoryIndex ?? ""}
+                value={activeHistoryIndex ?? ''}
                 onChange={(e) => {
                   const idx = Number(e.target.value);
                   if (!isNaN(idx)) selectHistoryEntry(idx);
@@ -109,12 +109,12 @@ export function RecommendationsPage() {
               >
                 {history.map((entry, i) => (
                   <option key={entry.id} value={i}>
-                    #{i + 1} —{" "}
-                    {new Date(entry.created_at).toLocaleString("fr-FR", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
+                    #{i + 1} —{' '}
+                    {new Date(entry.created_at).toLocaleString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
                     })}
                   </option>
                 ))}
@@ -131,14 +131,14 @@ export function RecommendationsPage() {
                   <span className="text-cpc-cyan-500 text-xs">NICHE</span>
                   <span className="text-cpc-green-500 text-xs font-bold">
                     {vibe <= 20
-                      ? "100% PEPITES"
+                      ? '100% PEPITES'
                       : vibe <= 40
-                        ? "PLUTOT NICHE"
+                        ? 'PLUTOT NICHE'
                         : vibe <= 60
-                          ? "EQUILIBRE"
+                          ? 'EQUILIBRE'
                           : vibe <= 80
-                            ? "PLUTOT POPULAIRE"
-                            : "100% POPULAIRE"}
+                            ? 'PLUTOT POPULAIRE'
+                            : '100% POPULAIRE'}
                   </span>
                   <span className="text-cpc-yellow-500 text-xs">POPULAIRE</span>
                 </div>
@@ -165,10 +165,10 @@ export function RecommendationsPage() {
                         setSelectedIds(new Set());
                       }}
                       className={cn(
-                        "border px-2 py-0.5 text-xs transition-colors",
+                        'border px-2 py-0.5 text-xs transition-colors',
                         minRating === preset.value
-                          ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                          : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                          ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                          : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                       )}
                     >
                       {preset.label}
@@ -188,7 +188,7 @@ export function RecommendationsPage() {
                     onChange={(e) => setYearFrom(e.target.value)}
                     className="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 w-20 outline-none focus:border-cpc-cyan-500"
                   />
-                  <span className="text-cpc-green-900 text-xs">{"\u2192"}</span>
+                  <span className="text-cpc-green-900 text-xs">{'\u2192'}</span>
                   <input
                     type="number"
                     placeholder="A"
@@ -199,8 +199,8 @@ export function RecommendationsPage() {
                   {(yearFrom || yearTo) && (
                     <button
                       onClick={() => {
-                        setYearFrom("");
-                        setYearTo("");
+                        setYearFrom('');
+                        setYearTo('');
                       }}
                       className="text-cpc-green-900 text-xs hover:text-cpc-red-500 transition-colors"
                     >
@@ -216,19 +216,19 @@ export function RecommendationsPage() {
                   onClick={() => setShowPicker((p) => !p)}
                   className="text-cpc-green-900 text-xs hover:text-cpc-green-500 transition-colors"
                 >
-                  COLLECTION:{" "}
+                  COLLECTION:{' '}
                   {selectedIds.size > 0 ? (
                     <span className="text-cpc-yellow-500">
-                      {selectedIds.size} FILM{selectedIds.size > 1 ? "S" : ""}
+                      {selectedIds.size} FILM{selectedIds.size > 1 ? 'S' : ''}
                     </span>
                   ) : hasFilters ? (
                     <span className="text-cpc-yellow-500">
-                      {filteredMovies.length} FILM{filteredMovies.length !== 1 ? "S" : ""}
+                      {filteredMovies.length} FILM{filteredMovies.length !== 1 ? 'S' : ''}
                     </span>
                   ) : (
                     <span className="text-cpc-green-500">TOUT</span>
-                  )}{" "}
-                  {showPicker ? "\u25B2" : "\u25BC"}
+                  )}{' '}
+                  {showPicker ? '\u25B2' : '\u25BC'}
                 </button>
                 {selectedIds.size > 0 && (
                   <button
@@ -245,16 +245,16 @@ export function RecommendationsPage() {
                 <div className="flex flex-wrap gap-2 max-h-48 overflow-auto mb-3 pt-2 border-t border-cpc-green-900">
                   {movies.map((movie) => {
                     const selected = selectedIds.has(movie.id);
-                    const poster = getPosterUrl(movie.poster_path, "w92");
+                    const poster = getPosterUrl(movie.poster_path, 'w92');
                     return (
                       <button
                         key={movie.id}
                         onClick={() => toggleMovie(movie.id)}
                         className={cn(
-                          "border-2 flex items-center gap-2 px-2 py-1 text-xs transition-colors text-left",
+                          'border-2 flex items-center gap-2 px-2 py-1 text-xs transition-colors text-left',
                           selected
-                            ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                            : "border-cpc-green-900 text-cpc-green-500 hover:border-cpc-green-500",
+                            ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                            : 'border-cpc-green-900 text-cpc-green-500 hover:border-cpc-green-500',
                         )}
                       >
                         {poster && (
@@ -278,10 +278,10 @@ export function RecommendationsPage() {
                   onClick={handleGenerate}
                   disabled={!data || allMovies.length === 0}
                   className={cn(
-                    "border-2 px-6 py-2 text-xs font-bold transition-colors flex-1",
+                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
                     data && allMovies.length > 0
-                      ? "border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black"
-                      : "border-cpc-green-900 text-cpc-green-900 cursor-not-allowed",
+                      ? 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black'
+                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
                   )}
                 >
                   GENERATE
@@ -290,10 +290,10 @@ export function RecommendationsPage() {
                   onClick={handleGenerateIA}
                   disabled={!data || allMovies.length === 0}
                   className={cn(
-                    "border-2 px-6 py-2 text-xs font-bold transition-colors flex-1",
+                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
                     data && allMovies.length > 0
-                      ? "border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black"
-                      : "border-cpc-green-900 text-cpc-green-900 cursor-not-allowed",
+                      ? 'border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black'
+                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
                   )}
                 >
                   GENERATE IA
@@ -334,10 +334,10 @@ export function RecommendationsPage() {
                 )}
               </div>
               {events
-                .filter((e) => e.type !== "recommendation" && e.type !== "done")
+                .filter((e) => e.type !== 'recommendation' && e.type !== 'done')
                 .map((event, i) => (
-                  <div key={i} className={cn("text-xs mb-1", eventColor(event.type))}>
-                    <span className="text-cpc-green-900">[{event.type.toUpperCase()}]</span>{" "}
+                  <div key={i} className={cn('text-xs mb-1', eventColor(event.type))}>
+                    <span className="text-cpc-green-900">[{event.type.toUpperCase()}]</span>{' '}
                     {event.message}
                   </div>
                 ))}
@@ -355,8 +355,8 @@ export function RecommendationsPage() {
           {recommendations.length > 0 && (
             <>
               <div className="text-cpc-green-900 text-xs mb-3">
-                {recommendations.length} RECOMMENDATION{recommendations.length !== 1 ? "S" : ""}{" "}
-                {isLoading ? "SO FAR..." : "FOUND"}
+                {recommendations.length} RECOMMENDATION{recommendations.length !== 1 ? 'S' : ''}{' '}
+                {isLoading ? 'SO FAR...' : 'FOUND'}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {recommendations.map((rec, i) => (
@@ -373,21 +373,21 @@ export function RecommendationsPage() {
 
 function eventColor(type: string) {
   switch (type) {
-    case "thinking":
-      return "text-cpc-cyan-500";
-    case "tool_call":
-      return "text-cpc-green-500";
-    case "error":
-      return "text-cpc-red-500";
+    case 'thinking':
+      return 'text-cpc-cyan-500';
+    case 'tool_call':
+      return 'text-cpc-green-500';
+    case 'error':
+      return 'text-cpc-red-500';
     default:
-      return "text-cpc-green-500";
+      return 'text-cpc-green-500';
   }
 }
 
 function RecommendationCard({ recommendation }: { recommendation: Recommendation }) {
   const navigate = useNavigate();
   const posterUrl = recommendation.poster_path
-    ? getPosterUrl(recommendation.poster_path, "w342")
+    ? getPosterUrl(recommendation.poster_path, 'w342')
     : null;
 
   const handleClick = () => {
@@ -400,8 +400,8 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
     <div
       onClick={handleClick}
       className={cn(
-        "border-2 border-cpc-green-900 hover:border-cpc-cyan-500 transition-colors",
-        !!recommendation.tmdb_id && "cursor-pointer",
+        'border-2 border-cpc-green-900 hover:border-cpc-cyan-500 transition-colors',
+        !!recommendation.tmdb_id && 'cursor-pointer',
       )}
     >
       <div className="flex">
@@ -423,7 +423,7 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
         {/* Info */}
         <div className="p-3 flex-1 min-w-0">
           <div className="text-cpc-cyan-500 text-sm font-bold truncate">{recommendation.title}</div>
-          <div className="text-cpc-green-900 text-xs mb-2">{recommendation.year || ""}</div>
+          <div className="text-cpc-green-900 text-xs mb-2">{recommendation.year || ''}</div>
           <div className="text-cpc-green-500 text-xs leading-relaxed">{recommendation.reason}</div>
           {recommendation.allocine_url && (
             <a

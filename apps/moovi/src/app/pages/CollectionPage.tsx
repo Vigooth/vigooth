@@ -1,26 +1,26 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CpcLayout, cn, ListIcon, GridCompactIcon } from "@vigooth/ui";
-import { useAuth } from "@/stores/auth";
-import { useMoviesQuery } from "@/hooks/useMoviesQuery";
-import { useBackfillOverviews } from "@/hooks/useBackfillOverviews";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { useQueryParam, useQueryParamNumber } from "@/hooks/useQueryParam";
-import { Header } from "@/components/layout/Header";
-import { SearchBar } from "@/components/search/SearchBar";
-import { MovieGrid } from "@/components/movies/MovieGrid";
-import { MovieDrawer } from "@/components/movies/MovieDrawer";
-import type { Movie } from "@/types/movie";
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcLayout, cn, ListIcon, GridCompactIcon } from '@vigooth/ui';
+import { useAuth } from '@/stores/auth';
+import { useMoviesQuery } from '@/hooks/useMoviesQuery';
+import { useBackfillOverviews } from '@/hooks/useBackfillOverviews';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam';
+import { Header } from '@/components/layout/Header';
+import { SearchBar } from '@/components/search/SearchBar';
+import { MovieGrid } from '@/components/movies/MovieGrid';
+import { MovieDrawer } from '@/components/movies/MovieDrawer';
+import type { Movie } from '@/types/movie';
 
 export function CollectionPage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [search, setSearch] = useQueryParam("q");
-  const [minRating, setMinRating] = useQueryParamNumber("rating");
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
+  const [search, setSearch] = useQueryParam('q');
+  const [minRating, setMinRating] = useQueryParamNumber('rating');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
   useBackfillOverviews();
   const debouncedSearch = useDebounce(search, 300);
 
@@ -35,7 +35,7 @@ export function CollectionPage() {
 
   const onAuthError = useCallback(() => {
     logout();
-    navigate("/login");
+    navigate('/login');
   }, [logout, navigate]);
 
   const { movies, total, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
@@ -61,20 +61,20 @@ export function CollectionPage() {
           <div className="flex items-center justify-between">
             <div className="flex gap-1">
               {[
-                { label: "TOUT", value: 0 },
-                { label: "5+", value: 5 },
-                { label: "6+", value: 6 },
-                { label: "7+", value: 7 },
-                { label: "8+", value: 8 },
+                { label: 'TOUT', value: 0 },
+                { label: '5+', value: 5 },
+                { label: '6+', value: 6 },
+                { label: '7+', value: 7 },
+                { label: '8+', value: 8 },
               ].map((preset) => (
                 <button
                   key={preset.value}
                   onClick={() => setMinRating(preset.value)}
                   className={cn(
-                    "border px-3 py-1 text-xs transition-colors",
+                    'border px-3 py-1 text-xs transition-colors',
                     minRating === preset.value
-                      ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                      : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                      ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                   )}
                 >
                   {preset.label}
@@ -83,23 +83,23 @@ export function CollectionPage() {
             </div>
             <div className="flex gap-1">
               <button
-                onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
+                onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
                 className={cn(
-                  "border p-1.5 transition-colors",
-                  viewMode === "list"
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                  'border p-1.5 transition-colors',
+                  viewMode === 'list'
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <ListIcon size="sm" />
               </button>
               <button
-                onClick={() => setViewMode(viewMode === "compact" ? "grid" : "compact")}
+                onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
                 className={cn(
-                  "border p-1.5 transition-colors",
-                  viewMode === "compact"
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                  'border p-1.5 transition-colors',
+                  viewMode === 'compact'
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <GridCompactIcon size="sm" />
@@ -121,13 +121,13 @@ export function CollectionPage() {
             <>
               <div className="text-cpc-green-500 text-xs mb-3">
                 {debouncedSearch || minRating > 0 ? `${movies.length}/${total}` : `${total}`} MOVIE
-                {total !== 1 ? "S" : ""} IN COLLECTION
+                {total !== 1 ? 'S' : ''} IN COLLECTION
               </div>
               <MovieGrid
                 movies={movies}
                 viewMode={viewMode}
                 onMovieClick={openDrawer}
-                emptyMessage={debouncedSearch || minRating > 0 ? "NO RESULTS" : "NO MOVIES YET"}
+                emptyMessage={debouncedSearch || minRating > 0 ? 'NO RESULTS' : 'NO MOVIES YET'}
               />
               <div ref={sentinelRef} className="h-4" />
               {isFetchingNextPage && (

@@ -1,9 +1,9 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { CpcInput, CpcButton } from "@vigooth/ui";
-import { useFriendList } from "@/hooks/useFriendList";
-import { usePlayerSearch } from "@/hooks/usePlayerSearch";
-import type { FriendWithProfile } from "@/hooks/useFriendList";
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcInput, CpcButton } from '@vigooth/ui';
+import { useFriendList } from '@/hooks/useFriendList';
+import { usePlayerSearch } from '@/hooks/usePlayerSearch';
+import type { FriendWithProfile } from '@/hooks/useFriendList';
 
 const MIN_WIDTH = 48;
 const MAX_WIDTH = 400;
@@ -57,7 +57,7 @@ export function FriendsSidebar() {
   const navigate = useNavigate();
   const { data: friends, isLoading, error } = useFriendList();
   const { search: searchSteam, searching, error: searchError } = usePlayerSearch();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -91,8 +91,8 @@ export function FriendsSidebar() {
       dragging.current = true;
       startX.current = e.clientX;
       startWidth.current = width;
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
     },
     [width],
   );
@@ -113,15 +113,15 @@ export function FriendsSidebar() {
     const handleMouseUp = () => {
       if (!dragging.current) return;
       dragging.current = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
@@ -134,7 +134,7 @@ export function FriendsSidebar() {
     <>
       <div className="p-2 border-b border-cpc-green-900">
         <div className="text-cpc-magenta-500 text-xs font-bold mb-1.5">
-          FRIENDS {friends ? `(${friends.length})` : ""}
+          FRIENDS {friends ? `(${friends.length})` : ''}
         </div>
         <CpcInput
           value={search}
@@ -164,7 +164,7 @@ export function FriendsSidebar() {
           <div className="p-3 flex flex-col items-center gap-2">
             <span className="text-cpc-green-900 text-xs text-center">No friends match</span>
             <CpcButton variant="outlined" color="cyan" onClick={handleSteamSearch}>
-              {searching ? "..." : "SEARCH STEAM"}
+              {searching ? '...' : 'SEARCH STEAM'}
             </CpcButton>
             {searchError && <span className="text-cpc-red-500 text-[10px]">{searchError}</span>}
           </div>
@@ -193,7 +193,7 @@ export function FriendsSidebar() {
 
       {/* Mobile drawer */}
       <div
-        className={`lg:hidden fixed top-0 right-0 bottom-0 z-50 w-72 bg-cpc-grey-900 border-l-2 border-cpc-magenta-500 flex flex-col transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`lg:hidden fixed top-0 right-0 bottom-0 z-50 w-72 bg-cpc-grey-900 border-l-2 border-cpc-magenta-500 flex flex-col transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {sidebarContent}
       </div>

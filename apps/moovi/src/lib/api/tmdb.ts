@@ -1,11 +1,11 @@
-import { request } from "./client";
+import { request } from './client';
 import type {
   TmdbSearchResponse,
   TmdbMovieDetail,
   TmdbTvDetail,
   TmdbCredits,
   TmdbPersonSearchResponse,
-} from "@/types/movie";
+} from '@/types/movie';
 
 export async function searchMovies(query: string, page = 1): Promise<TmdbSearchResponse> {
   return request<TmdbSearchResponse>(
@@ -38,7 +38,7 @@ export async function searchPerson(query: string, page = 1): Promise<TmdbPersonS
 export async function discoverByPerson(
   personId: number,
   page = 1,
-  sortBy = "release_date.desc",
+  sortBy = 'release_date.desc',
 ): Promise<TmdbSearchResponse> {
   return request<TmdbSearchResponse>(
     `/api/tmdb/discover/movie?with_crew=${personId}&page=${page}&sort_by=${sortBy}`,

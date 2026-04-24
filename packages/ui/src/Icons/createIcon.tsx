@@ -1,7 +1,7 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
-type Size = "sm" | "md" | "lg";
-type IconVariant = "filled" | "outlined";
+type Size = 'sm' | 'md' | 'lg';
+type IconVariant = 'filled' | 'outlined';
 
 type SvgComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement> & { title?: string }>;
 
@@ -40,7 +40,7 @@ function resolve(config: IconConfig, size: Size, variant: IconVariant): VariantD
 
 function createIcon(name: string, config: IconConfig) {
   const IconComponent = forwardRef<SVGSVGElement, CreateIconProps>(function IconComponent(
-    { size = "md", variant = "outlined", className, ...svgProps },
+    { size = 'md', variant = 'outlined', className, ...svgProps },
     ref,
   ) {
     const resolved = resolve(config, size, variant);

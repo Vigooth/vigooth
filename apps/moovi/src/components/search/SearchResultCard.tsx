@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { cn } from "@vigooth/ui";
-import type { TmdbSearchResult } from "@/types/movie";
-import { getPosterUrl } from "@/utils/tmdbImage";
-import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from "@/lib/api/tmdb";
-import { getOmdbRatings, parseOmdbRatings } from "@/lib/api/omdb";
-import { useAddMovie } from "@/hooks/useMoviesQuery";
-import type { AddMoviePayload } from "@/types/movie";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@vigooth/ui';
+import type { TmdbSearchResult } from '@/types/movie';
+import { getPosterUrl } from '@/utils/tmdbImage';
+import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb';
+import { getOmdbRatings, parseOmdbRatings } from '@/lib/api/omdb';
+import { useAddMovie } from '@/hooks/useMoviesQuery';
+import type { AddMoviePayload } from '@/types/movie';
 
 interface SearchResultCardProps {
   result: TmdbSearchResult;
@@ -18,10 +18,10 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(inCollection);
   const addMovie = useAddMovie();
-  const posterUrl = getPosterUrl(result.poster_path, "w185");
-  const isTv = result.media_type === "tv";
-  const displayTitle = isTv ? result.name || "" : result.title || "";
-  const displayOriginalTitle = isTv ? result.original_name || "" : result.original_title || "";
+  const posterUrl = getPosterUrl(result.poster_path, 'w185');
+  const isTv = result.media_type === 'tv';
+  const displayTitle = isTv ? result.name || '' : result.title || '';
+  const displayOriginalTitle = isTv ? result.original_name || '' : result.original_title || '';
   const dateStr = isTv ? result.first_air_date : result.release_date;
   const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : 0;
 
@@ -44,14 +44,14 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
         originalTitle = details.original_name;
         overview = details.overview;
         genres = JSON.stringify(details.genres.map((g) => g.name));
-        posterPath = details.poster_path || "";
-        backdropPath = details.backdrop_path || "";
+        posterPath = details.poster_path || '';
+        backdropPath = details.backdrop_path || '';
         director =
           details.created_by?.[0]?.name ||
-          credits.crew.find((c) => c.job === "Director")?.name ||
-          "";
+          credits.crew.find((c) => c.job === 'Director')?.name ||
+          '';
         runtime = details.episode_run_time?.[0] || 0;
-        imdbId = details.external_ids?.imdb_id || "";
+        imdbId = details.external_ids?.imdb_id || '';
         releaseYear = details.first_air_date
           ? parseInt(details.first_air_date.substring(0, 4), 10)
           : 0;
@@ -64,11 +64,11 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
         originalTitle = details.original_title;
         overview = details.overview;
         genres = JSON.stringify(details.genres.map((g) => g.name));
-        posterPath = details.poster_path || "";
-        backdropPath = details.backdrop_path || "";
-        director = credits.crew.find((c) => c.job === "Director")?.name || "";
+        posterPath = details.poster_path || '';
+        backdropPath = details.backdrop_path || '';
+        director = credits.crew.find((c) => c.job === 'Director')?.name || '';
         runtime = details.runtime || 0;
-        imdbId = details.imdb_id || "";
+        imdbId = details.imdb_id || '';
         releaseYear = details.release_date ? parseInt(details.release_date.substring(0, 4), 10) : 0;
       }
 
@@ -91,7 +91,7 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
       const payload: AddMoviePayload = {
         tmdb_id: result.id,
         imdb_id: imdbId,
-        media_type: isTv ? "tv" : "movie",
+        media_type: isTv ? 'tv' : 'movie',
         title,
         original_title: originalTitle,
         year: releaseYear,
@@ -105,13 +105,13 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
         imdb_rating: imdbRating,
         rotten_tomatoes: rottenTomatoes,
         personal_rating: null,
-        notes: "",
+        notes: '',
       };
 
       await addMovie.mutateAsync(payload);
       setAdded(true);
     } catch (err) {
-      console.error("Failed to add:", err);
+      console.error('Failed to add:', err);
     } finally {
       setAdding(false);
     }
@@ -146,7 +146,7 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
           {displayOriginalTitle !== displayTitle && (
             <div className="text-cpc-green-900 text-xs truncate">{displayOriginalTitle}</div>
           )}
-          <div className="text-cpc-green-900 text-xs">{year || "\u2014"}</div>
+          <div className="text-cpc-green-900 text-xs">{year || '\u2014'}</div>
           <div className="text-cpc-green-500 text-xs mt-1 line-clamp-2">{result.overview}</div>
         </div>
 
@@ -155,15 +155,15 @@ export function SearchResultCard({ result, inCollection }: SearchResultCardProps
             onClick={handleAdd}
             disabled={added || adding}
             className={cn(
-              "border-2 px-3 py-1 text-xs transition-colors",
+              'border-2 px-3 py-1 text-xs transition-colors',
               added
-                ? "border-cpc-green-500 text-cpc-green-500 cursor-default"
+                ? 'border-cpc-green-500 text-cpc-green-500 cursor-default'
                 : adding
-                  ? "border-cpc-yellow-500 text-cpc-yellow-500 opacity-50 cursor-wait"
-                  : "border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black",
+                  ? 'border-cpc-yellow-500 text-cpc-yellow-500 opacity-50 cursor-wait'
+                  : 'border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black',
             )}
           >
-            {added ? "IN COLLECTION" : adding ? "ADDING..." : "ADD"}
+            {added ? 'IN COLLECTION' : adding ? 'ADDING...' : 'ADD'}
           </button>
         </div>
       </div>

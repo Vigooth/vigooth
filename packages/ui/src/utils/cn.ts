@@ -5,9 +5,9 @@ export function cn(...inputs: ClassValue[]): string {
 
   for (const input of inputs) {
     if (!input) continue;
-    if (typeof input === "string") {
+    if (typeof input === 'string') {
       classes.push(input);
-    } else if (typeof input === "number") {
+    } else if (typeof input === 'number') {
       classes.push(String(input));
     } else if (Array.isArray(input)) {
       const nested = cn(...input);
@@ -17,7 +17,7 @@ export function cn(...inputs: ClassValue[]): string {
 
   // Deduplicate and let last occurrence win (simple tailwind-merge)
   const seen = new Map<string, number>();
-  const all = classes.join(" ").split(/\s+/).filter(Boolean);
+  const all = classes.join(' ').split(/\s+/).filter(Boolean);
 
   for (let i = 0; i < all.length; i++) {
     seen.set(all[i], i);
@@ -26,5 +26,5 @@ export function cn(...inputs: ClassValue[]): string {
   return [...seen.entries()]
     .sort((a, b) => a[1] - b[1])
     .map(([cls]) => cls)
-    .join(" ");
+    .join(' ');
 }

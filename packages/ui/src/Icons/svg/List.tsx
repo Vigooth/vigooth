@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 export const List = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function List(props, ref) {

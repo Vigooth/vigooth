@@ -1,15 +1,15 @@
-import { useRef, useEffect, useCallback, useMemo } from "react";
-import { CpcLayout } from "@vigooth/ui";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useQueryParam } from "@/hooks/useQueryParam";
-import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from "@/hooks/useTmdbSearch";
-import { useMoviesQuery } from "@/hooks/useMoviesQuery";
-import { Header } from "@/components/layout/Header";
-import { SearchBar } from "@/components/search/SearchBar";
-import { SearchResultCard } from "@/components/search/SearchResultCard";
+import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { CpcLayout } from '@vigooth/ui';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useQueryParam } from '@/hooks/useQueryParam';
+import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from '@/hooks/useTmdbSearch';
+import { useMoviesQuery } from '@/hooks/useMoviesQuery';
+import { Header } from '@/components/layout/Header';
+import { SearchBar } from '@/components/search/SearchBar';
+import { SearchResultCard } from '@/components/search/SearchResultCard';
 
 export function SearchPage() {
-  const [query, setQuery] = useQueryParam("q");
+  const [query, setQuery] = useQueryParam('q');
   const debouncedQuery = useDebounce(query, 300);
 
   const {
@@ -24,7 +24,7 @@ export function SearchPage() {
   const { data: personData } = useTmdbSearchPerson(debouncedQuery);
 
   const director = useMemo(
-    () => personData?.results.find((p) => p.known_for_department === "Directing") ?? null,
+    () => personData?.results.find((p) => p.known_for_department === 'Directing') ?? null,
     [personData],
   );
 
@@ -42,7 +42,7 @@ export function SearchPage() {
   );
 
   const results = (searchData?.pages.flatMap((page) => page.results) ?? []).filter(
-    (r) => r.media_type === "movie" || r.media_type === "tv",
+    (r) => r.media_type === 'movie' || r.media_type === 'tv',
   );
   const totalResults = results.length;
 
@@ -127,7 +127,7 @@ export function SearchPage() {
                         key={`director-${result.id}`}
                         result={result}
                         inCollection={collectionKeys.has(
-                          `${result.media_type ?? "movie"}:${result.id}`,
+                          `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
                       />
                     ))}
@@ -152,14 +152,14 @@ export function SearchPage() {
               ) : results.length > 0 ? (
                 <div className="space-y-2">
                   <div className="text-cpc-green-900 text-xs mb-2">
-                    {totalResults} RESULT{totalResults !== 1 ? "S" : ""}
+                    {totalResults} RESULT{totalResults !== 1 ? 'S' : ''}
                   </div>
                   {results.map((result) => (
                     <SearchResultCard
                       key={result.id}
                       result={result}
                       inCollection={collectionKeys.has(
-                        `${result.media_type ?? "movie"}:${result.id}`,
+                        `${result.media_type ?? 'movie'}:${result.id}`,
                       )}
                     />
                   ))}

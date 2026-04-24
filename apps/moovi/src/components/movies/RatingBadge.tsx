@@ -1,4 +1,4 @@
-import { getRatingColor } from "@/utils/ratings";
+import { getRatingColor } from '@/utils/ratings';
 
 interface RatingBadgeProps {
   label: string;
@@ -7,7 +7,7 @@ interface RatingBadgeProps {
   suffix?: string;
 }
 
-export function RatingBadge({ label, value, max, suffix = "" }: RatingBadgeProps) {
+export function RatingBadge({ label, value, max, suffix = '' }: RatingBadgeProps) {
   if (value === null || value === undefined) return null;
 
   const color = getRatingColor(value, max);

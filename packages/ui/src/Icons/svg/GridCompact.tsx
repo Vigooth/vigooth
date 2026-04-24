@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 export const GridCompact = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function GridCompact(props, ref) {

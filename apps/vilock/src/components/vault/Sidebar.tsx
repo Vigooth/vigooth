@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { cn } from "@vigooth/ui";
-import { useTranslation } from "react-i18next";
-import { Folder, PasswordEntry, Note } from "../../lib/crypto/vault";
-import { colorStyles, ColorType } from "./types";
-import { AddFolderForm } from "./AddFolderForm";
-import { useSidebar } from "./SidebarContext";
-import { useVault } from "./VaultContext";
-import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from "@vigooth/ui";
+import { useState } from 'react';
+import { cn } from '@vigooth/ui';
+import { useTranslation } from 'react-i18next';
+import { Folder, PasswordEntry, Note } from '../../lib/crypto/vault';
+import { colorStyles, ColorType } from './types';
+import { AddFolderForm } from './AddFolderForm';
+import { useSidebar } from './SidebarContext';
+import { useVault } from './VaultContext';
+import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from '@vigooth/ui';
 
 interface SidebarProps {
   folders: Folder[];
@@ -20,7 +20,7 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
   const { activeView, selectFolder, selectNote, addFolder, deleteFolder } = useSidebar();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [showAddFolder, setShowAddFolder] = useState(false);
-  const [newFolder, setNewFolder] = useState({ name: "", color: "green" as ColorType });
+  const [newFolder, setNewFolder] = useState({ name: '', color: 'green' as ColorType });
 
   const toggleExpand = (folderId: string) => {
     setExpandedFolders((prev) => {
@@ -49,7 +49,7 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
         {/* === PASSWORDS SECTION === */}
         <div className="px-2 pt-2 pb-1 flex items-center justify-between">
           <span className="text-cpc-green-900 text-xs font-bold tracking-wider">
-            {t("sidebar.passwords")}
+            {t('sidebar.passwords')}
           </span>
           <button
             onClick={() => setShowAddFolder(!showAddFolder)}
@@ -69,7 +69,7 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
               label={folder.name}
               index={index + 1}
               count={folderEntries.length}
-              isSelected={activeView.type === "folder" && activeView.folderId === folder.id}
+              isSelected={activeView.type === 'folder' && activeView.folderId === folder.id}
               isExpanded={expandedFolders.has(folder.id)}
               onSelect={() => {
                 selectFolder(folder.id);
@@ -83,7 +83,7 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
               }}
               entries={folderEntries}
               folderNotes={folderNotes}
-              color={folder.color || "green"}
+              color={folder.color || 'green'}
             />
           );
         })}
@@ -99,11 +99,11 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
               onSubmit={() => {
                 if (!newFolder.name) return;
                 addFolder(newFolder.name, newFolder.color);
-                setNewFolder({ name: "", color: "green" });
+                setNewFolder({ name: '', color: 'green' });
                 setShowAddFolder(false);
               }}
               onCancel={() => {
-                setNewFolder({ name: "", color: "green" });
+                setNewFolder({ name: '', color: 'green' });
                 setShowAddFolder(false);
               }}
             />
@@ -115,21 +115,21 @@ export function Sidebar({ folders, entries, notes, onNavigate }: SidebarProps) {
           <>
             <div className="px-2 pt-4 pb-1 flex items-center justify-between border-t border-cpc-green-500/20 mt-2">
               <span className="text-cpc-green-900 text-xs font-bold tracking-wider">
-                {t("sidebar.trash")}
+                {t('sidebar.trash')}
               </span>
             </div>
 
             <FolderItem
-              label={t("vault.unsorted")}
+              label={t('vault.unsorted')}
               index={0}
               count={rootEntries.length}
-              isSelected={activeView.type === "folder" && activeView.folderId === null}
-              isExpanded={expandedFolders.has("root")}
+              isSelected={activeView.type === 'folder' && activeView.folderId === null}
+              isExpanded={expandedFolders.has('root')}
               onSelect={() => {
                 selectFolder(null);
                 onNavigate?.();
               }}
-              onToggleExpand={() => toggleExpand("root")}
+              onToggleExpand={() => toggleExpand('root')}
               onSelectNote={(noteId) => {
                 selectNote(noteId, null);
                 onNavigate?.();
@@ -190,10 +190,10 @@ function FolderItem({
       {/* Folder row */}
       <div
         className={cn(
-          "flex items-center gap-1 px-2 py-1.5 cursor-pointer transition-colors text-sm",
+          'flex items-center gap-1 px-2 py-1.5 cursor-pointer transition-colors text-sm',
           isSelected
-            ? "bg-cpc-green-500/10 border-l-2 border-cpc-green-500"
-            : "border-l-2 border-transparent hover:bg-cpc-green-500/5",
+            ? 'bg-cpc-green-500/10 border-l-2 border-cpc-green-500'
+            : 'border-l-2 border-transparent hover:bg-cpc-green-500/5',
         )}
       >
         {/* Expand toggle */}
@@ -204,13 +204,13 @@ function FolderItem({
           }}
           className="text-cpc-green-900 hover:text-cpc-green-500 text-xs w-4 flex-shrink-0"
         >
-          {isExpanded ? "▼" : "▶"}
+          {isExpanded ? '▼' : '▶'}
         </button>
 
         {/* Folder info */}
         <div onClick={handleFolderClick} className="flex-1 flex items-center gap-1 min-w-0">
           <span className="text-cpc-green-500 opacity-50 text-xs flex-shrink-0">[{index}]</span>
-          <span className={cn("truncate font-bold text-xs", colors.text)}>{label}</span>
+          <span className={cn('truncate font-bold text-xs', colors.text)}>{label}</span>
           <span className="text-cpc-green-900 text-xs flex-shrink-0">({count})</span>
         </div>
 
@@ -222,8 +222,8 @@ function FolderItem({
               onDelete();
             }}
             className={cn(
-              "text-cpc-red-500 hover:text-cpc-red-900 text-xs flex-shrink-0 opacity-0 hover:opacity-100",
-              isSelected && "opacity-60",
+              'text-cpc-red-500 hover:text-cpc-red-900 text-xs flex-shrink-0 opacity-0 hover:opacity-100',
+              isSelected && 'opacity-60',
             )}
           >
             ✕
@@ -239,13 +239,13 @@ function FolderItem({
           ))}
           {folderNotes.map((note) => {
             const nc =
-              colorStyles[(note.color as keyof typeof colorStyles) || "green"] || colorStyles.green;
+              colorStyles[(note.color as keyof typeof colorStyles) || 'green'] || colorStyles.green;
             return (
               <div
                 key={note.id}
                 onClick={() => onSelectNote?.(note.id)}
                 className={cn(
-                  "text-xs py-0.5 px-2 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity",
+                  'text-xs py-0.5 px-2 opacity-70 truncate cursor-pointer hover:opacity-100 transition-opacity',
                   nc.text,
                 )}
               >
@@ -260,7 +260,7 @@ function FolderItem({
 }
 
 const inputClassName =
-  "w-full bg-transparent border border-cpc-green-500/40 text-cpc-green-500 text-xs px-2 py-1 outline-none focus:border-cpc-green-500";
+  'w-full bg-transparent border border-cpc-green-500/40 text-cpc-green-500 text-xs px-2 py-1 outline-none focus:border-cpc-green-500';
 
 function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
   const { t } = useTranslation();
@@ -269,7 +269,7 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
     name: entry.name,
     username: entry.username,
     password: entry.password,
-    url: entry.url ?? "",
+    url: entry.url ?? '',
   });
 
   const handleSave = async () => {
@@ -285,21 +285,21 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
       }
     >
       <CpcMenuItem onClick={() => copyField(entry.password, `pass-${entry.id}`)}>
-        {t("menu.copyPassword")}
+        {t('menu.copyPassword')}
       </CpcMenuItem>
       <CpcMenuItem onClick={() => copyField(entry.username, `user-${entry.id}`)}>
-        {t("menu.copyUser")}
+        {t('menu.copyUser')}
       </CpcMenuItem>
       {entry.url && (
         <>
           <CpcMenuSeparator />
-          <CpcMenuItem onClick={() => window.open(entry.url, "_blank")}>
-            {t("menu.website")}
+          <CpcMenuItem onClick={() => window.open(entry.url, '_blank')}>
+            {t('menu.website')}
           </CpcMenuItem>
         </>
       )}
       <CpcMenuSeparator />
-      <CpcSubmenu label={t("menu.edit")}>
+      <CpcSubmenu label={t('menu.edit')}>
         <div
           className="p-2 space-y-2 w-48"
           onClick={(e) => e.stopPropagation()}
@@ -309,37 +309,37 @@ function EntryItem({ entry, index }: { entry: PasswordEntry; index: number }) {
             className={inputClassName}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder={t("entry.name")}
+            placeholder={t('entry.name')}
           />
           <input
             className={inputClassName}
             value={form.username}
             onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-            placeholder={t("entry.username")}
+            placeholder={t('entry.username')}
           />
           <input
             className={inputClassName}
             type="password"
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            placeholder={t("entry.password")}
+            placeholder={t('entry.password')}
           />
           <input
             className={inputClassName}
             value={form.url}
             onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-            placeholder={t("entry.url")}
+            placeholder={t('entry.url')}
           />
           <button
             onClick={handleSave}
             className="w-full border border-cpc-green-500 text-cpc-green-500 text-xs py-1 hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors cursor-pointer"
           >
-            {t("menu.edit.save")}
+            {t('menu.edit.save')}
           </button>
         </div>
       </CpcSubmenu>
       <CpcMenuItem variant="danger" onClick={() => deleteEntry(entry.id)}>
-        {t("menu.delete")}
+        {t('menu.delete')}
       </CpcMenuItem>
     </CpcMenu>
   );

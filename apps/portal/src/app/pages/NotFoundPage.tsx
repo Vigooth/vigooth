@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { CpcLayout } from "@vigooth/ui";
+import { Link } from 'react-router-dom';
+import { CpcLayout } from '@vigooth/ui';
 
 export function NotFoundPage() {
   return (

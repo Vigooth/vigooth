@@ -1,4 +1,4 @@
-import type { AppDetailsResponse } from "@/types/game";
+import type { AppDetailsResponse } from '@/types/game';
 
 export async function fetchGameDetails(appid: number): Promise<AppDetailsResponse> {
   const res = await fetch(`/api/steam/store/app?appids=${appid}&l=english`);

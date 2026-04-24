@@ -1,6 +1,6 @@
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from "@vigooth/ui";
-import { getAllocineSearchUrl, getAllocineFilmUrl } from "@/utils/allocine";
-import { useYtsMovie } from "@/hooks/useYtsMovie";
+import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui';
+import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
+import { useYtsMovie } from '@/hooks/useYtsMovie';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -17,12 +17,12 @@ export function ExternalLinks({
   title,
   year,
   allocineId,
-  mediaType = "movie",
+  mediaType = 'movie',
 }: ExternalLinksProps) {
   const allocineUrl = allocineId
     ? getAllocineFilmUrl(allocineId)
     : getAllocineSearchUrl(title, year);
-  const { data: yts } = useYtsMovie(mediaType === "movie" ? imdbId : null);
+  const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -30,7 +30,7 @@ export function ExternalLinks({
         <CpcButton
           variant="outlined"
           color="yellow"
-          onClick={() => window.open(`https://www.imdb.com/title/${imdbId}`, "_blank")}
+          onClick={() => window.open(`https://www.imdb.com/title/${imdbId}`, '_blank')}
         >
           IMDb
         </CpcButton>
@@ -38,18 +38,18 @@ export function ExternalLinks({
       <CpcButton
         variant="outlined"
         color="cyan"
-        onClick={() => window.open(`https://www.themoviedb.org/movie/${tmdbId}`, "_blank")}
+        onClick={() => window.open(`https://www.themoviedb.org/movie/${tmdbId}`, '_blank')}
       >
         TMDB
       </CpcButton>
       <CpcButton
         variant="outlined"
         color="green"
-        onClick={() => window.open(allocineUrl, "_blank")}
+        onClick={() => window.open(allocineUrl, '_blank')}
       >
         ALLOCINE
       </CpcButton>
-      {mediaType === "movie" && yts?.found && yts.torrents && yts.torrents.length > 0 && (
+      {mediaType === 'movie' && yts?.found && yts.torrents && yts.torrents.length > 0 && (
         <CpcMenu
           color="red"
           trigger={
@@ -61,7 +61,7 @@ export function ExternalLinks({
         >
           {yts.url && (
             <>
-              <CpcMenuItem onClick={() => window.open(yts.url, "_blank")}>Page YIFY</CpcMenuItem>
+              <CpcMenuItem onClick={() => window.open(yts.url, '_blank')}>Page YIFY</CpcMenuItem>
               <CpcMenuSeparator />
             </>
           )}
@@ -74,7 +74,7 @@ export function ExternalLinks({
             >
               <span>{torrent.quality}</span>
               <span className="opacity-60 ml-1">
-                {torrent.type !== "web" ? torrent.type : ""} — {torrent.size}
+                {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
               </span>
             </CpcMenuItem>
           ))}

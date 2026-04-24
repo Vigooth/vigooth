@@ -1,4 +1,4 @@
-import { CommandFn } from "./types";
+import { CommandFn } from './types';
 
 export const gen: CommandFn = (args, ctx) => {
   const length = parseInt(args[0]) || 20;

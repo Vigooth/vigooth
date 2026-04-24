@@ -1,5 +1,5 @@
-import { CommandFn } from "./types";
-import { countEntriesInFolder } from "@/utils/folderUtils";
+import { CommandFn } from './types';
+import { countEntriesInFolder } from '@/utils/folderUtils';
 
 export const ls: CommandFn = (_args, ctx, t) => {
   const rootCount = countEntriesInFolder(ctx.vault, null);
@@ -8,14 +8,14 @@ export const ls: CommandFn = (_args, ctx, t) => {
   const folders =
     ctx.vault?.folders
       .map((f, i) => {
-        const marker = ctx.currentFolder?.id === f.id ? " <--" : "";
+        const marker = ctx.currentFolder?.id === f.id ? ' <--' : '';
         const entryCount = countEntriesInFolder(ctx.vault, f.id);
         return `  [${i + 1}] ${f.name} (${entryCount})${marker}`;
       })
-      .join("\n") || "";
+      .join('\n') || '';
 
   const output = folders
-    ? `${t("terminal.folders")}\n${rootLine}\n${folders}`
-    : `${t("terminal.folders")}\n${rootLine}`;
+    ? `${t('terminal.folders')}\n${rootLine}\n${folders}`
+    : `${t('terminal.folders')}\n${rootLine}`;
   return { output };
 };

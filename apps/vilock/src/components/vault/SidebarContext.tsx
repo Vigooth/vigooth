@@ -1,9 +1,9 @@
-import { createContext, useContext, ReactNode } from "react";
-import { ColorType } from "../../types/colors";
+import { createContext, useContext, ReactNode } from 'react';
+import { ColorType } from '../../types/colors';
 
 export type SidebarView =
-  | { type: "folder"; folderId: string | null; activeNoteId?: string }
-  | { type: "note"; noteId: string };
+  | { type: 'folder'; folderId: string | null; activeNoteId?: string }
+  | { type: 'note'; noteId: string };
 
 interface SidebarContextValue {
   activeView: SidebarView;
@@ -58,7 +58,7 @@ export function SidebarProvider({
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
+    throw new Error('useSidebar must be used within a SidebarProvider');
   }
   return context;
 }

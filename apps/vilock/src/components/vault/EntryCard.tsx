@@ -1,7 +1,7 @@
-import { cn } from "@vigooth/ui";
-import { useTranslation } from "react-i18next";
-import { PasswordEntry } from "../../lib/crypto/vault";
-import { useVault } from "./VaultContext";
+import { cn } from '@vigooth/ui';
+import { useTranslation } from 'react-i18next';
+import { PasswordEntry } from '../../lib/crypto/vault';
+import { useVault } from './VaultContext';
 
 interface EntryCardProps {
   entry: PasswordEntry;
@@ -17,8 +17,8 @@ export function EntryCard({ entry, index }: EntryCardProps) {
     <div
       onClick={() => toggleEntry(entry.id)}
       className={cn(
-        "p-2 cursor-pointer transition-colors w-40",
-        isExpanded ? "bg-cpc-green-500 text-cpc-grey-900" : "hover:bg-cpc-green-500/10",
+        'p-2 cursor-pointer transition-colors w-40',
+        isExpanded ? 'bg-cpc-green-500 text-cpc-grey-900' : 'hover:bg-cpc-green-500/10',
       )}
     >
       <div className="flex justify-between items-center text-sm">
@@ -44,7 +44,7 @@ export function EntryCard({ entry, index }: EntryCardProps) {
               }}
               className="border border-current px-2 py-0.5 text-xs hover:bg-cpc-grey-900 hover:text-cpc-green-500"
             >
-              {copiedField === `user-${entry.id}` ? t("entry.copied") : t("entry.copyUser")}
+              {copiedField === `user-${entry.id}` ? t('entry.copied') : t('entry.copyUser')}
             </button>
             <button
               onClick={(e) => {
@@ -53,7 +53,7 @@ export function EntryCard({ entry, index }: EntryCardProps) {
               }}
               className="border border-current px-2 py-0.5 text-xs hover:bg-cpc-grey-900 hover:text-cpc-green-500"
             >
-              {copiedField === `pass-${entry.id}` ? t("entry.copied") : t("entry.copyPass")}
+              {copiedField === `pass-${entry.id}` ? t('entry.copied') : t('entry.copyPass')}
             </button>
             <button
               onClick={(e) => {
@@ -62,7 +62,7 @@ export function EntryCard({ entry, index }: EntryCardProps) {
               }}
               className="border border-cpc-red-500 text-cpc-red-500 px-2 py-0.5 text-xs hover:bg-cpc-red-500 hover:text-cpc-grey-900"
             >
-              {t("entry.delete")}
+              {t('entry.delete')}
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
-import { get, set, del } from "idb-keyval";
+import { get, set, del } from 'idb-keyval';
 
-const ENCRYPTED_VAULT_KEY = "vilock-encrypted-vault";
+const ENCRYPTED_VAULT_KEY = 'vilock-encrypted-vault';
 
 export interface EncryptedVaultCache {
   data: string; // Encrypted vault data

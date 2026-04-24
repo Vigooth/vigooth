@@ -67,7 +67,7 @@ export interface UpdateMoviePayload {
 // TMDB types
 export interface TmdbSearchResult {
   id: number;
-  media_type: "movie" | "tv" | "person";
+  media_type: 'movie' | 'tv' | 'person';
   // Movie fields
   title?: string;
   original_title?: string;

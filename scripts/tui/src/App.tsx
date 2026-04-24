@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { exec } from "child_process";
-import { Box, useApp, useInput, useStdout } from "ink";
-import { useServices } from "./hooks/useServices.js";
-import { Dashboard } from "./components/Dashboard.js";
-import { HelpModal } from "./components/HelpModal.js";
-import { ExitPrompt, type ExitChoice } from "./components/ExitPrompt.js";
-import { LogView } from "./components/LogView.js";
+import React, { useState } from 'react';
+import { exec } from 'child_process';
+import { Box, useApp, useInput, useStdout } from 'ink';
+import { useServices } from './hooks/useServices.js';
+import { Dashboard } from './components/Dashboard.js';
+import { HelpModal } from './components/HelpModal.js';
+import { ExitPrompt, type ExitChoice } from './components/ExitPrompt.js';
+import { LogView } from './components/LogView.js';
 
 export interface AppProps {
   rootDir: string;
@@ -21,16 +21,16 @@ export function App({ rootDir }: AppProps) {
   const [showExitPrompt, setShowExitPrompt] = useState(false);
   const [logServiceId, setLogServiceId] = useState<string | null>(null);
 
-  const hasRunningManagedServices = services.some((s) => s.status === "running" && s.managedByTui);
+  const hasRunningManagedServices = services.some((s) => s.status === 'running' && s.managedByTui);
 
   const openUrl = (url: string) => exec(`open "${url}"`);
 
   const handleExitConfirm = async (choice: ExitChoice) => {
-    if (choice === "cancel") {
+    if (choice === 'cancel') {
       setShowExitPrompt(false);
       return;
     }
-    if (choice === "no") {
+    if (choice === 'no') {
       if (!hasRunningManagedServices) {
         setShowExitPrompt(false);
         return;
@@ -41,7 +41,7 @@ export function App({ rootDir }: AppProps) {
     try {
       await stopAll();
     } catch (err) {
-      console.error("Error stopping services:", err);
+      console.error('Error stopping services:', err);
     }
     exit();
   };
@@ -66,19 +66,19 @@ export function App({ rootDir }: AppProps) {
       }
 
       // Global shortcuts
-      if (input === "a") {
+      if (input === 'a') {
         startAll();
         return;
       }
-      if (input === "X") {
+      if (input === 'X') {
         stopAll();
         return;
       }
-      if (input === "q") {
+      if (input === 'q') {
         setShowExitPrompt(true);
         return;
       }
-      if (input === "?") {
+      if (input === '?') {
         setShowHelp(true);
         return;
       }
@@ -86,10 +86,10 @@ export function App({ rootDir }: AppProps) {
       // Per-service actions
       const svc = services[selectedRow];
       if (!svc) return;
-      if (input === "s") start(svc.id);
-      else if (input === "x") stop(svc.id);
-      else if (input === "r") restart(svc.id);
-      else if (input === "l") setLogServiceId(svc.id);
+      if (input === 's') start(svc.id);
+      else if (input === 'x') stop(svc.id);
+      else if (input === 'r') restart(svc.id);
+      else if (input === 'l') setLogServiceId(svc.id);
       else if (key.return && svc.url) openUrl(svc.url);
     },
     { isActive: !showExitPrompt && !logServiceId },

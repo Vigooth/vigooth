@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   searchMovies,
   getMovieDetails,
@@ -7,12 +7,12 @@ import {
   getTvCredits,
   searchPerson,
   discoverByPerson,
-} from "@/lib/api/tmdb";
-import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from "@/types/movie";
+} from '@/lib/api/tmdb';
+import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from '@/types/movie';
 
 export function useTmdbSearch(query: string) {
   return useInfiniteQuery<TmdbSearchResponse>({
-    queryKey: ["tmdb-search", query],
+    queryKey: ['tmdb-search', query],
     queryFn: ({ pageParam }) => searchMovies(query, pageParam as number),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -28,7 +28,7 @@ export function useTmdbSearch(query: string) {
 
 export function useTmdbMovieDetail(tmdbId: number | null) {
   return useQuery({
-    queryKey: ["tmdb-detail", tmdbId],
+    queryKey: ['tmdb-detail', tmdbId],
     queryFn: () => getMovieDetails(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
@@ -37,7 +37,7 @@ export function useTmdbMovieDetail(tmdbId: number | null) {
 
 export function useTmdbMovieCredits(tmdbId: number | null) {
   return useQuery({
-    queryKey: ["tmdb-credits", tmdbId],
+    queryKey: ['tmdb-credits', tmdbId],
     queryFn: () => getMovieCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
@@ -46,7 +46,7 @@ export function useTmdbMovieCredits(tmdbId: number | null) {
 
 export function useTmdbTvDetail(tmdbId: number | null) {
   return useQuery<TmdbTvDetail>({
-    queryKey: ["tmdb-tv-detail", tmdbId],
+    queryKey: ['tmdb-tv-detail', tmdbId],
     queryFn: () => getTvDetails(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
@@ -55,7 +55,7 @@ export function useTmdbTvDetail(tmdbId: number | null) {
 
 export function useTmdbTvCredits(tmdbId: number | null) {
   return useQuery({
-    queryKey: ["tmdb-tv-credits", tmdbId],
+    queryKey: ['tmdb-tv-credits', tmdbId],
     queryFn: () => getTvCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
@@ -64,7 +64,7 @@ export function useTmdbTvCredits(tmdbId: number | null) {
 
 export function useTmdbSearchPerson(query: string) {
   return useQuery<TmdbPersonSearchResponse>({
-    queryKey: ["tmdb-search-person", query],
+    queryKey: ['tmdb-search-person', query],
     queryFn: () => searchPerson(query),
     enabled: query.length >= 2,
     staleTime: 1000 * 60 * 5,
@@ -73,7 +73,7 @@ export function useTmdbSearchPerson(query: string) {
 
 export function useTmdbDiscoverByPerson(personId: number | null) {
   return useInfiniteQuery<TmdbSearchResponse>({
-    queryKey: ["tmdb-discover-person", personId],
+    queryKey: ['tmdb-discover-person', personId],
     queryFn: ({ pageParam }) => discoverByPerson(personId!, pageParam as number),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

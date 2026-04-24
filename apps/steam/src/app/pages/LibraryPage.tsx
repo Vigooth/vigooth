@@ -1,22 +1,22 @@
-import { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { CpcLayout, CpcButton, CpcInput } from "@vigooth/ui";
-import { Header } from "@/components/layout/Header";
-import { GameGrid } from "@/components/games/GameGrid";
-import { GameDrawer } from "@/components/games/GameDrawer";
-import { LibraryStats } from "@/components/games/LibraryStats";
-import { FriendsSidebar } from "@/components/friends/FriendsSidebar";
-import { useOwnedGames } from "@/hooks/useOwnedGames";
-import { usePlayerSummary } from "@/hooks/usePlayerSummary";
-import type { SteamGame, SortOption } from "@/types/game";
+import { useState, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { CpcLayout, CpcButton, CpcInput } from '@vigooth/ui';
+import { Header } from '@/components/layout/Header';
+import { GameGrid } from '@/components/games/GameGrid';
+import { GameDrawer } from '@/components/games/GameDrawer';
+import { LibraryStats } from '@/components/games/LibraryStats';
+import { FriendsSidebar } from '@/components/friends/FriendsSidebar';
+import { useOwnedGames } from '@/hooks/useOwnedGames';
+import { usePlayerSummary } from '@/hooks/usePlayerSummary';
+import type { SteamGame, SortOption } from '@/types/game';
 
 function sortGames(a: SteamGame, b: SteamGame, sort: SortOption): number {
   switch (sort) {
-    case "name":
+    case 'name':
       return a.name.localeCompare(b.name);
-    case "playtime":
+    case 'playtime':
       return b.playtime_forever - a.playtime_forever;
-    case "recent":
+    case 'recent':
       return b.rtime_last_played - a.rtime_last_played;
   }
 }
@@ -27,8 +27,8 @@ export function LibraryPage() {
   const { data: player } = usePlayerSummary(steamId);
   const [selectedGame, setSelectedGame] = useState<SteamGame | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortOption>("recent");
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<SortOption>('recent');
 
   const handleGameClick = (game: SteamGame) => {
     setSelectedGame(game);
@@ -82,23 +82,23 @@ export function LibraryPage() {
           <CpcInput value={search} onChange={setSearch} placeholder="Search games..." />
           <div className="flex gap-1">
             <CpcButton
-              variant={sort === "recent" ? "filled" : "outlined"}
+              variant={sort === 'recent' ? 'filled' : 'outlined'}
               color="magenta"
-              onClick={() => setSort("recent")}
+              onClick={() => setSort('recent')}
             >
               RECENT
             </CpcButton>
             <CpcButton
-              variant={sort === "playtime" ? "filled" : "outlined"}
+              variant={sort === 'playtime' ? 'filled' : 'outlined'}
               color="magenta"
-              onClick={() => setSort("playtime")}
+              onClick={() => setSort('playtime')}
             >
               PLAYTIME
             </CpcButton>
             <CpcButton
-              variant={sort === "name" ? "filled" : "outlined"}
+              variant={sort === 'name' ? 'filled' : 'outlined'}
               color="magenta"
-              onClick={() => setSort("name")}
+              onClick={() => setSort('name')}
             >
               A-Z
             </CpcButton>

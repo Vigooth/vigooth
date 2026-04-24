@@ -1,5 +1,5 @@
-import { createContext } from "react";
-import type { SteamUser } from "@/lib/auth";
+import { createContext } from 'react';
+import type { SteamUser } from '@/lib/auth';
 
 export interface AuthContextValue {
   user: SteamUser | null;

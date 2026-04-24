@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from "react";
-import { PasswordEntry } from "../../lib/crypto/vault";
-import { ColorType } from "../../types/colors";
-import { EntryFormData } from "./types";
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { PasswordEntry } from '../../lib/crypto/vault';
+import { ColorType } from '../../types/colors';
+import { EntryFormData } from './types';
 
 interface VaultContextValue {
   // Entry expansion
@@ -78,10 +78,10 @@ export function VaultProvider({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [addingToFolder, setAddingToFolder] = useState<string | null>(null);
   const [entryFormData, setEntryFormData] = useState<EntryFormData>({
-    name: "",
-    username: "",
-    password: "",
-    url: "",
+    name: '',
+    username: '',
+    password: '',
+    url: '',
   });
 
   const toggleEntry = (entryId: string) => {
@@ -96,13 +96,13 @@ export function VaultProvider({
 
   const submitEntry = async (folderId: string | null) => {
     await onAddEntry(folderId, entryFormData);
-    setEntryFormData({ name: "", username: "", password: "", url: "" });
+    setEntryFormData({ name: '', username: '', password: '', url: '' });
     setAddingToFolder(null);
   };
 
   const cancelEntry = () => {
     setAddingToFolder(null);
-    setEntryFormData({ name: "", username: "", password: "", url: "" });
+    setEntryFormData({ name: '', username: '', password: '', url: '' });
   };
 
   const generatePassword = () => {
@@ -171,7 +171,7 @@ export function VaultProvider({
 export function useVault() {
   const context = useContext(VaultContext);
   if (!context) {
-    throw new Error("useVault must be used within a VaultProvider");
+    throw new Error('useVault must be used within a VaultProvider');
   }
   return context;
 }

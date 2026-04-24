@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Box, Text } from "ink";
-import { StatusMessage } from "@inkjs/ui";
-import type { ServiceState } from "../types.js";
-import { StatusBar } from "./StatusBar.js";
-import { ServiceRow } from "./ServiceRow.js";
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Text } from 'ink';
+import { StatusMessage } from '@inkjs/ui';
+import type { ServiceState } from '../types.js';
+import { StatusBar } from './StatusBar.js';
+import { ServiceRow } from './ServiceRow.js';
 
 export interface DashboardProps {
   services: ServiceState[];
@@ -17,7 +17,7 @@ interface CrashAlert {
 }
 
 export function Dashboard({ services, selectedRow }: DashboardProps) {
-  const errorServices = services.filter((s) => s.status === "error");
+  const errorServices = services.filter((s) => s.status === 'error');
   const prevStatusesRef = useRef<Record<string, string>>({});
   const [crashAlerts, setCrashAlerts] = useState<CrashAlert[]>([]);
   const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
@@ -32,11 +32,11 @@ export function Dashboard({ services, selectedRow }: DashboardProps) {
   useEffect(() => {
     const prev = prevStatusesRef.current;
     for (const s of services) {
-      if (prev[s.id] === "running" && s.status === "error") {
+      if (prev[s.id] === 'running' && s.status === 'error') {
         const alert: CrashAlert = {
           id: `${s.id}-${Date.now()}`,
           serviceId: s.id,
-          message: s.errorMessage ?? "crashed",
+          message: s.errorMessage ?? 'crashed',
         };
         setCrashAlerts((a) => [...a, alert]);
         const tid = setTimeout(() => {
@@ -62,8 +62,8 @@ export function Dashboard({ services, selectedRow }: DashboardProps) {
           <Box flexDirection="column" marginTop={1}>
             {errorServices.map((s) => (
               <StatusMessage key={`error-${s.id}`} variant="error">
-                {s.id}: {s.errorMessage ?? "error"}
-                {s.logFile ? ` (${s.logFile})` : ""}
+                {s.id}: {s.errorMessage ?? 'error'}
+                {s.logFile ? ` (${s.logFile})` : ''}
               </StatusMessage>
             ))}
           </Box>
@@ -102,7 +102,7 @@ export function Dashboard({ services, selectedRow }: DashboardProps) {
           <Text dimColor> logs</Text>
         </Text>
         <Text>
-          <Text color="cyan">{"\u21B5"}</Text>
+          <Text color="cyan">{'\u21B5'}</Text>
           <Text dimColor> open</Text>
         </Text>
         <Text dimColor>|</Text>

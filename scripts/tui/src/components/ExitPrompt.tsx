@@ -1,7 +1,7 @@
-import React from "react";
-import { Box, Text, useInput } from "ink";
+import React from 'react';
+import { Box, Text, useInput } from 'ink';
 
-export type ExitChoice = "yes" | "no" | "cancel";
+export type ExitChoice = 'yes' | 'no' | 'cancel';
 
 export interface ExitPromptProps {
   hasRunningServices?: boolean;
@@ -11,9 +11,9 @@ export interface ExitPromptProps {
 export function ExitPrompt({ hasRunningServices = false, onConfirm }: ExitPromptProps) {
   useInput((input, key) => {
     const lower = input.toLowerCase();
-    if (lower === "y") onConfirm("yes");
-    else if (lower === "n") onConfirm("no");
-    else if (lower === "c" || key.escape) onConfirm("cancel");
+    if (lower === 'y') onConfirm('yes');
+    else if (lower === 'n') onConfirm('no');
+    else if (lower === 'c' || key.escape) onConfirm('cancel');
   });
 
   if (!hasRunningServices) {

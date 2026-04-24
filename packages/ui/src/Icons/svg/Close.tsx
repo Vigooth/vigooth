@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 export const Close = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function Close(props, ref) {

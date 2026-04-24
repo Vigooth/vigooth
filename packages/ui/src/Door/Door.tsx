@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface DoorProps {
   onOpen?: () => void;
@@ -8,22 +8,22 @@ interface DoorProps {
 }
 
 export function Door({ onOpen, showLock, icon }: DoorProps) {
-  const [phase, setPhase] = useState<"idle" | "opening">("idle");
+  const [phase, setPhase] = useState<'idle' | 'opening'>('idle');
   const [hovered, setHovered] = useState(false);
 
   const handleClick = () => {
-    if (phase !== "idle") return;
-    setPhase("opening");
+    if (phase !== 'idle') return;
+    setPhase('opening');
     setTimeout(() => onOpen?.(), 600);
   };
 
-  const angle = phase === "opening" ? -105 : hovered ? -18 : 0;
-  const duration = phase === "opening" ? "0.6s" : "0.4s";
-  const easing = phase === "opening" ? "ease-in" : hovered ? "ease-out" : "ease-in";
+  const angle = phase === 'opening' ? -105 : hovered ? -18 : 0;
+  const duration = phase === 'opening' ? '0.6s' : '0.4s';
+  const easing = phase === 'opening' ? 'ease-in' : hovered ? 'ease-out' : 'ease-in';
 
   const doorStyle: React.CSSProperties = {
-    transformStyle: "preserve-3d",
-    backfaceVisibility: "hidden",
+    transformStyle: 'preserve-3d',
+    backfaceVisibility: 'hidden',
     transform: `perspective(1000px) rotateY(${angle}deg)`,
     transition: `transform ${duration} ${easing}`,
   };
@@ -34,13 +34,13 @@ export function Door({ onOpen, showLock, icon }: DoorProps) {
         {/* Door frame */}
         <div
           className="relative border-4 border-cpc-yellow-500 p-2 overflow-hidden"
-          style={{ width: "200px", height: "300px", background: "#0a0a0a" }}
+          style={{ width: '200px', height: '300px', background: '#0a0a0a' }}
         >
           {/* Room behind door */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {(phase !== "idle" || hovered) && (
+            {(phase !== 'idle' || hovered) && (
               <div className="text-cpc-green-500 text-center">
-                {phase !== "idle" ? (
+                {phase !== 'idle' ? (
                   <>
                     <div className="text-2xl mb-4 animate-pulse-cpc">···</div>
                     <div className="text-sm">ENTERING...</div>
@@ -56,7 +56,7 @@ export function Door({ onOpen, showLock, icon }: DoorProps) {
           <div
             className="relative w-full h-full border-4 border-cpc-green-500 bg-gradient-to-b from-cpc-grey-900 to-cpc-blue-900 cursor-pointer origin-left"
             onClick={handleClick}
-            onMouseEnter={() => phase === "idle" && setHovered(true)}
+            onMouseEnter={() => phase === 'idle' && setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={doorStyle}
           >

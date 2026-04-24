@@ -1,6 +1,6 @@
-import { Drawer } from "@base-ui/react/drawer";
-import type { ReactNode } from "react";
-import { cn } from "../utils/cn";
+import { Drawer } from '@base-ui/react/drawer';
+import type { ReactNode } from 'react';
+import { cn } from '../utils/cn';
 
 interface CpcDrawerProps {
   trigger?: ReactNode;
@@ -8,7 +8,7 @@ interface CpcDrawerProps {
   children: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  side?: "left" | "right";
+  side?: 'left' | 'right';
   showClose?: boolean;
   noPadding?: boolean;
 }
@@ -19,7 +19,7 @@ export function CpcDrawer({
   children,
   open,
   onOpenChange,
-  side = "left",
+  side = 'left',
   showClose = true,
   noPadding = false,
 }: CpcDrawerProps) {
@@ -30,9 +30,9 @@ export function CpcDrawer({
         <Drawer.Backdrop className="cpc-drawer-backdrop" />
         <Drawer.Popup
           className={cn(
-            "cpc-drawer-popup",
-            side === "left" ? "cpc-drawer-left" : "cpc-drawer-right",
-            noPadding && "p-0",
+            'cpc-drawer-popup',
+            side === 'left' ? 'cpc-drawer-left' : 'cpc-drawer-right',
+            noPadding && 'p-0',
           )}
         >
           {title && (
@@ -40,7 +40,7 @@ export function CpcDrawer({
               {title}
             </Drawer.Title>
           )}
-          <Drawer.Description className="sr-only">{title ?? "Drawer"}</Drawer.Description>
+          <Drawer.Description className="sr-only">{title ?? 'Drawer'}</Drawer.Description>
           <div className="flex-1 overflow-y-auto">{children}</div>
           {showClose && (
             <Drawer.Close className="mt-4 border-2 border-cpc-green-500 text-cpc-green-500 px-4 py-2 hover:bg-cpc-green-500 hover:text-cpc-grey-900 transition-colors text-sm cursor-pointer">

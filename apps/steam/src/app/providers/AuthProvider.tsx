@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, type ReactNode } from "react";
-import { fetchMe, logout as logoutApi, type SteamUser } from "@/lib/auth";
-import { AuthContext } from "./AuthContext";
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { fetchMe, logout as logoutApi, type SteamUser } from '@/lib/auth';
+import { AuthContext } from './AuthContext';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SteamUser | null>(null);

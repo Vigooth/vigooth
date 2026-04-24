@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface UseInfiniteScrollOptions {
   hasNextPage: boolean | undefined;
@@ -11,7 +11,7 @@ export function useInfiniteScroll({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-  rootMargin = "200px",
+  rootMargin = '200px',
 }: UseInfiniteScrollOptions) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);

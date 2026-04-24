@@ -1,6 +1,6 @@
-import { Drawer } from "@base-ui/react/drawer";
-import type { Movie } from "@/types/movie";
-import { MovieDetails } from "./MovieDetails";
+import { Drawer } from '@base-ui/react/drawer';
+import type { Movie } from '@/types/movie';
+import { MovieDetails } from './MovieDetails';
 
 interface MovieDrawerProps {
   movie: Movie | null;

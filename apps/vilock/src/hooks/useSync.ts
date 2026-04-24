@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { syncVault } from "@/lib/api/vault";
-import { hasPendingSync } from "@/lib/storage";
-import { useOnlineStatus } from "./useOnlineStatus";
-import { VAULT_QUERY_KEY } from "./useVaultQuery";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { syncVault } from '@/lib/api/vault';
+import { hasPendingSync } from '@/lib/storage';
+import { useOnlineStatus } from './useOnlineStatus';
+import { VAULT_QUERY_KEY } from './useVaultQuery';
 
 interface UseSyncOptions {
   masterPassword: string | null;
@@ -65,8 +65,8 @@ export function useSync({ masterPassword }: UseSyncOptions): UseSyncReturn {
 
       setHasPending(false);
     } catch (err) {
-      console.error("Sync failed:", err);
-      setLastError(err instanceof Error ? err : new Error("Sync failed"));
+      console.error('Sync failed:', err);
+      setLastError(err instanceof Error ? err : new Error('Sync failed'));
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);

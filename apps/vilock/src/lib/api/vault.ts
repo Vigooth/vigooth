@@ -1,12 +1,12 @@
-import { getVault, saveVault as saveVaultApi, VaultResponse } from "./client";
-import { decryptVault, encryptVault, createEmptyVault, VaultData } from "../crypto/vault";
+import { getVault, saveVault as saveVaultApi, VaultResponse } from './client';
+import { decryptVault, encryptVault, createEmptyVault, VaultData } from '../crypto/vault';
 import {
   saveEncryptedVaultToCache,
   loadEncryptedVaultFromCache,
   markPendingSync,
   markSyncComplete,
   hasPendingSync,
-} from "../storage";
+} from '../storage';
 
 export interface VaultApiResult {
   vault: VaultData;
@@ -37,7 +37,7 @@ export async function fetchVault(masterPassword: string): Promise<VaultApiResult
       // Cache encrypted data locally for offline use
       await saveEncryptedVaultToCache(encryptedData);
     } catch (err) {
-      if (err instanceof Error && err.message === "vault not found") {
+      if (err instanceof Error && err.message === 'vault not found') {
         // New user, create empty vault
         const emptyVault = createEmptyVault();
         return {
@@ -47,7 +47,7 @@ export async function fetchVault(masterPassword: string): Promise<VaultApiResult
         };
       }
       // Network error - try offline cache
-      console.warn("Failed to fetch from server, trying offline cache:", err);
+      console.warn('Failed to fetch from server, trying offline cache:', err);
     }
   }
 
@@ -104,7 +104,7 @@ export async function persistVault(
       await markSyncComplete();
       return { synced: true };
     } catch (err) {
-      console.warn("Failed to sync to server, data saved locally:", err);
+      console.warn('Failed to sync to server, data saved locally:', err);
       await markPendingSync();
       return { synced: false };
     }
@@ -121,7 +121,7 @@ export async function persistVault(
  */
 export async function syncVault(masterPassword: string): Promise<VaultApiResult> {
   if (!navigator.onLine) {
-    throw new Error("Cannot sync while offline");
+    throw new Error('Cannot sync while offline');
   }
 
   // Load local vault
@@ -136,7 +136,7 @@ export async function syncVault(masterPassword: string): Promise<VaultApiResult>
     await saveVaultApi(localCached.data);
     await markSyncComplete();
   } catch (err) {
-    console.warn("Failed to push to server:", err);
+    console.warn('Failed to push to server:', err);
     throw err;
   }
 

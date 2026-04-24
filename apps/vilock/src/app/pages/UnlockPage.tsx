@@ -1,31 +1,31 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CpcLayout, cn } from "@vigooth/ui";
-import { getPortalUrl } from "@vigooth/config";
-import { useAuth } from "../../stores/auth";
-import { getVault } from "../../lib/api/client";
-import { decryptVault } from "../../lib/crypto/vault";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcLayout, cn } from '@vigooth/ui';
+import { getPortalUrl } from '@vigooth/config';
+import { useAuth } from '../../stores/auth';
+import { getVault } from '../../lib/api/client';
+import { decryptVault } from '../../lib/crypto/vault';
 
 export function UnlockPage() {
   const navigate = useNavigate();
   const { isAuthenticated, user, setMasterPassword, logout } = useAuth();
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const portalUrl = getPortalUrl();
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    navigate("/login");
+    navigate('/login');
     return null;
   }
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (password.length < 8) {
-      setError("PASSWORD MIN 8 CHARS");
+      setError('PASSWORD MIN 8 CHARS');
       return;
     }
 
@@ -40,17 +40,17 @@ export function UnlockPage() {
 
       // Success - store master password in memory and go to vault
       setMasterPassword(password);
-      navigate("/vault");
+      navigate('/vault');
     } catch (err) {
-      if (err instanceof Error && err.message === "vault not found") {
+      if (err instanceof Error && err.message === 'vault not found') {
         // No vault yet - this is a new user, create empty vault
         // Store master password and go to vault
         setMasterPassword(password);
-        navigate("/vault");
-      } else if (err instanceof Error && err.message === "Invalid master password") {
-        setError("INVALID MASTER PASSWORD");
+        navigate('/vault');
+      } else if (err instanceof Error && err.message === 'Invalid master password') {
+        setError('INVALID MASTER PASSWORD');
       } else {
-        setError("CONNECTION ERROR");
+        setError('CONNECTION ERROR');
       }
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ export function UnlockPage() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
 
   return (
@@ -98,7 +98,7 @@ export function UnlockPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    setError("");
+                    setError('');
                   }}
                   className="bg-transparent border-2 border-cpc-green-500 text-cpc-green-500 px-4 py-2 font-cpc outline-none focus:border-cpc-yellow-500 w-64"
                   autoFocus
@@ -113,13 +113,13 @@ export function UnlockPage() {
                 type="submit"
                 disabled={loading}
                 className={cn(
-                  "w-full border-2 border-cpc-green-500 text-cpc-green-500 py-2 transition-colors",
+                  'w-full border-2 border-cpc-green-500 text-cpc-green-500 py-2 transition-colors',
                   loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-cpc-green-500 hover:text-cpc-grey-900",
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-cpc-green-500 hover:text-cpc-grey-900',
                 )}
               >
-                {loading ? "DECRYPTING..." : "UNLOCK VAULT"}
+                {loading ? 'DECRYPTING...' : 'UNLOCK VAULT'}
               </button>
             </form>
 

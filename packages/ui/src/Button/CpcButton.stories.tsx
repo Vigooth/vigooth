@@ -1,34 +1,34 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CpcButton, type CpcColor, type CpcSize, type CpcVariant } from "./CpcButton";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CpcButton, type CpcColor, type CpcSize, type CpcVariant } from './CpcButton';
 
 const CPC_COLORS: readonly CpcColor[] = [
-  "green",
-  "cyan",
-  "red",
-  "yellow",
-  "magenta",
-  "blue",
-  "orange",
+  'green',
+  'cyan',
+  'red',
+  'yellow',
+  'magenta',
+  'blue',
+  'orange',
 ];
-const CPC_VARIANTS: readonly CpcVariant[] = ["outlined", "filled", "text"];
-const CPC_SIZES: readonly CpcSize[] = ["xs", "sm", "md", "lg", "xl"];
+const CPC_VARIANTS: readonly CpcVariant[] = ['outlined', 'filled', 'text'];
+const CPC_SIZES: readonly CpcSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
 const meta = {
-  title: "Components/CpcButton",
+  title: 'Components/CpcButton',
   component: CpcButton,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
     backgrounds: {
-      default: "cpc-dark",
-      values: [{ name: "cpc-dark", value: "#0a0a0a" }],
+      default: 'cpc-dark',
+      values: [{ name: 'cpc-dark', value: '#0a0a0a' }],
     },
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
-    variant: { control: "select", options: CPC_VARIANTS },
-    color: { control: "select", options: CPC_COLORS },
-    size: { control: "select", options: CPC_SIZES },
-    disabled: { control: "boolean" },
+    variant: { control: 'select', options: CPC_VARIANTS },
+    color: { control: 'select', options: CPC_COLORS },
+    size: { control: 'select', options: CPC_SIZES },
+    disabled: { control: 'boolean' },
   },
 } satisfies Meta<typeof CpcButton>;
 
@@ -37,33 +37,33 @@ type Story = StoryObj<typeof meta>;
 
 export const Outlined: Story = {
   args: {
-    children: "OUTLINED",
-    variant: "outlined",
-    color: "green",
+    children: 'OUTLINED',
+    variant: 'outlined',
+    color: 'green',
   },
 };
 
 export const Filled: Story = {
   args: {
-    children: "FILLED",
-    variant: "filled",
-    color: "cyan",
+    children: 'FILLED',
+    variant: 'filled',
+    color: 'cyan',
   },
 };
 
 export const Text: Story = {
   args: {
-    children: "TEXT",
-    variant: "text",
-    color: "red",
+    children: 'TEXT',
+    variant: 'text',
+    color: 'red',
   },
 };
 
 export const Disabled: Story = {
   args: {
-    children: "DISABLED",
-    variant: "outlined",
-    color: "green",
+    children: 'DISABLED',
+    variant: 'outlined',
+    color: 'green',
     disabled: true,
   },
 };

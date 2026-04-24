@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Door, CpcLayout, cn } from "@vigooth/ui";
-import { getAppUrl } from "@vigooth/config";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Door, CpcLayout, cn } from '@vigooth/ui';
+import { getAppUrl } from '@vigooth/config';
 
 export function HomePreviewPage() {
   const navigate = useNavigate();
@@ -9,27 +9,27 @@ export function HomePreviewPage() {
 
   const handlePortalDoorOpen = () => {
     setIsEntering(true);
-    setTimeout(() => navigate("/home"), 800);
+    setTimeout(() => navigate('/home'), 800);
   };
 
   const handleVilockDoorOpen = () => {
     setIsEntering(true);
     setTimeout(() => {
-      window.location.href = getAppUrl("vilock");
+      window.location.href = getAppUrl('vilock');
     }, 800);
   };
 
   const handleMooviDoorOpen = () => {
     setIsEntering(true);
     setTimeout(() => {
-      window.location.href = getAppUrl("movies");
+      window.location.href = getAppUrl('movies');
     }, 800);
   };
 
   const handleSteamDoorOpen = () => {
     setIsEntering(true);
     setTimeout(() => {
-      window.location.href = getAppUrl("steam");
+      window.location.href = getAppUrl('steam');
     }, 800);
   };
 
@@ -111,10 +111,10 @@ export function HomePreviewPage() {
 
         <div
           className={cn(
-            "flex items-end gap-0 sm:gap-6 lg:gap-12 transition-opacity duration-700 ease-in",
-            "scale-[0.42] sm:scale-[0.65] lg:scale-100",
-            "-my-16 sm:-my-8 lg:my-0",
-            isEntering ? "opacity-0" : "opacity-100",
+            'flex items-end gap-0 sm:gap-6 lg:gap-12 transition-opacity duration-700 ease-in',
+            'scale-[0.42] sm:scale-[0.65] lg:scale-100',
+            '-my-16 sm:-my-8 lg:my-0',
+            isEntering ? 'opacity-0' : 'opacity-100',
           )}
         >
           <Door onOpen={handlePortalDoorOpen} />

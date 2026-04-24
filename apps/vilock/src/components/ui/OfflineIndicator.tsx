@@ -1,5 +1,5 @@
-import { useTranslation } from "react-i18next";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useTranslation } from 'react-i18next';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 export function OfflineIndicator() {
   const { t } = useTranslation();
@@ -9,5 +9,5 @@ export function OfflineIndicator() {
     return null;
   }
 
-  return <span className="text-cpc-red-500 text-xs animate-pulse">{t("status.offline")}</span>;
+  return <span className="text-cpc-red-500 text-xs animate-pulse">{t('status.offline')}</span>;
 }

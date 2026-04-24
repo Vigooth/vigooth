@@ -1,5 +1,5 @@
-import { forwardRef, useState } from "react";
-import { cn } from "../utils/cn";
+import { forwardRef, useState } from 'react';
+import { cn } from '../utils/cn';
 
 interface CpcInputProps {
   value: string;
@@ -10,11 +10,11 @@ interface CpcInputProps {
 }
 
 const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
-  ({ value, onChange, onEnter, placeholder = "", cursorBlink = true }, ref) => {
+  ({ value, onChange, onEnter, placeholder = '', cursorBlink = true }, ref) => {
     const [focused, setFocused] = useState(false);
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && onEnter) {
+      if (e.key === 'Enter' && onEnter) {
         onEnter();
       }
     };
@@ -24,8 +24,8 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
 
     return (
       <div className="relative inline-flex items-baseline">
-        <span className={cn("font-cpc", showPlaceholder && "opacity-40")}>
-          {value || (showPlaceholder ? placeholder : "")}
+        <span className={cn('font-cpc', showPlaceholder && 'opacity-40')}>
+          {value || (showPlaceholder ? placeholder : '')}
         </span>
         <input
           ref={ref}
@@ -36,12 +36,12 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className="absolute inset-0 bg-transparent border-none outline-none font-cpc text-transparent w-full"
-          style={{ caretColor: "transparent" }}
+          style={{ caretColor: 'transparent' }}
         />
         <span
           className={cn(
-            "inline-block w-2 h-4 ml-0.5",
-            showCursor ? "cpc-cursor" : "bg-transparent",
+            'inline-block w-2 h-4 ml-0.5',
+            showCursor ? 'cpc-cursor' : 'bg-transparent',
           )}
         />
       </div>
@@ -49,6 +49,6 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
   },
 );
 
-CpcInput.displayName = "CpcInput";
+CpcInput.displayName = 'CpcInput';
 
 export { CpcInput };

@@ -1,6 +1,6 @@
-import { CommandFn } from "./types";
-import { PasswordEntry } from "@/lib/crypto/vault";
-import { getFolderByIndex, getEntriesForFolder } from "@/utils/folderUtils";
+import { CommandFn } from './types';
+import { PasswordEntry } from '@/lib/crypto/vault';
+import { getFolderByIndex, getEntriesForFolder } from '@/utils/folderUtils';
 
 interface ParsedSource {
   folderIndex: number;
@@ -21,7 +21,7 @@ const parseSource = (source: string): ParsedSource | null => {
   // Pattern: 1{1,3,5} (list)
   const listMatch = source.match(/^(\d+)\{([\d,]+)\}$/);
   if (listMatch) {
-    const indices = listMatch[2].split(",").map((n) => parseInt(n, 10));
+    const indices = listMatch[2].split(',').map((n) => parseInt(n, 10));
     return {
       folderIndex: parseInt(listMatch[1], 10),
       entryIndices: indices,
@@ -57,35 +57,35 @@ const parseSource = (source: string): ParsedSource | null => {
 
 export const mv: CommandFn = async (args, ctx, t) => {
   if (args.length < 2) {
-    return { output: t("terminal.errors.usage.mv") };
+    return { output: t('terminal.errors.usage.mv') };
   }
 
   const source = args[0];
   const targetFolderIndex = parseInt(args[1], 10);
 
   if (isNaN(targetFolderIndex)) {
-    return { output: t("terminal.errors.usage.mv") };
+    return { output: t('terminal.errors.usage.mv') };
   }
 
   const parsed = parseSource(source);
   if (!parsed) {
-    return { output: t("terminal.errors.usage.mv") };
+    return { output: t('terminal.errors.usage.mv') };
   }
 
   // Get source folder entries
   let sourceFolderId: string | null = null;
-  let sourceFolderName = "";
+  let sourceFolderName = '';
 
   if (parsed.folderIndex === 0) {
     sourceFolderId = null;
-    sourceFolderName = "ROOT";
+    sourceFolderName = 'ROOT';
   } else {
     const sourceFolder = ctx.vault?.folders
       ? getFolderByIndex(ctx.vault.folders, parsed.folderIndex)
       : null;
     if (!sourceFolder) {
       return {
-        output: t("terminal.errors.folderNotFound", { name: parsed.folderIndex.toString() }),
+        output: t('terminal.errors.folderNotFound', { name: parsed.folderIndex.toString() }),
       };
     }
     sourceFolderId = sourceFolder.id;
@@ -96,18 +96,18 @@ export const mv: CommandFn = async (args, ctx, t) => {
 
   // Get target folder
   let targetFolderId: string | null = null;
-  let targetFolderName = "";
+  let targetFolderName = '';
 
   if (targetFolderIndex === 0) {
     targetFolderId = null;
-    targetFolderName = "ROOT";
+    targetFolderName = 'ROOT';
   } else {
     const targetFolder = ctx.vault?.folders
       ? getFolderByIndex(ctx.vault.folders, targetFolderIndex)
       : null;
     if (!targetFolder) {
       return {
-        output: t("terminal.errors.folderNotFound", { name: targetFolderIndex.toString() }),
+        output: t('terminal.errors.folderNotFound', { name: targetFolderIndex.toString() }),
       };
     }
     targetFolderId = targetFolder.id;
@@ -131,7 +131,7 @@ export const mv: CommandFn = async (args, ctx, t) => {
   }
 
   if (entriesToMove.length === 0) {
-    return { output: t("terminal.errors.noEntriesToMove") };
+    return { output: t('terminal.errors.noEntriesToMove') };
   }
 
   // Move all entries in one batch
@@ -139,7 +139,7 @@ export const mv: CommandFn = async (args, ctx, t) => {
   await ctx.moveEntries(entryIds, targetFolderId);
 
   return {
-    output: t("terminal.success.mv", {
+    output: t('terminal.success.mv', {
       count: entriesToMove.length,
       source: sourceFolderName,
       target: targetFolderName,

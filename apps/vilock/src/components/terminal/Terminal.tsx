@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { commands, CommandContext } from "./commands";
+import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { commands, CommandContext } from './commands';
 
 interface TerminalProps {
   context: CommandContext;
@@ -13,9 +13,9 @@ interface HistoryEntry {
 
 const parseCommandArgs = (input: string): string[] => {
   const args: string[] = [];
-  let current = "";
+  let current = '';
   let inQuotes = false;
-  let quoteChar = "";
+  let quoteChar = '';
 
   for (let i = 0; i < input.length; i++) {
     const char = input[i];
@@ -25,11 +25,11 @@ const parseCommandArgs = (input: string): string[] => {
       quoteChar = char;
     } else if (char === quoteChar && inQuotes) {
       inQuotes = false;
-      quoteChar = "";
-    } else if (char === " " && !inQuotes) {
+      quoteChar = '';
+    } else if (char === ' ' && !inQuotes) {
       if (current) {
         args.push(current);
-        current = "";
+        current = '';
       }
     } else {
       current += char;
@@ -45,7 +45,7 @@ const parseCommandArgs = (input: string): string[] => {
 
 export function Terminal({ context }: TerminalProps) {
   const { t } = useTranslation();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,11 +78,11 @@ export function Terminal({ context }: TerminalProps) {
       const result = await commandFn(args, context, t);
       output = result.output;
     } else {
-      output = t("terminal.errors.unknownCommand", { command: commandName });
+      output = t('terminal.errors.unknownCommand', { command: commandName });
     }
 
     setHistory((prev) => [...prev, { command: cmd, output }]);
-    setInput("");
+    setInput('');
     setHistoryIndex(-1);
   };
 
@@ -98,7 +98,7 @@ export function Terminal({ context }: TerminalProps) {
     const newIndex = historyIndex + 1;
     if (newIndex >= history.length) {
       setHistoryIndex(-1);
-      setInput("");
+      setInput('');
     } else {
       setHistoryIndex(newIndex);
       setInput(history[newIndex].command);
@@ -106,18 +106,18 @@ export function Terminal({ context }: TerminalProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       handleCommand(input);
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       navigateToPreviousCommand();
-    } else if (e.key === "ArrowDown") {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       navigateToNextCommand();
     }
   };
 
-  const prompt = context.currentFolder ? `${context.currentFolder.name}>` : "ROOT>";
+  const prompt = context.currentFolder ? `${context.currentFolder.name}>` : 'ROOT>';
 
   return (
     <div className="border-t-2 border-cpc-green-500 p-3 cursor-text" onClick={focusInput}>
@@ -143,7 +143,7 @@ export function Terminal({ context }: TerminalProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           className="flex-1 bg-transparent text-cpc-green-500 text-sm font-mono outline-none"
-          placeholder={t("terminal.placeholder")}
+          placeholder={t('terminal.placeholder')}
           autoComplete="off"
         />
       </div>

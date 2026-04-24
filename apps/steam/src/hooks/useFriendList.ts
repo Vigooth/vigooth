@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchFriendList, fetchPlayerSummaries } from "@/lib/api/steam";
-import type { PlayerSummary } from "@/lib/api/steam";
-import { useAuth } from "@/app/providers";
+import { useQuery } from '@tanstack/react-query';
+import { fetchFriendList, fetchPlayerSummaries } from '@/lib/api/steam';
+import type { PlayerSummary } from '@/lib/api/steam';
+import { useAuth } from '@/app/providers';
 
 export interface FriendWithProfile {
   steamid: string;
@@ -13,10 +13,10 @@ export interface FriendWithProfile {
 
 export function useFriendList(steamId?: string) {
   const { user } = useAuth();
-  const id = steamId || user?.steamId || "";
+  const id = steamId || user?.steamId || '';
 
   return useQuery({
-    queryKey: ["friendList", id],
+    queryKey: ['friendList', id],
     queryFn: async (): Promise<FriendWithProfile[]> => {
       const friendData = await fetchFriendList(id);
       const friends = friendData.friendslist.friends;
@@ -37,8 +37,8 @@ export function useFriendList(steamId?: string) {
           return {
             steamid: f.steamid,
             personaname: profile?.personaname ?? f.steamid,
-            avatarfull: profile?.avatarfull ?? "",
-            profileurl: profile?.profileurl ?? "",
+            avatarfull: profile?.avatarfull ?? '',
+            profileurl: profile?.profileurl ?? '',
             friend_since: f.friend_since,
           };
         })

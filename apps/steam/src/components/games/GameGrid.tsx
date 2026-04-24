@@ -1,5 +1,5 @@
-import type { SteamGame } from "@/types/game";
-import { GameCard } from "./GameCard";
+import type { SteamGame } from '@/types/game';
+import { GameCard } from './GameCard';
 
 interface GameGridProps {
   games: SteamGame[];

@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   streamRecommendations,
   streamRecommendationsSimple,
@@ -7,7 +7,7 @@ import {
   type Recommendation,
   type RecommendationEvent,
   type RecommendationHistoryEntry,
-} from "@/lib/api/recommendations";
+} from '@/lib/api/recommendations';
 
 export interface TokenUsage {
   input_tokens: number;
@@ -33,9 +33,9 @@ export function useRecommendations() {
         (prev) => {
           const next = new URLSearchParams(prev);
           if (id) {
-            next.set("history", id);
+            next.set('history', id);
           } else {
-            next.delete("history");
+            next.delete('history');
           }
           return next;
         },
@@ -53,7 +53,7 @@ export function useRecommendations() {
           initialLoadDone.current = true;
 
           // Read URL param directly to avoid stale closure / dependency loop
-          const historyId = new URLSearchParams(window.location.search).get("history");
+          const historyId = new URLSearchParams(window.location.search).get('history');
 
           // Default to first entry (most recent, backend sorts DESC)
           let targetIndex = 0;
@@ -130,11 +130,11 @@ export function useRecommendations() {
         (event) => {
           setEvents((prev) => [...prev, event]);
 
-          if (event.type === "recommendation" && event.data && "title" in event.data) {
+          if (event.type === 'recommendation' && event.data && 'title' in event.data) {
             setRecommendations((prev) => [...prev, event.data as Recommendation]);
           }
 
-          if (event.type === "done") {
+          if (event.type === 'done') {
             const data = event.data as { tokens?: TokenUsage } | undefined;
             if (data?.tokens) {
               setTokens(data.tokens);
@@ -143,7 +143,7 @@ export function useRecommendations() {
             refreshHistory();
           }
 
-          if (event.type === "error") {
+          if (event.type === 'error') {
             setError(event.message);
             setIsLoading(false);
           }

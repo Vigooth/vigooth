@@ -1,4 +1,4 @@
-import type { SteamGame } from "@/types/game";
+import type { SteamGame } from '@/types/game';
 
 interface LibraryStatsProps {
   games: SteamGame[];
@@ -30,8 +30,8 @@ export function LibraryStats({ games }: LibraryStatsProps) {
         <span className="text-cpc-green-900 text-xs">TOP:</span>
         {topGames.map((g, i) => (
           <span key={g.appid} className="text-xs">
-            <span className="text-cpc-magenta-500">{i + 1}.</span>{" "}
-            <span className="text-cpc-green-500">{g.name}</span>{" "}
+            <span className="text-cpc-magenta-500">{i + 1}.</span>{' '}
+            <span className="text-cpc-green-500">{g.name}</span>{' '}
             <span className="text-cpc-green-900">({formatPlaytime(g.playtime_forever)})</span>
           </span>
         ))}

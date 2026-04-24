@@ -1,8 +1,8 @@
-import type { Movie } from "@/types/movie";
-import { getPosterUrl } from "@/utils/tmdbImage";
-import { RatingBadge } from "./RatingBadge";
+import type { Movie } from '@/types/movie';
+import { getPosterUrl } from '@/utils/tmdbImage';
+import { RatingBadge } from './RatingBadge';
 
-type ViewMode = "grid" | "list" | "compact";
+type ViewMode = 'grid' | 'list' | 'compact';
 
 interface MovieCardProps {
   movie: Movie;
@@ -10,10 +10,10 @@ interface MovieCardProps {
   onClick?: (movie: Movie) => void;
 }
 
-export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps) {
-  const posterUrl = getPosterUrl(movie.poster_path, viewMode === "compact" ? "w185" : "w342");
+export function MovieCard({ movie, viewMode = 'grid', onClick }: MovieCardProps) {
+  const posterUrl = getPosterUrl(movie.poster_path, viewMode === 'compact' ? 'w185' : 'w342');
 
-  if (viewMode === "list") {
+  if (viewMode === 'list') {
     return (
       <div
         className="group border-2 border-cpc-green-900 flex hover:border-cpc-cyan-500 transition-colors cursor-pointer"
@@ -28,7 +28,7 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
               decoding="async"
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.style.display = "none";
+                e.currentTarget.style.display = 'none';
               }}
             />
           ) : (
@@ -44,8 +44,8 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
               <div className="text-cpc-green-900 text-xs truncate">{movie.original_title}</div>
             )}
             <div className="text-cpc-green-900 text-xs">
-              {movie.year || "\u2014"}
-              {movie.director ? ` - ${movie.director}` : ""}
+              {movie.year || '\u2014'}
+              {movie.director ? ` - ${movie.director}` : ''}
             </div>
             {movie.overview && (
               <div className="text-cpc-green-500 text-xs mt-1 line-clamp-2">{movie.overview}</div>
@@ -64,7 +64,7 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
     );
   }
 
-  if (viewMode === "compact") {
+  if (viewMode === 'compact') {
     return (
       <div
         className="group border border-cpc-green-900 cursor-pointer hover:border-cpc-cyan-500 transition-colors"
@@ -79,8 +79,8 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
               decoding="async"
               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
               onError={(e) => {
-                e.currentTarget.style.display = "none";
-                e.currentTarget.nextElementSibling?.removeAttribute("hidden");
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.removeAttribute('hidden');
               }}
             />
           ) : null}
@@ -99,7 +99,7 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
             <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">{movie.title}</div>
             <div className="text-cpc-green-900 text-[9px] truncate">
               {movie.year}
-              {movie.director ? ` - ${movie.director}` : ""}
+              {movie.director ? ` - ${movie.director}` : ''}
             </div>
           </div>
         </div>
@@ -122,8 +122,8 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
             decoding="async"
             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
             onError={(e) => {
-              e.currentTarget.style.display = "none";
-              e.currentTarget.nextElementSibling?.removeAttribute("hidden");
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.removeAttribute('hidden');
             }}
           />
         ) : null}
@@ -148,7 +148,7 @@ export function MovieCard({ movie, viewMode = "grid", onClick }: MovieCardProps)
         </div>
         <div className="text-cpc-green-900 text-xs">
           {movie.year}
-          {movie.director ? ` - ${movie.director}` : ""}
+          {movie.director ? ` - ${movie.director}` : ''}
         </div>
 
         {/* Ratings row */}

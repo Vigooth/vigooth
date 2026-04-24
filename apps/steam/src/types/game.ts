@@ -57,4 +57,4 @@ export interface AppDetailsResponse {
   };
 }
 
-export type SortOption = "name" | "playtime" | "recent";
+export type SortOption = 'name' | 'playtime' | 'recent';

@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: "Deploy scope"
+        description: 'Deploy scope'
         required: true
-        default: "all"
+        default: 'all'
         type: choice
         options:
           - all

@@ -1,15 +1,15 @@
-import { useState, useRef, useCallback } from "react";
-import { cn } from "@vigooth/ui";
-import { useTranslation } from "react-i18next";
-import { Folder, PasswordEntry, Note } from "../../lib/crypto/vault";
-import { colorStyles } from "./types";
-import { EntryCard } from "./EntryCard";
-import { AddEntryForm } from "./AddEntryForm";
-import { InlineNoteEditor } from "./InlineNoteEditor";
-import { useVault } from "./VaultContext";
-import { useSidebar } from "./SidebarContext";
-import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from "@vigooth/ui";
-import { VALID_COLORS } from "../../types/colors";
+import { useState, useRef, useCallback } from 'react';
+import { cn } from '@vigooth/ui';
+import { useTranslation } from 'react-i18next';
+import { Folder, PasswordEntry, Note } from '../../lib/crypto/vault';
+import { colorStyles } from './types';
+import { EntryCard } from './EntryCard';
+import { AddEntryForm } from './AddEntryForm';
+import { InlineNoteEditor } from './InlineNoteEditor';
+import { useVault } from './VaultContext';
+import { useSidebar } from './SidebarContext';
+import { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcSubmenu } from '@vigooth/ui';
+import { VALID_COLORS } from '../../types/colors';
 
 interface FolderContentProps {
   folder: Folder | null;
@@ -29,7 +29,7 @@ export function FolderContent({
   const { t } = useTranslation();
   const { addingToFolder, setAddingToFolder, deleteFolder, updateFolder, addNote } = useVault();
   const { deleteNote } = useSidebar();
-  const [folderName, setFolderName] = useState(folder?.name ?? "");
+  const [folderName, setFolderName] = useState(folder?.name ?? '');
   const [activeNoteId, setActiveNoteId] = useState<string | null>(
     initialNoteId ?? notes[0]?.id ?? null,
   );
@@ -40,7 +40,7 @@ export function FolderContent({
   const colors = folder?.color ? colorStyles[folder.color] || colorStyles.green : colorStyles.green;
 
   const folderId = folder?.id ?? null;
-  const isAddingEntry = addingToFolder === (folderId ?? "root");
+  const isAddingEntry = addingToFolder === (folderId ?? 'root');
 
   const debouncedSaveName = useCallback(
     (value: string) => {
@@ -62,7 +62,7 @@ export function FolderContent({
   };
 
   const handleAddClick = () => {
-    setAddingToFolder(folderId ?? "root");
+    setAddingToFolder(folderId ?? 'root');
   };
 
   return (
@@ -79,12 +79,12 @@ export function FolderContent({
               value={folderName}
               onChange={(e) => handleNameChange(e.target.value)}
               className={cn(
-                "w-full bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-current transition-colors",
+                'w-full bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-current transition-colors',
                 colors.text,
               )}
             />
           ) : (
-            <span className={cn("font-bold text-sm", colors.text)}>{t("vault.unsorted")}</span>
+            <span className={cn('font-bold text-sm', colors.text)}>{t('vault.unsorted')}</span>
           )}
           <span className="text-cpc-green-900 text-xs flex-shrink-0">({entries.length})</span>
         </div>
@@ -96,16 +96,16 @@ export function FolderContent({
               </button>
             }
           >
-            <CpcMenuItem onClick={handleAddClick}>{t("menu.add")}</CpcMenuItem>
+            <CpcMenuItem onClick={handleAddClick}>{t('menu.add')}</CpcMenuItem>
             <CpcMenuSeparator />
             {folder && (
-              <CpcSubmenu label={t("menu.color")}>
+              <CpcSubmenu label={t('menu.color')}>
                 {VALID_COLORS.map((c) => (
                   <CpcMenuItem key={c} onClick={() => updateFolder(folder.id, { color: c })}>
                     <span className="inline-flex items-center gap-2">
                       <span
                         className={cn(
-                          "inline-block w-3 h-3 border border-current",
+                          'inline-block w-3 h-3 border border-current',
                           colorStyles[c].bg,
                         )}
                       />
@@ -117,7 +117,7 @@ export function FolderContent({
             )}
             {folder && (
               <CpcMenuItem variant="danger" onClick={() => deleteFolder(folder.id)}>
-                {t("menu.delete")}
+                {t('menu.delete')}
               </CpcMenuItem>
             )}
           </CpcMenu>
@@ -138,12 +138,12 @@ export function FolderContent({
         ))}
         <button
           onClick={async () => {
-            const noteId = await addNote(t("note.untitled"), "green", folderId ?? undefined);
+            const noteId = await addNote(t('note.untitled'), 'green', folderId ?? undefined);
             setActiveNoteId(noteId);
             setEditingNoteId(noteId);
           }}
           className="px-3 py-1.5 text-xs text-cpc-green-900 hover:text-cpc-green-500 transition-colors whitespace-nowrap"
-          style={{ borderBottom: "2px solid transparent" }}
+          style={{ borderBottom: '2px solid transparent' }}
         >
           +
         </button>
@@ -165,7 +165,7 @@ export function FolderContent({
       <div className="flex-1 flex flex-col justify-end overflow-y-auto p-3">
         {entries.length === 0 && notes.length === 0 && !isAddingEntry && (
           <div className="text-center py-8 text-cpc-green-900 text-sm">
-            {t("vault.empty.subtitle")}
+            {t('vault.empty.subtitle')}
           </div>
         )}
 
@@ -205,7 +205,7 @@ function NoteTab({
   const [title, setTitle] = useState(note.title);
   const tabRef = useRef<HTMLButtonElement>(null);
   const [tabWidth, setTabWidth] = useState<number | undefined>(undefined);
-  const nc = colorStyles[(note.color as keyof typeof colorStyles) || "green"] || colorStyles.green;
+  const nc = colorStyles[(note.color as keyof typeof colorStyles) || 'green'] || colorStyles.green;
 
   const handleSubmit = () => {
     if (title.trim()) {
@@ -233,16 +233,16 @@ function NoteTab({
         onChange={(e) => setTitle(e.target.value)}
         onBlur={handleSubmit}
         onKeyDown={(e) => {
-          if (e.key === "Enter") handleSubmit();
-          if (e.key === "Escape") {
+          if (e.key === 'Enter') handleSubmit();
+          if (e.key === 'Escape') {
             setTitle(note.title);
             setEditing(false);
             setTabWidth(undefined);
           }
         }}
-        className={cn("px-3 py-1.5 text-xs font-bold bg-transparent outline-none", nc.text)}
+        className={cn('px-3 py-1.5 text-xs font-bold bg-transparent outline-none', nc.text)}
         style={{
-          borderBottom: "2px solid currentColor",
+          borderBottom: '2px solid currentColor',
           minWidth: tabWidth,
         }}
         autoFocus
@@ -256,12 +256,12 @@ function NoteTab({
       onClick={onSelect}
       onDoubleClick={startEditing}
       className={cn(
-        "flex items-center gap-1 px-3 py-1.5 text-xs font-bold whitespace-nowrap cursor-pointer",
+        'flex items-center gap-1 px-3 py-1.5 text-xs font-bold whitespace-nowrap cursor-pointer',
         isActive && nc.text,
-        !isActive && "text-cpc-green-900 hover:bg-cpc-green-500/5",
+        !isActive && 'text-cpc-green-900 hover:bg-cpc-green-500/5',
       )}
       style={{
-        borderBottom: isActive ? "2px solid currentColor" : "2px solid transparent",
+        borderBottom: isActive ? '2px solid currentColor' : '2px solid transparent',
       }}
     >
       {note.title}

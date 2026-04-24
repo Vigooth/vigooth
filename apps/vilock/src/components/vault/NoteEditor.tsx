@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { Note } from "../../lib/crypto/vault";
+import { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Note } from '../../lib/crypto/vault';
 
 interface NoteEditorProps {
   note: Note;
@@ -19,7 +19,7 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedSave = useCallback(
-    (field: "title" | "content", value: string) => {
+    (field: 'title' | 'content', value: string) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -32,21 +32,21 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
 
   const handleTitleChange = (value: string) => {
     setTitle(value);
-    debouncedSave("title", value);
+    debouncedSave('title', value);
   };
 
   const handleContentChange = (value: string) => {
     setContent(value);
-    debouncedSave("content", value);
+    debouncedSave('content', value);
   };
 
   const updatedAt = new Date(note.updatedAt);
   const formattedDate = updatedAt.toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
   return (
@@ -59,7 +59,7 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             className="w-full bg-transparent text-cpc-yellow-500 font-bold text-sm outline-none border-b border-transparent focus:border-cpc-yellow-500 transition-colors"
-            placeholder={t("note.titlePlaceholder")}
+            placeholder={t('note.titlePlaceholder')}
           />
         </div>
         <div className="flex items-center gap-3">
@@ -68,7 +68,7 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
             onClick={() => onDeleteNote(note.id)}
             className="text-cpc-red-500 hover:text-cpc-red-900 text-xs"
           >
-            {t("entry.delete")}
+            {t('entry.delete')}
           </button>
         </div>
       </div>
@@ -79,7 +79,7 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
           className="w-full h-full bg-transparent text-cpc-green-500 text-sm p-4 outline-none resize-none font-mono"
-          placeholder={t("note.contentPlaceholder")}
+          placeholder={t('note.contentPlaceholder')}
           spellCheck={false}
         />
       </div>

@@ -1,33 +1,33 @@
-import { CommandFn } from "./types";
-import { findFolderByName, getFolderByIndex } from "@/utils/folderUtils";
+import { CommandFn } from './types';
+import { findFolderByName, getFolderByIndex } from '@/utils/folderUtils';
 
 export const add: CommandFn = async (args, ctx, t) => {
   if (args.length < 1) {
-    return { output: t("terminal.errors.usage.add") };
+    return { output: t('terminal.errors.usage.add') };
   }
 
   let folderId: string | null = ctx.currentFolder?.id || null;
-  let folderName = ctx.currentFolder?.name || "ROOT";
+  let folderName = ctx.currentFolder?.name || 'ROOT';
   let name: string;
-  let username = "";
-  let password = "";
-  let url = "";
+  let username = '';
+  let password = '';
+  let url = '';
 
   // Check if first arg is a folder reference (index, name, or ROOT)
   let folder = null;
   const firstArg = args[0];
 
-  if (firstArg === "ROOT" || firstArg === "0") {
+  if (firstArg === 'ROOT' || firstArg === '0') {
     // Explicit ROOT
     if (args.length >= 2) {
       folderId = null;
-      folderName = "ROOT";
+      folderName = 'ROOT';
       name = args[1];
-      username = args[2] || "";
-      password = args[3] || "";
-      url = args[4] || "";
+      username = args[2] || '';
+      password = args[3] || '';
+      url = args[4] || '';
       await ctx.addEntry(folderId, { name, username, password, url });
-      return { output: t("terminal.success.add", { name, folder: folderName }) };
+      return { output: t('terminal.success.add', { name, folder: folderName }) };
     }
   } else if (args.length >= 2) {
     // Try by index first
@@ -44,20 +44,20 @@ export const add: CommandFn = async (args, ctx, t) => {
       folderId = folder.id;
       folderName = folder.name;
       name = args[1];
-      username = args[2] || "";
-      password = args[3] || "";
-      url = args[4] || "";
+      username = args[2] || '';
+      password = args[3] || '';
+      url = args[4] || '';
       await ctx.addEntry(folderId, { name, username, password, url });
-      return { output: t("terminal.success.add", { name, folder: folderName }) };
+      return { output: t('terminal.success.add', { name, folder: folderName }) };
     }
   }
 
   // No folder specified, add to current folder
   name = args[0];
-  username = args[1] || "";
-  password = args[2] || "";
-  url = args[3] || "";
+  username = args[1] || '';
+  password = args[2] || '';
+  url = args[3] || '';
 
   await ctx.addEntry(folderId, { name, username, password, url });
-  return { output: t("terminal.success.add", { name, folder: folderName }) };
+  return { output: t('terminal.success.add', { name, folder: folderName }) };
 };

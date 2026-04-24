@@ -5,7 +5,7 @@ export interface Folder {
   id: string;
   name: string;
   icon?: string;
-  color?: "green" | "red" | "cyan" | "yellow" | "magenta";
+  color?: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta';
   createdAt: string;
 }
 
@@ -42,24 +42,24 @@ export interface VaultData {
 async function deriveKey(masterPassword: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const passwordKey = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     encoder.encode(masterPassword),
-    "PBKDF2",
+    'PBKDF2',
     false,
-    ["deriveKey"],
+    ['deriveKey'],
   );
 
   return crypto.subtle.deriveKey(
     {
-      name: "PBKDF2",
+      name: 'PBKDF2',
       salt,
       iterations: 100000,
-      hash: "SHA-256",
+      hash: 'SHA-256',
     },
     passwordKey,
-    { name: "AES-GCM", length: 256 },
+    { name: 'AES-GCM', length: 256 },
     false,
-    ["encrypt", "decrypt"],
+    ['encrypt', 'decrypt'],
   );
 }
 
@@ -72,7 +72,7 @@ export async function encryptVault(data: VaultData, masterPassword: string): Pro
   const key = await deriveKey(masterPassword, salt);
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    { name: 'AES-GCM', iv },
     key,
     encoder.encode(JSON.stringify(data)),
   );
@@ -97,7 +97,7 @@ export async function decryptVault(
   // Decode from base64
   const combined = new Uint8Array(
     atob(encryptedData)
-      .split("")
+      .split('')
       .map((c) => c.charCodeAt(0)),
   );
 
@@ -109,19 +109,19 @@ export async function decryptVault(
   const key = await deriveKey(masterPassword, salt);
 
   try {
-    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
 
     return JSON.parse(decoder.decode(decrypted));
   } catch {
-    throw new Error("Invalid master password");
+    throw new Error('Invalid master password');
   }
 }
 
 // Generate a random password
 export function generatePassword(length = 16): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   const array = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(array, (byte) => charset[byte % charset.length]).join("");
+  return Array.from(array, (byte) => charset[byte % charset.length]).join('');
 }
 
 // Generate a unique ID

@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as wishlistApi from "@/lib/api/wishlist";
-import type { WishlistResponse, AddWishlistPayload } from "@/lib/api/wishlist";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as wishlistApi from '@/lib/api/wishlist';
+import type { WishlistResponse, AddWishlistPayload } from '@/lib/api/wishlist';
 
-export const WISHLIST_QUERY_KEY = ["wishlist"] as const;
+export const WISHLIST_QUERY_KEY = ['wishlist'] as const;
 
 export function useWishlistQuery() {
   return useQuery({

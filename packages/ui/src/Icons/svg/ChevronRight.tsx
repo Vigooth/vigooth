@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 export const ChevronRight = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function ChevronRight(props, ref) {

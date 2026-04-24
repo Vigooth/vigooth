@@ -1,4 +1,4 @@
-export const STEAM_CDN_BASE = "https://cdn.akamai.steamstatic.com/steam/apps";
+export const STEAM_CDN_BASE = 'https://cdn.akamai.steamstatic.com/steam/apps';
 
 export function getHeaderImage(appid: number): string {
   return `${STEAM_CDN_BASE}/${appid}/header.jpg`;

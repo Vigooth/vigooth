@@ -1,4 +1,4 @@
-import { request } from "./client";
+import { request } from './client';
 
 export interface WishlistItem {
   id: string;
@@ -23,18 +23,18 @@ export interface AddWishlistPayload {
 }
 
 export async function getWishlist(): Promise<WishlistResponse> {
-  return request<WishlistResponse>("/api/wishlist");
+  return request<WishlistResponse>('/api/wishlist');
 }
 
 export async function addToWishlist(payload: AddWishlistPayload): Promise<WishlistItem> {
-  return request<WishlistItem>("/api/wishlist", {
-    method: "POST",
+  return request<WishlistItem>('/api/wishlist', {
+    method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export async function removeFromWishlist(tmdbId: number): Promise<void> {
   await request(`/api/wishlist/${tmdbId}`, {
-    method: "DELETE",
+    method: 'DELETE',
   });
 }

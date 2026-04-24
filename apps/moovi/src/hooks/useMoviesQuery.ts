@@ -1,18 +1,18 @@
-import { useMemo } from "react";
-import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as moviesApi from "@/lib/api/movies";
-import type { AddMoviePayload, UpdateMoviePayload, MovieListResponse } from "@/types/movie";
+import { useMemo } from 'react';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as moviesApi from '@/lib/api/movies';
+import type { AddMoviePayload, UpdateMoviePayload, MovieListResponse } from '@/types/movie';
 
 const PAGE_SIZE = 20;
 
-export const MOVIES_QUERY_KEY = ["movies"] as const;
+export const MOVIES_QUERY_KEY = ['movies'] as const;
 
 export function useMoviesQuery(options?: {
   search?: string;
   minRating?: number;
   onAuthError?: () => void;
 }) {
-  const search = options?.search ?? "";
+  const search = options?.search ?? '';
   const minRating = options?.minRating ?? 0;
 
   const query = useInfiniteQuery({
@@ -28,7 +28,7 @@ export function useMoviesQuery(options?: {
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.has_more ? lastPageParam + PAGE_SIZE : undefined,
     retry: (failureCount, error) => {
-      if (error instanceof Error && error.message.includes("401")) {
+      if (error instanceof Error && error.message.includes('401')) {
         options?.onAuthError?.();
         return false;
       }
@@ -52,7 +52,7 @@ export function useMoviesQuery(options?: {
 
 export function useMovieQuery(id: string) {
   return useQuery({
-    queryKey: ["movie", id],
+    queryKey: ['movie', id],
     queryFn: () => moviesApi.getMovie(id),
     enabled: !!id,
   });

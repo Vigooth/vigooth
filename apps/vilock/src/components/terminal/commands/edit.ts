@@ -1,26 +1,26 @@
-import { CommandFn } from "./types";
-import { getFolderByIndex, getEntriesForFolder } from "@/utils/folderUtils";
+import { CommandFn } from './types';
+import { getFolderByIndex, getEntriesForFolder } from '@/utils/folderUtils';
 
 const FIELD_MAP: Record<string, string> = {
-  name: "name",
-  user: "username",
-  pwd: "password",
-  url: "url",
+  name: 'name',
+  user: 'username',
+  pwd: 'password',
+  url: 'url',
 };
 
 export const edit: CommandFn = async (args, ctx, t) => {
   const target = args[0];
 
-  if (!target || !target.includes(".")) {
-    return { output: t("terminal.errors.usage.edit") };
+  if (!target || !target.includes('.')) {
+    return { output: t('terminal.errors.usage.edit') };
   }
 
-  const [folderPart, entryPart] = target.split(".");
+  const [folderPart, entryPart] = target.split('.');
   const folderIndex = parseInt(folderPart, 10);
   const entryIndex = parseInt(entryPart, 10);
 
   if (isNaN(folderIndex) || isNaN(entryIndex)) {
-    return { output: t("terminal.errors.usage.edit") };
+    return { output: t('terminal.errors.usage.edit') };
   }
 
   // Parse key=value pairs from remaining args
@@ -28,7 +28,7 @@ export const edit: CommandFn = async (args, ctx, t) => {
   const fieldArgs = args.slice(1);
 
   for (const arg of fieldArgs) {
-    const eqIndex = arg.indexOf("=");
+    const eqIndex = arg.indexOf('=');
     if (eqIndex === -1) continue;
     const key = arg.slice(0, eqIndex).toLowerCase();
     const value = arg.slice(eqIndex + 1);
@@ -39,7 +39,7 @@ export const edit: CommandFn = async (args, ctx, t) => {
   }
 
   if (Object.keys(updates).length === 0) {
-    return { output: t("terminal.errors.noFields") };
+    return { output: t('terminal.errors.noFields') };
   }
 
   // Resolve folder
@@ -50,7 +50,7 @@ export const edit: CommandFn = async (args, ctx, t) => {
   } else {
     const folder = ctx.vault?.folders ? getFolderByIndex(ctx.vault.folders, folderIndex) : null;
     if (!folder) {
-      return { output: t("terminal.errors.folderNotFound", { name: folderIndex.toString() }) };
+      return { output: t('terminal.errors.folderNotFound', { name: folderIndex.toString() }) };
     }
     folderId = folder.id;
   }
@@ -60,12 +60,12 @@ export const edit: CommandFn = async (args, ctx, t) => {
   const entry = entries[entryIndex - 1];
   if (!entry) {
     return {
-      output: t("terminal.errors.entryNotFound", { index: `${folderIndex}.${entryIndex}` }),
+      output: t('terminal.errors.entryNotFound', { index: `${folderIndex}.${entryIndex}` }),
     };
   }
 
   await ctx.updateEntry(entry.id, updates);
 
-  const fieldNames = Object.keys(updates).join(", ");
-  return { output: t("terminal.success.edit", { name: entry.name, fields: fieldNames }) };
+  const fieldNames = Object.keys(updates).join(', ');
+  return { output: t('terminal.success.edit', { name: entry.name, fields: fieldNames }) };
 };

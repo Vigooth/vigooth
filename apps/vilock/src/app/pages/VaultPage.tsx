@@ -1,11 +1,11 @@
-import { useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { CpcLayout, CpcDrawer, CpcMenu, CpcMenuItem, CpcButton } from "@vigooth/ui";
-import { getAppsConfig } from "@vigooth/config";
-import { useAuth } from "../../stores/auth";
-import { generatePassword, generateId, Folder } from "../../lib/crypto/vault";
-import { Terminal, CommandContext } from "../../components/terminal";
+import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { CpcLayout, CpcDrawer, CpcMenu, CpcMenuItem, CpcButton } from '@vigooth/ui';
+import { getAppsConfig } from '@vigooth/config';
+import { useAuth } from '../../stores/auth';
+import { generatePassword, generateId, Folder } from '../../lib/crypto/vault';
+import { Terminal, CommandContext } from '../../components/terminal';
 import {
   Sidebar,
   SidebarProvider,
@@ -13,9 +13,9 @@ import {
   NoteEditor,
   VaultProvider,
   EntryFormData,
-} from "../../components/vault";
-import type { SidebarView } from "../../components/vault/SidebarContext";
-import { ColorType } from "@/types/colors";
+} from '../../components/vault';
+import type { SidebarView } from '../../components/vault/SidebarContext';
+import { ColorType } from '@/types/colors';
 import {
   useVaultQuery,
   useAddFolder,
@@ -28,11 +28,11 @@ import {
   useAddNote,
   useUpdateNote,
   useDeleteNote,
-} from "@/hooks/useVaultQuery";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { useSync } from "@/hooks/useSync";
+} from '@/hooks/useVaultQuery';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useSync } from '@/hooks/useSync';
 
-const otherApps = getAppsConfig("vilock");
+const otherApps = getAppsConfig('vilock');
 
 export function VaultPage() {
   const { t } = useTranslation();
@@ -40,7 +40,7 @@ export function VaultPage() {
   const { masterPassword, clearMasterPassword, logout } = useAuth();
 
   // Active view in sidebar (folder or note)
-  const [activeView, setActiveView] = useState<SidebarView>({ type: "folder", folderId: null });
+  const [activeView, setActiveView] = useState<SidebarView>({ type: 'folder', folderId: null });
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Terminal state
@@ -61,7 +61,7 @@ export function VaultPage() {
     masterPassword,
     onAuthError: () => {
       clearMasterPassword();
-      navigate("/unlock");
+      navigate('/unlock');
     },
   });
 
@@ -92,12 +92,12 @@ export function VaultPage() {
 
   const handleLock = () => {
     clearMasterPassword();
-    navigate("/unlock");
+    navigate('/unlock');
   };
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
 
   const handleAddFolder = async (name: string, color: ColorType) => {
@@ -112,8 +112,8 @@ export function VaultPage() {
   );
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (activeView.type === "folder" && activeView.folderId === folderId) {
-      setActiveView({ type: "folder", folderId: null });
+    if (activeView.type === 'folder' && activeView.folderId === folderId) {
+      setActiveView({ type: 'folder', folderId: null });
     }
     await deleteFolderMutation.mutateAsync(folderId);
   };
@@ -135,7 +135,7 @@ export function VaultPage() {
   const addFolderToVault = async (folder: Folder) => {
     await addFolderMutation.mutateAsync({
       name: folder.name,
-      color: folder.color || "green",
+      color: folder.color || 'green',
     });
   };
 
@@ -155,7 +155,7 @@ export function VaultPage() {
   // Notes handlers
   const handleAddNote = async (title: string, color: ColorType, folderId?: string) => {
     const result = await addNoteMutation.mutateAsync({ title, color, folderId });
-    setActiveView({ type: "note", noteId: result.note.id });
+    setActiveView({ type: 'note', noteId: result.note.id });
   };
 
   const handleUpdateNote = useCallback(
@@ -166,8 +166,8 @@ export function VaultPage() {
   );
 
   const handleDeleteNote = async (noteId: string) => {
-    if (activeView.type === "note" && activeView.noteId === noteId) {
-      setActiveView({ type: "folder", folderId: null });
+    if (activeView.type === 'note' && activeView.noteId === noteId) {
+      setActiveView({ type: 'folder', folderId: null });
     }
     await deleteNoteMutation.mutateAsync(noteId);
   };
@@ -204,23 +204,23 @@ export function VaultPage() {
 
   // Current selected folder/note
   const selectedFolder =
-    activeView.type === "folder" && activeView.folderId
+    activeView.type === 'folder' && activeView.folderId
       ? (vault?.folders.find((f) => f.id === activeView.folderId) ?? null)
       : null;
   const selectedFolderIndex =
-    activeView.type === "folder" && activeView.folderId
+    activeView.type === 'folder' && activeView.folderId
       ? (vault?.folders.findIndex((f) => f.id === activeView.folderId) ?? -1) + 1
       : 0;
   const selectedEntries =
-    activeView.type === "folder" ? getEntriesForFolder(activeView.folderId) : [];
+    activeView.type === 'folder' ? getEntriesForFolder(activeView.folderId) : [];
   const selectedNotes =
-    activeView.type === "folder"
+    activeView.type === 'folder'
       ? (vault?.notes ?? []).filter((n) =>
           activeView.folderId ? n.folderId === activeView.folderId : !n.folderId,
         )
       : [];
   const selectedNote =
-    activeView.type === "note"
+    activeView.type === 'note'
       ? ((vault?.notes ?? []).find((n) => n.id === activeView.noteId) ?? null)
       : null;
 
@@ -228,7 +228,7 @@ export function VaultPage() {
     return (
       <CpcLayout>
         <div className="h-full flex items-center justify-center">
-          <div className="text-cpc-green-500">{t("vault.loading")}</div>
+          <div className="text-cpc-green-500">{t('vault.loading')}</div>
         </div>
       </CpcLayout>
     );
@@ -236,7 +236,7 @@ export function VaultPage() {
 
   if (isError) {
     clearMasterPassword();
-    navigate("/unlock");
+    navigate('/unlock');
     return null;
   }
 
@@ -256,12 +256,12 @@ export function VaultPage() {
     >
       <SidebarProvider
         activeView={activeView}
-        onSelectFolder={(folderId) => setActiveView({ type: "folder", folderId })}
+        onSelectFolder={(folderId) => setActiveView({ type: 'folder', folderId })}
         onSelectNote={(noteId, folderId) => {
           if (folderId !== undefined) {
-            setActiveView({ type: "folder", folderId, activeNoteId: noteId });
+            setActiveView({ type: 'folder', folderId, activeNoteId: noteId });
           } else {
-            setActiveView({ type: "note", noteId });
+            setActiveView({ type: 'note', noteId });
           }
         }}
         onAddFolder={handleAddFolder}
@@ -284,7 +284,7 @@ export function VaultPage() {
                   color="red"
                   trigger={
                     <CpcButton variant="text" color="red" size="lg">
-                      {t("app.name")}
+                      {t('app.name')}
                     </CpcButton>
                   }
                 >
@@ -299,19 +299,19 @@ export function VaultPage() {
                     </CpcMenuItem>
                   ))}
                 </CpcMenu>
-                {saving && <span className="text-cpc-yellow-500 text-xs">{t("vault.saving")}</span>}
+                {saving && <span className="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
                 {isSyncing && (
                   <span className="text-cpc-cyan-500 text-xs animate-pulse">
-                    {t("status.syncing")}
+                    {t('status.syncing')}
                   </span>
                 )}
                 {!isOnline && (
                   <span className="text-cpc-red-500 text-xs animate-pulse">
-                    {t("status.offline")}
+                    {t('status.offline')}
                   </span>
                 )}
                 {isOnline && hasPending && !isSyncing && (
-                  <span className="text-cpc-yellow-500 text-xs">{t("status.pending")}</span>
+                  <span className="text-cpc-yellow-500 text-xs">{t('status.pending')}</span>
                 )}
               </div>
               <div className="flex gap-2">
@@ -319,13 +319,13 @@ export function VaultPage() {
                   onClick={handleLock}
                   className="border-2 border-cpc-yellow-500 text-cpc-yellow-500 px-3 py-1 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900 transition-colors text-xs"
                 >
-                  {t("auth.lock")}
+                  {t('auth.lock')}
                 </button>
                 <button
                   onClick={handleLogout}
                   className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 hover:bg-cpc-red-500 hover:text-cpc-grey-900 transition-colors text-xs"
                 >
-                  {t("auth.logout")}
+                  {t('auth.logout')}
                 </button>
               </div>
             </div>
@@ -357,9 +357,9 @@ export function VaultPage() {
                 />
               </CpcDrawer>
 
-              {activeView.type === "folder" ? (
+              {activeView.type === 'folder' ? (
                 <FolderContent
-                  key={`${selectedFolder?.id ?? "root"}-${activeView.activeNoteId ?? ""}`}
+                  key={`${selectedFolder?.id ?? 'root'}-${activeView.activeNoteId ?? ''}`}
                   folder={selectedFolder}
                   entries={selectedEntries}
                   notes={selectedNotes}

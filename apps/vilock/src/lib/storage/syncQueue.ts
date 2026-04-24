@@ -1,6 +1,6 @@
-import { get, set } from "idb-keyval";
+import { get, set } from 'idb-keyval';
 
-const SYNC_STATUS_KEY = "vilock-sync-status";
+const SYNC_STATUS_KEY = 'vilock-sync-status';
 
 export interface SyncStatus {
   pendingSync: boolean;

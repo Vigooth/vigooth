@@ -1,8 +1,8 @@
-import { request } from "./client";
+import { request } from './client';
 
 export interface ServiceStatus {
   name: string;
-  status: "ok" | "error";
+  status: 'ok' | 'error';
   latency_ms: number;
   error?: string;
 }
@@ -13,5 +13,5 @@ export interface HealthResponse {
 }
 
 export async function getServiceHealth(): Promise<HealthResponse> {
-  return request<HealthResponse>("/api/service/status");
+  return request<HealthResponse>('/api/service/status');
 }

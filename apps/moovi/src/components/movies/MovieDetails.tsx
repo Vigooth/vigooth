@@ -1,26 +1,26 @@
-import { useState } from "react";
-import { cn } from "@vigooth/ui";
+import { useState } from 'react';
+import { cn } from '@vigooth/ui';
 import {
   useTmdbMovieDetail,
   useTmdbMovieCredits,
   useTmdbTvDetail,
   useTmdbTvCredits,
-} from "@/hooks/useTmdbSearch";
-import { useOmdbRatings } from "@/hooks/useOmdbRatings";
-import { useAllocineRatings } from "@/hooks/useAllocineRatings";
+} from '@/hooks/useTmdbSearch';
+import { useOmdbRatings } from '@/hooks/useOmdbRatings';
+import { useAllocineRatings } from '@/hooks/useAllocineRatings';
 import {
   useMoviesQuery,
   useAddMovie,
   useUpdateMovie,
   useDeleteMovie,
-} from "@/hooks/useMoviesQuery";
-import { useIsInWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist";
-import { getBackdropUrl, getPosterUrl } from "@/utils/tmdbImage";
-import { formatRuntime } from "@/utils/ratings";
-import { RatingBadge } from "@/components/movies/RatingBadge";
-import { PersonalRating } from "@/components/movies/PersonalRating";
-import { ExternalLinks } from "@/components/movies/ExternalLinks";
-import type { AddMoviePayload } from "@/types/movie";
+} from '@/hooks/useMoviesQuery';
+import { useIsInWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
+import { getBackdropUrl, getPosterUrl } from '@/utils/tmdbImage';
+import { formatRuntime } from '@/utils/ratings';
+import { RatingBadge } from '@/components/movies/RatingBadge';
+import { PersonalRating } from '@/components/movies/PersonalRating';
+import { ExternalLinks } from '@/components/movies/ExternalLinks';
+import type { AddMoviePayload } from '@/types/movie';
 
 interface MovieDetailsProps {
   tmdbId: number;
@@ -30,10 +30,10 @@ interface MovieDetailsProps {
 
 export function MovieDetails({
   tmdbId: tmdbIdNum,
-  mediaType = "movie",
+  mediaType = 'movie',
   onDeleted,
 }: MovieDetailsProps) {
-  const isTv = mediaType === "tv";
+  const isTv = mediaType === 'tv';
 
   // TMDB data — fetch movie OR tv details
   const { data: movieDetails, isLoading: loadingMovie } = useTmdbMovieDetail(
@@ -88,9 +88,9 @@ export function MovieDetails({
     return <MovieDetailsSkeleton />;
   }
 
-  const title = isTv ? tvDetails?.name || "" : movieDetails?.title || "";
-  const originalTitle = isTv ? tvDetails?.original_name || "" : movieDetails?.original_title || "";
-  const overview = tmdbDetails?.overview || "";
+  const title = isTv ? tvDetails?.name || '' : movieDetails?.title || '';
+  const originalTitle = isTv ? tvDetails?.original_name || '' : movieDetails?.original_title || '';
+  const overview = tmdbDetails?.overview || '';
   const posterPath = tmdbDetails?.poster_path || null;
   const backdropPath = tmdbDetails?.backdrop_path || null;
   const runtimeMinutes = isTv ? tvDetails?.episode_run_time?.[0] || 0 : movieDetails?.runtime || 0;
@@ -99,24 +99,24 @@ export function MovieDetails({
 
   const director = isTv
     ? tvDetails?.created_by?.[0]?.name ||
-      credits?.crew.find((c) => c.job === "Director")?.name ||
-      ""
-    : credits?.crew.find((c) => c.job === "Director")?.name || "";
+      credits?.crew.find((c) => c.job === 'Director')?.name ||
+      ''
+    : credits?.crew.find((c) => c.job === 'Director')?.name || '';
   const genres = (isTv ? tvDetails?.genres : movieDetails?.genres)?.map((g) => g.name) || [];
   const dateStr = isTv ? tvDetails?.first_air_date : movieDetails?.release_date;
   const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : 0;
   const seasonInfo =
-    isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : "";
+    isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : '';
 
   const imdbRating = inCollection ? dbMovie!.imdb_rating : (omdb?.imdbRating ?? null);
   const metascore = inCollection ? dbMovie!.metascore : (omdb?.metascore ?? null);
   const rottenTomatoes = inCollection ? dbMovie!.rotten_tomatoes : (omdb?.rottenTomatoes ?? null);
 
   const personalRating = inCollection ? dbMovie!.personal_rating : null;
-  const currentNotes = notes ?? (inCollection ? dbMovie!.notes : "");
+  const currentNotes = notes ?? (inCollection ? dbMovie!.notes : '');
 
   const backdropUrl = getBackdropUrl(backdropPath);
-  const posterUrl = getPosterUrl(posterPath, "w342");
+  const posterUrl = getPosterUrl(posterPath, 'w342');
   const runtime = formatRuntime(runtimeMinutes);
 
   const handleRatingChange = async (value: number | null) => {
@@ -129,13 +129,13 @@ export function MovieDetails({
       try {
         const payload: AddMoviePayload = {
           tmdb_id: tmdbId,
-          imdb_id: imdbId || "",
+          imdb_id: imdbId || '',
           media_type: mediaType,
           title,
           original_title: originalTitle,
           year,
-          poster_path: posterPath || "",
-          backdrop_path: backdropPath || "",
+          poster_path: posterPath || '',
+          backdrop_path: backdropPath || '',
           overview,
           genres: JSON.stringify(genres),
           director,
@@ -144,12 +144,12 @@ export function MovieDetails({
           imdb_rating: omdb?.imdbRating ?? null,
           rotten_tomatoes: omdb?.rottenTomatoes ?? null,
           personal_rating: value,
-          notes: "",
+          notes: '',
         };
 
         await addMovie.mutateAsync(payload);
       } catch (err) {
-        console.error("Failed to add movie:", err);
+        console.error('Failed to add movie:', err);
       } finally {
         setAdding(false);
       }
@@ -178,7 +178,7 @@ export function MovieDetails({
         </div>
       )}
 
-      <div className={cn("p-4 max-w-4xl mx-auto", backdropUrl && "-mt-20 relative")}>
+      <div className={cn('p-4 max-w-4xl mx-auto', backdropUrl && '-mt-20 relative')}>
         <div className="mb-6">
           {/* Poster — floated left, content wraps around it */}
           {posterUrl && (
@@ -274,19 +274,19 @@ export function MovieDetails({
                       tmdb_id: tmdbId,
                       title,
                       year,
-                      poster_path: posterPath || "",
+                      poster_path: posterPath || '',
                     });
                   }
                 }}
                 disabled={addToWishlist.isPending || removeFromWishlist.isPending}
                 className={cn(
-                  "border-2 px-4 py-1 text-xs transition-colors",
+                  'border-2 px-4 py-1 text-xs transition-colors',
                   isWishlisted
-                    ? "border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black"
-                    : "border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black",
+                    ? 'border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black'
+                    : 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black',
                 )}
               >
-                {isWishlisted ? "WISHLISTED" : "ADD TO WISHLIST"}
+                {isWishlisted ? 'WISHLISTED' : 'ADD TO WISHLIST'}
               </button>
             </div>
           )}
@@ -341,7 +341,7 @@ export function MovieDetails({
                   disabled={deleteMovie.isPending}
                   className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
                 >
-                  {deleteMovie.isPending ? "DELETING..." : "YES, DELETE"}
+                  {deleteMovie.isPending ? 'DELETING...' : 'YES, DELETE'}
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
@@ -365,7 +365,7 @@ export function MovieDetails({
   );
 }
 
-function SkeletonBlock({ width = "100%", height = "14px" }: { width?: string; height?: string }) {
+function SkeletonBlock({ width = '100%', height = '14px' }: { width?: string; height?: string }) {
   return <div className="skeleton-bar" style={{ width, height }} />;
 }
 
@@ -383,7 +383,7 @@ function MovieDetailsSkeleton() {
           <div className="float-left w-32 md:w-48 mr-4 mb-2">
             <div
               className="skeleton-bar w-full border-2 border-cpc-green-900"
-              style={{ aspectRatio: "2/3" }}
+              style={{ aspectRatio: '2/3' }}
             />
           </div>
 

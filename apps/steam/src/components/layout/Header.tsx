@@ -1,9 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { CpcButton, CpcMenu, CpcMenuItem } from "@vigooth/ui";
-import { getAppsConfig } from "@vigooth/config";
-import { useAuth } from "@/app/providers";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui';
+import { getAppsConfig } from '@vigooth/config';
+import { useAuth } from '@/app/providers';
 
-const otherApps = getAppsConfig("steam");
+const otherApps = getAppsConfig('steam');
 
 export function Header() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export function Header() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate('/login');
   };
 
   return (
@@ -41,8 +41,8 @@ export function Header() {
       <nav className="flex gap-2 overflow-x-auto min-w-0 flex-1 scrollbar-none">
         <CpcButton
           variant="text"
-          color={isActive("/library") ? "magenta" : "green"}
-          onClick={() => navigate("/library")}
+          color={isActive('/library') ? 'magenta' : 'green'}
+          onClick={() => navigate('/library')}
         >
           LIBRARY
         </CpcButton>

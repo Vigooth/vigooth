@@ -1,7 +1,7 @@
-import { CpcDrawer } from "@vigooth/ui";
-import { useGameDetails } from "@/hooks/useGameDetails";
-import type { SteamGame } from "@/types/game";
-import { getHeroImage } from "@/config";
+import { CpcDrawer } from '@vigooth/ui';
+import { useGameDetails } from '@/hooks/useGameDetails';
+import type { SteamGame } from '@/types/game';
+import { getHeroImage } from '@/config';
 
 interface GameDrawerProps {
   game: SteamGame | null;
@@ -24,7 +24,7 @@ export function GameDrawer({ game, open, onOpenChange }: GameDrawerProps) {
     <CpcDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={game?.name ?? ""}
+      title={game?.name ?? ''}
       side="right"
       noPadding
     >
@@ -35,7 +35,7 @@ export function GameDrawer({ game, open, onOpenChange }: GameDrawerProps) {
             alt={game.name}
             className="w-full rounded-sm"
             onError={(e) => {
-              e.currentTarget.style.display = "none";
+              e.currentTarget.style.display = 'none';
             }}
           />
 
@@ -83,7 +83,7 @@ export function GameDrawer({ game, open, onOpenChange }: GameDrawerProps) {
               <div className="flex flex-wrap gap-3 text-xs text-cpc-green-900">
                 {details.developers && (
                   <span>
-                    DEV: <span className="text-cpc-green-500">{details.developers.join(", ")}</span>
+                    DEV: <span className="text-cpc-green-500">{details.developers.join(', ')}</span>
                   </span>
                 )}
                 {details.release_date && (
@@ -99,10 +99,10 @@ export function GameDrawer({ game, open, onOpenChange }: GameDrawerProps) {
                   <span
                     className={`text-sm font-bold ${
                       details.metacritic.score >= 75
-                        ? "text-cpc-green-500"
+                        ? 'text-cpc-green-500'
                         : details.metacritic.score >= 50
-                          ? "text-cpc-yellow-500"
-                          : "text-cpc-red-500"
+                          ? 'text-cpc-yellow-500'
+                          : 'text-cpc-red-500'
                     }`}
                   >
                     {details.metacritic.score}

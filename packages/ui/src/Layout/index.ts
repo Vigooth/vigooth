@@ -1,1 +1,1 @@
-export { CpcLayout } from "./CpcLayout";
+export { CpcLayout } from './CpcLayout';

@@ -1,7 +1,7 @@
 /* ---- Custom theme (replaces tailwind.config.cjs) ---- */
 @theme {
   /* Font */
-  --font-cpc: "JetBrains Mono", "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  --font-cpc: 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 
   /* Text sizes — match Tailwind v3 fixed line-heights */
   --text-xs: 0.75rem;
@@ -186,7 +186,7 @@
     position: relative;
   }
   .cpc-screen::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     background: repeating-linear-gradient(
@@ -209,7 +209,7 @@
     position: relative;
   }
   .cpc-screen-cyan::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     background: repeating-linear-gradient(

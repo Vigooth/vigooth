@@ -1,5 +1,5 @@
-import { TFunction } from "i18next";
-import { Folder, PasswordEntry, VaultData } from "../../../lib/crypto/vault";
+import { TFunction } from 'i18next';
+import { Folder, PasswordEntry, VaultData } from '../../../lib/crypto/vault';
 
 export interface CommandContext {
   vault: VaultData | null;

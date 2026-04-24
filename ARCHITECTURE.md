@@ -78,9 +78,9 @@ Flux:
 
 ```typescript
 // Dans apps/portal/
-import { Door } from "@vigooth/ui";
-import { cpcScreen } from "@vigooth/styles";
-import { useAuth } from "@vigooth/auth";
+import { Door } from '@vigooth/ui';
+import { cpcScreen } from '@vigooth/styles';
+import { useAuth } from '@vigooth/auth';
 ```
 
 ## Stack technique

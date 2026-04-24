@@ -1,7 +1,7 @@
-import { cn } from "@vigooth/ui";
-import { useTranslation } from "react-i18next";
-import { ColorType, colorStyles } from "./types";
-import { VALID_COLORS } from "../../types/colors";
+import { cn } from '@vigooth/ui';
+import { useTranslation } from 'react-i18next';
+import { ColorType, colorStyles } from './types';
+import { VALID_COLORS } from '../../types/colors';
 
 interface AddFolderFormProps {
   name: string;
@@ -29,7 +29,7 @@ export function AddFolderForm({
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         className="w-full bg-transparent border border-cpc-cyan-500 text-cpc-cyan-500 px-2 py-1 text-xs outline-none"
-        placeholder={t("folder.name")}
+        placeholder={t('folder.name')}
         autoFocus
       />
       <div className="flex gap-1">
@@ -41,9 +41,9 @@ export function AddFolderForm({
               type="button"
               onClick={() => onColorChange(c)}
               className={cn(
-                "w-5 h-5 transition-all",
+                'w-5 h-5 transition-all',
                 cs.bg,
-                color !== c && "opacity-50 hover:opacity-80",
+                color !== c && 'opacity-50 hover:opacity-80',
               )}
             />
           );
@@ -54,13 +54,13 @@ export function AddFolderForm({
           onClick={onSubmit}
           className="flex-1 border border-cpc-cyan-500 text-cpc-cyan-500 py-1 text-xs hover:bg-cpc-cyan-500 hover:text-cpc-grey-900"
         >
-          {t("folder.create")}
+          {t('folder.create')}
         </button>
         <button
           onClick={onCancel}
           className="flex-1 border border-cpc-green-900 text-cpc-green-900 py-1 text-xs hover:border-cpc-green-500"
         >
-          {t("folder.cancel")}
+          {t('folder.cancel')}
         </button>
       </div>
     </div>

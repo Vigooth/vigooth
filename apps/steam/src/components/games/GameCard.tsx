@@ -1,5 +1,5 @@
-import type { SteamGame } from "@/types/game";
-import { getHeaderImage } from "@/config";
+import type { SteamGame } from '@/types/game';
+import { getHeaderImage } from '@/config';
 
 interface GameCardProps {
   game: SteamGame;
@@ -30,7 +30,7 @@ export function GameCard({ game, onClick }: GameCardProps) {
           decoding="async"
           className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
           onError={(e) => {
-            e.currentTarget.style.display = "none";
+            e.currentTarget.style.display = 'none';
           }}
         />
         {game.playtime_forever > 0 && (

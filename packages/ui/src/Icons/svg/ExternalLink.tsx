@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 export const ExternalLink = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function ExternalLink(props, ref) {

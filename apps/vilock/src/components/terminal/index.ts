@@ -1,2 +1,2 @@
-export { Terminal } from "./Terminal";
-export type { CommandContext, CommandFn, CommandResult } from "./commands";
+export { Terminal } from './Terminal';
+export type { CommandContext, CommandFn, CommandResult } from './commands';

@@ -1,15 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "../stores/AuthProvider";
-import { useAuth } from "../stores/auth";
-import { QueryProvider } from "./providers";
-import { LoginPage } from "./pages/LoginPage";
-import { CollectionPage } from "./pages/CollectionPage";
-import { SearchPage } from "./pages/SearchPage";
-import { MoviePage } from "./pages/MoviePage";
-import { RecommendationsPage } from "./pages/RecommendationsPage";
-import { WishlistPage } from "./pages/WishlistPage";
-import { StatusPage } from "./pages/StatusPage";
-import { PublicCollectionPage } from "./pages/PublicCollectionPage";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '../stores/AuthProvider';
+import { useAuth } from '../stores/auth';
+import { QueryProvider } from './providers';
+import { LoginPage } from './pages/LoginPage';
+import { CollectionPage } from './pages/CollectionPage';
+import { SearchPage } from './pages/SearchPage';
+import { MoviePage } from './pages/MoviePage';
+import { RecommendationsPage } from './pages/RecommendationsPage';
+import { WishlistPage } from './pages/WishlistPage';
+import { StatusPage } from './pages/StatusPage';
+import { PublicCollectionPage } from './pages/PublicCollectionPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();

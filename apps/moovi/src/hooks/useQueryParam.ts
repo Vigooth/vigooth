@@ -1,7 +1,7 @@
-import { useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-export function useQueryParam(key: string, defaultValue = ""): [string, (value: string) => void] {
+export function useQueryParam(key: string, defaultValue = ''): [string, (value: string) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
   const value = searchParams.get(key) || defaultValue;
 
@@ -30,7 +30,7 @@ export function useQueryParamNumber(
   const value = Number(raw) || defaultValue;
 
   const setValue = useCallback(
-    (next: number) => setRaw(next === defaultValue ? "" : String(next)),
+    (next: number) => setRaw(next === defaultValue ? '' : String(next)),
     [defaultValue, setRaw],
   );
 

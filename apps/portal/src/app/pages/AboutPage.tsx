@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Navigation, CpcLayout } from "@vigooth/ui";
+import { Link } from 'react-router-dom';
+import { Navigation, CpcLayout } from '@vigooth/ui';
 
 export function AboutPage() {
   return (

@@ -1,1 +1,1 @@
-export { CpcInput } from "./CpcInput";
+export { CpcInput } from './CpcInput';

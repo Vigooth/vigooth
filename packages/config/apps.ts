@@ -3,7 +3,7 @@ export interface AppDefinition {
   name: string;
   description: string;
   icon: string;
-  color: "green" | "red" | "cyan" | "yellow" | "magenta";
+  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta';
   devPort: number;
   prodPath: string;
   prodSubdomain?: string;
@@ -11,65 +11,65 @@ export interface AppDefinition {
 
 export const apps: AppDefinition[] = [
   {
-    id: "portal",
-    name: "PORTAL",
-    description: "Main hub - Access all applications",
-    icon: "🚪",
-    color: "green",
+    id: 'portal',
+    name: 'PORTAL',
+    description: 'Main hub - Access all applications',
+    icon: '🚪',
+    color: 'green',
     devPort: 5173,
-    prodPath: "/",
+    prodPath: '/',
   },
   {
-    id: "vilock",
-    name: "VILOCK",
-    description: "Secure password vault with encryption",
-    icon: "🔐",
-    color: "red",
+    id: 'vilock',
+    name: 'VILOCK',
+    description: 'Secure password vault with encryption',
+    icon: '🔐',
+    color: 'red',
     devPort: 5174,
-    prodPath: "/vilock",
-    prodSubdomain: "app-vilock",
+    prodPath: '/vilock',
+    prodSubdomain: 'app-vilock',
   },
   {
-    id: "movies",
-    name: "MOOVI",
-    description: "Track your favorite movies",
-    icon: "🎬",
-    color: "cyan",
+    id: 'movies',
+    name: 'MOOVI',
+    description: 'Track your favorite movies',
+    icon: '🎬',
+    color: 'cyan',
     devPort: 5176,
-    prodPath: "/movies",
-    prodSubdomain: "app-moovi",
+    prodPath: '/movies',
+    prodSubdomain: 'app-moovi',
   },
   {
-    id: "steam",
-    name: "STEAM",
-    description: "Browse your Steam game library",
-    icon: "🎮",
-    color: "magenta",
+    id: 'steam',
+    name: 'STEAM',
+    description: 'Browse your Steam game library',
+    icon: '🎮',
+    color: 'magenta',
     devPort: 5177,
-    prodPath: "/steam",
-    prodSubdomain: "app-steam",
+    prodPath: '/steam',
+    prodSubdomain: 'app-steam',
   },
 ];
 
 function isDev(): boolean {
-  if (typeof window === "undefined") return true;
-  return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  if (typeof window === 'undefined') return true;
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 }
 
 function getRootDomain(): string {
-  if (typeof window === "undefined") return "";
+  if (typeof window === 'undefined') return '';
   const hostname = window.location.hostname;
   // Extract root domain: "app-vilock.vigooth.com" → "vigooth.com"
-  const parts = hostname.split(".");
+  const parts = hostname.split('.');
   if (parts.length >= 2) {
-    return parts.slice(-2).join(".");
+    return parts.slice(-2).join('.');
   }
   return hostname;
 }
 
 export function getAppUrl(appId: string, baseUrl?: string): string {
   const app = apps.find((a) => a.id === appId);
-  if (!app) return "/";
+  if (!app) return '/';
 
   if (isDev()) {
     return `http://localhost:${app.devPort}`;
@@ -103,5 +103,5 @@ export function getAppsConfig(currentAppId?: string) {
 }
 
 export function getPortalUrl(): string {
-  return getAppUrl("portal");
+  return getAppUrl('portal');
 }

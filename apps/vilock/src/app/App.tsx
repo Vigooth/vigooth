@@ -1,10 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "../stores/AuthProvider";
-import { useAuth } from "../stores/auth";
-import { QueryProvider } from "./providers";
-import { LoginPage } from "./pages/LoginPage";
-import { UnlockPage } from "./pages/UnlockPage";
-import { VaultPage } from "./pages/VaultPage";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '../stores/AuthProvider';
+import { useAuth } from '../stores/auth';
+import { QueryProvider } from './providers';
+import { LoginPage } from './pages/LoginPage';
+import { UnlockPage } from './pages/UnlockPage';
+import { VaultPage } from './pages/VaultPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, masterPassword } = useAuth();

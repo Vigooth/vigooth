@@ -1,11 +1,11 @@
-import { CpcButton, CpcLayout } from "@vigooth/ui";
+import { CpcButton, CpcLayout } from '@vigooth/ui';
 
 function handleLogin() {
-  window.location.href = "/auth/steam/login";
+  window.location.href = '/auth/steam/login';
 }
 
 export function LoginPage() {
-  const error = new URLSearchParams(window.location.search).get("error");
+  const error = new URLSearchParams(window.location.search).get('error');
 
   return (
     <CpcLayout>
@@ -18,7 +18,7 @@ export function LoginPage() {
 
           {error && (
             <div className="border border-cpc-red-500 text-cpc-red-500 text-xs p-3 mb-4">
-              LOGIN FAILED: {error.replace(/_/g, " ").toUpperCase()}
+              LOGIN FAILED: {error.replace(/_/g, ' ').toUpperCase()}
             </div>
           )}
 

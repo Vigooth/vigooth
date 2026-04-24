@@ -1,5 +1,5 @@
-export { createIcon } from "./createIcon";
-export type { CreateIconProps, IconConfig, VariantDef, Size, IconVariant } from "./createIcon";
+export { createIcon } from './createIcon';
+export type { CreateIconProps, IconConfig, VariantDef, Size, IconVariant } from './createIcon';
 export {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -10,4 +10,4 @@ export {
   StarIcon,
   ListIcon,
   GridCompactIcon,
-} from "./icons";
+} from './icons';

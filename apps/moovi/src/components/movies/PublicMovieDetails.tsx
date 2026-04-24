@@ -1,25 +1,25 @@
-import { cn } from "@vigooth/ui";
+import { cn } from '@vigooth/ui';
 import {
   useTmdbMovieDetail,
   useTmdbMovieCredits,
   useTmdbTvDetail,
   useTmdbTvCredits,
-} from "@/hooks/useTmdbSearch";
-import { useOmdbRatings } from "@/hooks/useOmdbRatings";
-import { useAllocineRatings } from "@/hooks/useAllocineRatings";
-import { getBackdropUrl, getPosterUrl } from "@/utils/tmdbImage";
-import { formatRuntime } from "@/utils/ratings";
-import { RatingBadge } from "@/components/movies/RatingBadge";
-import { ExternalLinks } from "@/components/movies/ExternalLinks";
-import { PersonalRating } from "@/components/movies/PersonalRating";
-import type { Movie } from "@/types/movie";
+} from '@/hooks/useTmdbSearch';
+import { useOmdbRatings } from '@/hooks/useOmdbRatings';
+import { useAllocineRatings } from '@/hooks/useAllocineRatings';
+import { getBackdropUrl, getPosterUrl } from '@/utils/tmdbImage';
+import { formatRuntime } from '@/utils/ratings';
+import { RatingBadge } from '@/components/movies/RatingBadge';
+import { ExternalLinks } from '@/components/movies/ExternalLinks';
+import { PersonalRating } from '@/components/movies/PersonalRating';
+import type { Movie } from '@/types/movie';
 
 interface PublicMovieDetailsProps {
   movie: Movie;
 }
 
 export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
-  const isTv = movie.media_type === "tv";
+  const isTv = movie.media_type === 'tv';
   const tmdbIdNum = movie.tmdb_id;
 
   // TMDB data
@@ -42,7 +42,7 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
   const title = (isTv ? tvDetails?.name : movieDetails?.title) || movie.title;
   const originalTitle =
     (isTv ? tvDetails?.original_name : movieDetails?.original_title) || movie.original_title;
-  const overview = tmdbDetails?.overview || movie.overview || "";
+  const overview = tmdbDetails?.overview || movie.overview || '';
   const posterPath = tmdbDetails?.poster_path || movie.poster_path;
   const backdropPath = tmdbDetails?.backdrop_path || movie.backdrop_path;
   const runtimeMinutes = isTv
@@ -51,24 +51,24 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
 
   const director = isTv
     ? tvDetails?.created_by?.[0]?.name ||
-      credits?.crew.find((c) => c.job === "Director")?.name ||
+      credits?.crew.find((c) => c.job === 'Director')?.name ||
       movie.director ||
-      ""
-    : credits?.crew.find((c) => c.job === "Director")?.name || movie.director || "";
+      ''
+    : credits?.crew.find((c) => c.job === 'Director')?.name || movie.director || '';
   const genres =
     (isTv ? tvDetails?.genres : movieDetails?.genres)?.map((g) => g.name) ||
     (movie.genres ? tryParseGenres(movie.genres) : []);
   const dateStr = isTv ? tvDetails?.first_air_date : movieDetails?.release_date;
   const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : movie.year;
   const seasonInfo =
-    isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : "";
+    isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : '';
 
   const imdbRating = movie.imdb_rating ?? omdb?.imdbRating ?? null;
   const metascore = movie.metascore ?? omdb?.metascore ?? null;
   const rottenTomatoes = movie.rotten_tomatoes ?? omdb?.rottenTomatoes ?? null;
 
   const backdropUrl = getBackdropUrl(backdropPath);
-  const posterUrl = getPosterUrl(posterPath, "w342");
+  const posterUrl = getPosterUrl(posterPath, 'w342');
   const runtime = formatRuntime(runtimeMinutes);
 
   return (
@@ -81,7 +81,7 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
         </div>
       )}
 
-      <div className={cn("p-4 max-w-4xl mx-auto", backdropUrl && "-mt-20 relative")}>
+      <div className={cn('p-4 max-w-4xl mx-auto', backdropUrl && '-mt-20 relative')}>
         <div className="mb-6">
           {/* Poster — floated left */}
           {posterUrl && (
@@ -211,7 +211,7 @@ function tryParseGenres(genresStr: string): string[] {
   } catch {
     // Genres stored as comma-separated string
     return genresStr
-      .split(",")
+      .split(',')
       .map((g) => g.trim())
       .filter(Boolean);
   }

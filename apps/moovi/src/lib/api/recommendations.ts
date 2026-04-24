@@ -8,14 +8,14 @@ export interface Recommendation {
 }
 
 export interface RecommendationEvent {
-  type: "thinking" | "tool_call" | "recommendation" | "done" | "error";
+  type: 'thinking' | 'tool_call' | 'recommendation' | 'done' | 'error';
   message: string;
   data?: Recommendation | { recommendations: Recommendation[]; total: number };
 }
 
-import { request } from "./client";
+import { request } from './client';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8090";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8090';
 
 export interface RecommendationHistoryEntry {
   id: string;
@@ -30,7 +30,7 @@ interface HistoryResponse {
 }
 
 export async function getRecommendationHistory(): Promise<HistoryResponse> {
-  return request<HistoryResponse>("/api/recommendations/history");
+  return request<HistoryResponse>('/api/recommendations/history');
 }
 
 export interface StreamOptions {
@@ -63,11 +63,11 @@ function streamFromEndpoint(
   signal?: AbortSignal,
 ): void {
   fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
-    credentials: "include",
+    credentials: 'include',
     body: JSON.stringify({
       movie_ids: options.movieIds ?? [],
       vibe: options.vibe ?? 50,
@@ -78,11 +78,11 @@ function streamFromEndpoint(
   })
     .then((response) => {
       if (response.status === 401) {
-        localStorage.removeItem("user");
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
         }
-        throw new Error("Unauthorized");
+        throw new Error('Unauthorized');
       }
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -90,11 +90,11 @@ function streamFromEndpoint(
 
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error("No readable stream");
+        throw new Error('No readable stream');
       }
 
       const decoder = new TextDecoder();
-      let buffer = "";
+      let buffer = '';
 
       function read(): Promise<void> {
         return reader!.read().then(({ done, value }) => {
@@ -103,33 +103,33 @@ function streamFromEndpoint(
           buffer += decoder.decode(value, { stream: true });
 
           // Parse SSE events from buffer
-          const lines = buffer.split("\n");
-          buffer = "";
+          const lines = buffer.split('\n');
+          buffer = '';
 
-          let currentEvent = "";
+          let currentEvent = '';
 
           for (const line of lines) {
-            if (line.startsWith("event: ")) {
+            if (line.startsWith('event: ')) {
               currentEvent = line.slice(7).trim();
-            } else if (line.startsWith("data: ")) {
+            } else if (line.startsWith('data: ')) {
               const data = line.slice(6);
               try {
                 const parsed = JSON.parse(data) as RecommendationEvent;
                 // Use the event type from SSE event field if available
                 if (currentEvent) {
-                  parsed.type = currentEvent as RecommendationEvent["type"];
+                  parsed.type = currentEvent as RecommendationEvent['type'];
                 }
                 onEvent(parsed);
               } catch {
                 // Skip malformed data
               }
-              currentEvent = "";
-            } else if (line.trim() === "") {
+              currentEvent = '';
+            } else if (line.trim() === '') {
               // Empty line = end of event, reset
-              currentEvent = "";
+              currentEvent = '';
             } else {
               // Incomplete line, put back in buffer
-              buffer += line + "\n";
+              buffer += line + '\n';
             }
           }
 
@@ -140,10 +140,10 @@ function streamFromEndpoint(
       return read();
     })
     .catch((err) => {
-      if (err.name !== "AbortError") {
+      if (err.name !== 'AbortError') {
         onEvent({
-          type: "error",
-          message: err.message || "Connection failed",
+          type: 'error',
+          message: err.message || 'Connection failed',
         });
       }
     });

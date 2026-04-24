@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { Note } from "../../lib/crypto/vault";
-import { useVault } from "./VaultContext";
+import { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Note } from '../../lib/crypto/vault';
+import { useVault } from './VaultContext';
 
 interface InlineNoteEditorProps {
   note: Note;
@@ -46,12 +46,12 @@ export function InlineNoteEditor({ note, onDelete }: InlineNoteEditorProps) {
 
       const handleMouseUp = () => {
         dragRef.current = null;
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
       };
 
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     },
     [height],
   );
@@ -68,7 +68,7 @@ export function InlineNoteEditor({ note, onDelete }: InlineNoteEditorProps) {
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
           className="w-full h-full bg-transparent text-cpc-green-500 text-xs p-4 pt-0 outline-none resize-none font-mono"
-          placeholder={t("note.contentPlaceholder")}
+          placeholder={t('note.contentPlaceholder')}
           spellCheck={false}
         />
       </div>

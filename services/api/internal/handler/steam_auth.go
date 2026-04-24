@@ -84,6 +84,7 @@ func (h *SteamAuthHandler) Callback(c *gin.Context) {
 	// Issue JWT
 	claims := jwt.MapClaims{
 		"sub":         steamID,
+		"typ":         "steam",
 		"personaname": personaname,
 		"avatar":      avatar,
 		"exp":         time.Now().Add(7 * 24 * time.Hour).Unix(),
@@ -132,6 +133,11 @@ func (h *SteamAuthHandler) Me(c *gin.Context) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
+		return
+	}
+
+	if tokenType, _ := claims["typ"].(string); tokenType != "steam" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not a steam session"})
 		return
 	}
 

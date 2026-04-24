@@ -19,6 +19,7 @@ export async function request<T>(
   })
 
   if (response.status === 401 && !endpoint.startsWith('/auth/')) {
+    localStorage.removeItem('user')
     if (window.location.pathname !== '/login') {
       window.location.href = '/login'
     }

@@ -18,6 +18,13 @@ async function request<T>(
     credentials: 'include',
   })
 
+  if (response.status === 401 && !endpoint.startsWith('/auth/')) {
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login'
+    }
+    throw new Error('Unauthorized')
+  }
+
   if (!response.ok) {
     const error: ApiError = await response.json().catch(() => ({ error: 'Network error' }))
     throw new Error(error.error || `HTTP ${response.status}`)

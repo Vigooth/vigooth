@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '@/stores/auth'
-import * as moviesApi from '@/lib/api/movies'
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/stores/auth';
+import * as moviesApi from '@/lib/api/movies';
 
 export function useMyTmdbIds() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['my-tmdb-ids'],
@@ -11,5 +11,5 @@ export function useMyTmdbIds() {
     enabled: isAuthenticated,
     select: (data) => new Set(data.tmdb_ids),
     staleTime: 60_000,
-  })
+  });
 }

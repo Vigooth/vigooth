@@ -1,50 +1,53 @@
-import { useState, useRef, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Note } from '../../lib/crypto/vault'
+import { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Note } from '../../lib/crypto/vault';
 
 interface NoteEditorProps {
-  note: Note
-  onUpdateNote: (noteId: string, data: Partial<{ title: string; content: string }>) => Promise<void>
-  onDeleteNote: (noteId: string) => Promise<void>
+  note: Note;
+  onUpdateNote: (
+    noteId: string,
+    data: Partial<{ title: string; content: string }>,
+  ) => Promise<void>;
+  onDeleteNote: (noteId: string) => Promise<void>;
 }
 
 // Use key={note.id} on this component to reset state when switching notes
 export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps) {
-  const { t } = useTranslation()
-  const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(note.content)
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(note.title);
+  const [content, setContent] = useState(note.content);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedSave = useCallback(
     (field: 'title' | 'content', value: string) => {
       if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
+        clearTimeout(saveTimeoutRef.current);
       }
       saveTimeoutRef.current = setTimeout(() => {
-        onUpdateNote(note.id, { [field]: value })
-      }, 800)
+        onUpdateNote(note.id, { [field]: value });
+      }, 800);
     },
     [note.id, onUpdateNote],
-  )
+  );
 
   const handleTitleChange = (value: string) => {
-    setTitle(value)
-    debouncedSave('title', value)
-  }
+    setTitle(value);
+    debouncedSave('title', value);
+  };
 
   const handleContentChange = (value: string) => {
-    setContent(value)
-    debouncedSave('content', value)
-  }
+    setContent(value);
+    debouncedSave('content', value);
+  };
 
-  const updatedAt = new Date(note.updatedAt)
+  const updatedAt = new Date(note.updatedAt);
   const formattedDate = updatedAt.toLocaleDateString(undefined, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -81,5 +84,5 @@ export function NoteEditor({ note, onUpdateNote, onDeleteNote }: NoteEditorProps
         />
       </div>
     </div>
-  )
+  );
 }

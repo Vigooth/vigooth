@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-@import "tailwindcss";
-@import "../../../packages/styles/src/theme.css";
+@import 'tailwindcss';
+@import '../../../packages/styles/src/theme.css';
 
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 
@@ -20,7 +20,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html, body {
+  html,
+  body {
     margin: 0;
     padding: 0;
     width: 100%;

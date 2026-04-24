@@ -1,7 +1,7 @@
 interface SearchBarProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 export function SearchBar({ value, onChange, placeholder = 'Search movies...' }: SearchBarProps) {
@@ -17,5 +17,5 @@ export function SearchBar({ value, onChange, placeholder = 'Search movies...' }:
         autoFocus
       />
     </div>
-  )
+  );
 }

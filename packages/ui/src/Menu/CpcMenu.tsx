@@ -1,10 +1,10 @@
-import { Menu } from '@base-ui/react/menu'
-import { createContext, useContext } from 'react'
-import type { ReactNode } from 'react'
-import { cn } from '../utils/cn'
-import { ChevronRightIcon } from '../Icons'
+import { Menu } from '@base-ui/react/menu';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
+import { cn } from '../utils/cn';
+import { ChevronRightIcon } from '../Icons';
 
-type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange'
+type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange';
 
 const colorMap = {
   green: { base: '#00FF00', dark: '#008000' },
@@ -14,38 +14,38 @@ const colorMap = {
   magenta: { base: '#FF00FF', dark: '#800080' },
   blue: { base: '#0000FF', dark: '#000080' },
   orange: { base: '#FF8000', dark: '#804000' },
-}
+};
 
 interface CpcMenuProps {
-  trigger: ReactNode
-  children: ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  side?: 'top' | 'bottom' | 'left' | 'right'
-  align?: 'start' | 'center' | 'end'
-  color?: CpcColor
+  trigger: ReactNode;
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  align?: 'start' | 'center' | 'end';
+  color?: CpcColor;
 }
 
 interface CpcMenuItemProps {
-  children: ReactNode
-  onClick?: () => void
-  disabled?: boolean
-  variant?: 'default' | 'danger'
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: 'default' | 'danger';
 }
 
 interface CpcMenuGroupProps {
-  label?: string
-  children: ReactNode
+  label?: string;
+  children: ReactNode;
 }
 
 interface CpcSubmenuProps {
-  label: ReactNode
-  children: ReactNode
-  side?: 'top' | 'bottom' | 'left' | 'right'
-  align?: 'start' | 'center' | 'end'
+  label: ReactNode;
+  children: ReactNode;
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  align?: 'start' | 'center' | 'end';
 }
 
-const MenuColorContext = createContext<CpcColor>('green')
+const MenuColorContext = createContext<CpcColor>('green');
 
 export function CpcMenu({
   trigger,
@@ -56,8 +56,8 @@ export function CpcMenu({
   align = 'start',
   color = 'green',
 }: CpcMenuProps) {
-  const c = colorMap[color]
-  const menuStyle = { '--menu-color': c.base } as React.CSSProperties
+  const c = colorMap[color];
+  const menuStyle = { '--menu-color': c.base } as React.CSSProperties;
 
   return (
     <MenuColorContext.Provider value={color}>
@@ -72,13 +72,18 @@ export function CpcMenu({
         </Menu.Portal>
       </Menu.Root>
     </MenuColorContext.Provider>
-  )
+  );
 }
 
-export function CpcMenuItem({ children, onClick, disabled, variant = 'default' }: CpcMenuItemProps) {
-  const color = useContext(MenuColorContext)
-  const c = colorMap[color]
-  const menuStyle = { '--menu-color': c.base } as React.CSSProperties
+export function CpcMenuItem({
+  children,
+  onClick,
+  disabled,
+  variant = 'default',
+}: CpcMenuItemProps) {
+  const color = useContext(MenuColorContext);
+  const c = colorMap[color];
+  const menuStyle = { '--menu-color': c.base } as React.CSSProperties;
 
   return (
     <Menu.Item
@@ -92,24 +97,24 @@ export function CpcMenuItem({ children, onClick, disabled, variant = 'default' }
     >
       {children}
     </Menu.Item>
-  )
+  );
 }
 
 export function CpcMenuSeparator() {
-  const color = useContext(MenuColorContext)
-  const c = colorMap[color]
+  const color = useContext(MenuColorContext);
+  const c = colorMap[color];
 
   return (
     <Menu.Separator
       className="cpc-menu-separator"
       style={{ '--menu-color': c.base } as React.CSSProperties}
     />
-  )
+  );
 }
 
 export function CpcMenuGroup({ label, children }: CpcMenuGroupProps) {
-  const color = useContext(MenuColorContext)
-  const c = colorMap[color]
+  const color = useContext(MenuColorContext);
+  const c = colorMap[color];
 
   return (
     <Menu.Group>
@@ -123,18 +128,13 @@ export function CpcMenuGroup({ label, children }: CpcMenuGroupProps) {
       )}
       {children}
     </Menu.Group>
-  )
+  );
 }
 
-export function CpcSubmenu({
-  label,
-  children,
-  side = 'right',
-  align = 'start',
-}: CpcSubmenuProps) {
-  const color = useContext(MenuColorContext)
-  const c = colorMap[color]
-  const menuStyle = { '--menu-color': c.base } as React.CSSProperties
+export function CpcSubmenu({ label, children, side = 'right', align = 'start' }: CpcSubmenuProps) {
+  const color = useContext(MenuColorContext);
+  const c = colorMap[color];
+  const menuStyle = { '--menu-color': c.base } as React.CSSProperties;
 
   return (
     <Menu.SubmenuRoot>
@@ -150,5 +150,5 @@ export function CpcSubmenu({
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.SubmenuRoot>
-  )
+  );
 }

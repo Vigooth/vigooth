@@ -11,8 +11,7 @@ export const services: ServiceConfig[] = [
     portEnvVar: 'PORT',
     urlTemplate: 'http://localhost:{port}',
     processPattern: /go.*cmd\/server/,
-    shellSetup:
-      "cd services/api && set -a && [ -f .env ] && . .env && set +a",
+    shellSetup: 'cd services/api && set -a && [ -f .env ] && . .env && set +a',
   },
   {
     id: 'portal',

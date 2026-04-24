@@ -1,9 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { CpcButton, type CpcColor, type CpcSize, type CpcVariant } from './CpcButton'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CpcButton, type CpcColor, type CpcSize, type CpcVariant } from './CpcButton';
 
-const CPC_COLORS: readonly CpcColor[] = ['green', 'cyan', 'red', 'yellow', 'magenta', 'blue', 'orange']
-const CPC_VARIANTS: readonly CpcVariant[] = ['outlined', 'filled', 'text']
-const CPC_SIZES: readonly CpcSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
+const CPC_COLORS: readonly CpcColor[] = [
+  'green',
+  'cyan',
+  'red',
+  'yellow',
+  'magenta',
+  'blue',
+  'orange',
+];
+const CPC_VARIANTS: readonly CpcVariant[] = ['outlined', 'filled', 'text'];
+const CPC_SIZES: readonly CpcSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
 const meta = {
   title: 'Components/CpcButton',
@@ -22,10 +30,10 @@ const meta = {
     size: { control: 'select', options: CPC_SIZES },
     disabled: { control: 'boolean' },
   },
-} satisfies Meta<typeof CpcButton>
+} satisfies Meta<typeof CpcButton>;
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Outlined: Story = {
   args: {
@@ -33,7 +41,7 @@ export const Outlined: Story = {
     variant: 'outlined',
     color: 'green',
   },
-}
+};
 
 export const Filled: Story = {
   args: {
@@ -41,7 +49,7 @@ export const Filled: Story = {
     variant: 'filled',
     color: 'cyan',
   },
-}
+};
 
 export const Text: Story = {
   args: {
@@ -49,7 +57,7 @@ export const Text: Story = {
     variant: 'text',
     color: 'red',
   },
-}
+};
 
 export const Disabled: Story = {
   args: {
@@ -58,7 +66,7 @@ export const Disabled: Story = {
     color: 'green',
     disabled: true,
   },
-}
+};
 
 export const AllSizes: Story = {
   render: () => (
@@ -70,7 +78,7 @@ export const AllSizes: Story = {
       ))}
     </div>
   ),
-}
+};
 
 export const AllVariants: Story = {
   render: () => (
@@ -89,4 +97,4 @@ export const AllVariants: Story = {
       ))}
     </div>
   ),
-}
+};

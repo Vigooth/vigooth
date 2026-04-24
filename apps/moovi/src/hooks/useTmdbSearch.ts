@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   searchMovies,
   getMovieDetails,
@@ -7,8 +7,8 @@ import {
   getTvCredits,
   searchPerson,
   discoverByPerson,
-} from '@/lib/api/tmdb'
-import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from '@/types/movie'
+} from '@/lib/api/tmdb';
+import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from '@/types/movie';
 
 export function useTmdbSearch(query: string) {
   return useInfiniteQuery<TmdbSearchResponse>({
@@ -17,13 +17,13 @@ export function useTmdbSearch(query: string) {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.page < lastPage.total_pages) {
-        return lastPage.page + 1
+        return lastPage.page + 1;
       }
-      return undefined
+      return undefined;
     },
     enabled: query.length >= 2,
     staleTime: 1000 * 60 * 5,
-  })
+  });
 }
 
 export function useTmdbMovieDetail(tmdbId: number | null) {
@@ -32,7 +32,7 @@ export function useTmdbMovieDetail(tmdbId: number | null) {
     queryFn: () => getMovieDetails(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
-  })
+  });
 }
 
 export function useTmdbMovieCredits(tmdbId: number | null) {
@@ -41,7 +41,7 @@ export function useTmdbMovieCredits(tmdbId: number | null) {
     queryFn: () => getMovieCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
-  })
+  });
 }
 
 export function useTmdbTvDetail(tmdbId: number | null) {
@@ -50,7 +50,7 @@ export function useTmdbTvDetail(tmdbId: number | null) {
     queryFn: () => getTvDetails(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
-  })
+  });
 }
 
 export function useTmdbTvCredits(tmdbId: number | null) {
@@ -59,7 +59,7 @@ export function useTmdbTvCredits(tmdbId: number | null) {
     queryFn: () => getTvCredits(tmdbId!),
     enabled: tmdbId !== null,
     staleTime: 1000 * 60 * 30,
-  })
+  });
 }
 
 export function useTmdbSearchPerson(query: string) {
@@ -68,7 +68,7 @@ export function useTmdbSearchPerson(query: string) {
     queryFn: () => searchPerson(query),
     enabled: query.length >= 2,
     staleTime: 1000 * 60 * 5,
-  })
+  });
 }
 
 export function useTmdbDiscoverByPerson(personId: number | null) {
@@ -78,11 +78,11 @@ export function useTmdbDiscoverByPerson(personId: number | null) {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.page < lastPage.total_pages) {
-        return lastPage.page + 1
+        return lastPage.page + 1;
       }
-      return undefined
+      return undefined;
     },
     enabled: personId !== null,
     staleTime: 1000 * 60 * 5,
-  })
+  });
 }

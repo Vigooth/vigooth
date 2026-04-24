@@ -1,14 +1,15 @@
-import { cn } from '@vigooth/ui'
-import { useTranslation } from 'react-i18next'
-import { useVault } from './VaultContext'
+import { cn } from '@vigooth/ui';
+import { useTranslation } from 'react-i18next';
+import { useVault } from './VaultContext';
 
 interface AddEntryFormProps {
-  folderId: string | null
+  folderId: string | null;
 }
 
 export function AddEntryForm({ folderId }: AddEntryFormProps) {
-  const { t } = useTranslation()
-  const { entryFormData, setEntryFormData, submitEntry, cancelEntry, generatePassword } = useVault()
+  const { t } = useTranslation();
+  const { entryFormData, setEntryFormData, submitEntry, cancelEntry, generatePassword } =
+    useVault();
 
   return (
     <div className="border-2 border-cpc-cyan-500 p-3 space-y-2">
@@ -54,8 +55,10 @@ export function AddEntryForm({ folderId }: AddEntryFormProps) {
           onClick={() => submitEntry(folderId)}
           disabled={!entryFormData.name}
           className={cn(
-            "flex-1 border border-cpc-cyan-500 text-cpc-cyan-500 py-1 text-xs",
-            entryFormData.name ? "hover:bg-cpc-cyan-500 hover:text-cpc-grey-900" : "opacity-50 cursor-not-allowed"
+            'flex-1 border border-cpc-cyan-500 text-cpc-cyan-500 py-1 text-xs',
+            entryFormData.name
+              ? 'hover:bg-cpc-cyan-500 hover:text-cpc-grey-900'
+              : 'opacity-50 cursor-not-allowed',
           )}
         >
           {t('entry.save')}
@@ -68,5 +71,5 @@ export function AddEntryForm({ folderId }: AddEntryFormProps) {
         </button>
       </div>
     </div>
-  )
+  );
 }

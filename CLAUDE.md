@@ -20,7 +20,9 @@ This project uses **pnpm** (version 10.14.0) as specified in package.json. Alway
 This project follows the **Bulletproof React** architecture pattern with feature-based modular organization and unidirectional code flow (shared → features → app).
 
 ### Path Aliases
+
 The project uses slash-based path aliases configured in both vite.config.ts and tsconfig.json:
+
 - `@/` → `src/` (root access)
 - `@/app/*` → `src/app/*` (application layer)
 - `@/components/*` → `src/components/*` (shared components)
@@ -35,6 +37,7 @@ The project uses slash-based path aliases configured in both vite.config.ts and 
 - `@/testing/*` → `src/testing/*` (test utilities)
 
 ### Directory Structure
+
 ```
 src/
 ├── app/          # Application layer (routes, main app, providers)
@@ -51,7 +54,9 @@ src/
 ```
 
 ### Feature Module Structure
+
 Each feature should be self-contained with its own:
+
 - `api/` - Feature-specific API requests
 - `assets/` - Feature-specific static files
 - `components/` - Feature-scoped components
@@ -61,6 +66,7 @@ Each feature should be self-contained with its own:
 - `utils/` - Feature utility functions
 
 ### Monorepo Structure
+
 ```
 apps/
 ├── moovi/        # Movie collection app (React + Vite)
@@ -74,6 +80,7 @@ services/
 ```
 
 ### Tech Stack
+
 - **React 19.1.1** with TypeScript
 - **Vite** for build tooling and development server
 - **Tailwind CSS v4** via `@tailwindcss/vite` plugin
@@ -84,18 +91,21 @@ services/
 - **Go + Gin** for backend API (services/api/)
 
 ### Shared UI Library (@vigooth/ui)
+
 - `CpcButton` — variants: outlined/filled/text, colors: green/cyan/red/yellow/magenta/blue/orange
 - `CpcMenu` — dropdown with `color` prop, plus CpcMenuItem/CpcMenuSeparator/CpcMenuGroup/CpcSubmenu
 - Icon system: `createIcon` factory, SVGs in `packages/ui/src/Icons/svg/` with viewBox `0 0 24 24`
 - Always check for existing components before building inline
 
 ### Architecture Rules
+
 - Features should not import from each other
 - Shared code goes in the appropriate shared directory
 - Follow unidirectional dependency flow: shared → features → app
 - Keep features modular and self-contained
 
 ## Git Workflow Rules
+
 - **Never create a PR with unpushed commits.** After every commit, push immediately. Before creating a PR, verify local and remote are in sync.
 - **Commit all pending changes before creating a PR.** Do not leave uncommitted work behind — commit it automatically without asking for confirmation.
 - **Always rebase on `origin/main`** before creating a PR or deploying.
@@ -103,8 +113,10 @@ services/
 ## Code Style Conventions
 
 ### Exports
+
 - **Always use named exports**, never use `export default`
 - Example:
+
   ```typescript
   // ✅ Good - Named export
   export function MyComponent() { ... }
@@ -114,4 +126,5 @@ services/
   export default function MyComponent() { ... }
   export default MyComponent
   ```
+
 - This applies to all files: components, utilities, hooks, pages, etc.

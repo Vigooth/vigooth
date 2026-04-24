@@ -1,47 +1,46 @@
-import { request } from './client'
+import { request } from './client';
 import type {
   TmdbSearchResponse,
   TmdbMovieDetail,
   TmdbTvDetail,
   TmdbCredits,
   TmdbPersonSearchResponse,
-} from '@/types/movie'
+} from '@/types/movie';
 
 export async function searchMovies(query: string, page = 1): Promise<TmdbSearchResponse> {
-  return request<TmdbSearchResponse>(`/api/tmdb/search?q=${encodeURIComponent(query)}&page=${page}`)
+  return request<TmdbSearchResponse>(
+    `/api/tmdb/search?q=${encodeURIComponent(query)}&page=${page}`,
+  );
 }
 
 export async function getMovieDetails(tmdbId: number): Promise<TmdbMovieDetail> {
-  return request<TmdbMovieDetail>(`/api/tmdb/movie/${tmdbId}`)
+  return request<TmdbMovieDetail>(`/api/tmdb/movie/${tmdbId}`);
 }
 
 export async function getMovieCredits(tmdbId: number): Promise<TmdbCredits> {
-  return request<TmdbCredits>(`/api/tmdb/movie/${tmdbId}/credits`)
+  return request<TmdbCredits>(`/api/tmdb/movie/${tmdbId}/credits`);
 }
 
 export async function getTvDetails(tmdbId: number): Promise<TmdbTvDetail> {
-  return request<TmdbTvDetail>(`/api/tmdb/tv/${tmdbId}`)
+  return request<TmdbTvDetail>(`/api/tmdb/tv/${tmdbId}`);
 }
 
 export async function getTvCredits(tmdbId: number): Promise<TmdbCredits> {
-  return request<TmdbCredits>(`/api/tmdb/tv/${tmdbId}/credits`)
+  return request<TmdbCredits>(`/api/tmdb/tv/${tmdbId}/credits`);
 }
 
-export async function searchPerson(
-  query: string,
-  page = 1
-): Promise<TmdbPersonSearchResponse> {
+export async function searchPerson(query: string, page = 1): Promise<TmdbPersonSearchResponse> {
   return request<TmdbPersonSearchResponse>(
-    `/api/tmdb/search-person?q=${encodeURIComponent(query)}&page=${page}`
-  )
+    `/api/tmdb/search-person?q=${encodeURIComponent(query)}&page=${page}`,
+  );
 }
 
 export async function discoverByPerson(
   personId: number,
   page = 1,
-  sortBy = 'release_date.desc'
+  sortBy = 'release_date.desc',
 ): Promise<TmdbSearchResponse> {
   return request<TmdbSearchResponse>(
-    `/api/tmdb/discover/movie?with_crew=${personId}&page=${page}&sort_by=${sortBy}`
-  )
+    `/api/tmdb/discover/movie?with_crew=${personId}&page=${page}&sort_by=${sortBy}`,
+  );
 }

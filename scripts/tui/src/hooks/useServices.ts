@@ -4,12 +4,7 @@ import { join } from 'node:path';
 import type { ServiceState, ServiceConfig } from '../types.js';
 import { services as serviceConfigs } from '../lib/config.js';
 import { detectServiceStatus } from '../lib/detection.js';
-import {
-  startService,
-  stopService,
-  type ManagedProcess,
-  MAX_LOG_LINES,
-} from '../lib/process.js';
+import { startService, stopService, type ManagedProcess, MAX_LOG_LINES } from '../lib/process.js';
 
 type Action =
   | {
@@ -67,9 +62,7 @@ function reducer(state: ServiceState[], action: Action): ServiceState[] {
           : s,
       );
     case 'CLEAR_LOGS':
-      return state.map((s) =>
-        s.id === action.id ? { ...s, logs: [] } : s,
-      );
+      return state.map((s) => (s.id === action.id ? { ...s, logs: [] } : s));
     default:
       return state;
   }
@@ -119,10 +112,7 @@ export function useServices(rootDir: string): UseServicesReturn {
         if (managed) continue;
         if (stoppingRef.current.has(config.id)) continue;
 
-        const { status, pid } = detectServiceStatus(
-          config,
-          config.defaultPort,
-        );
+        const { status, pid } = detectServiceStatus(config, config.defaultPort);
         dispatch({
           type: 'SET_STATUS',
           id: config.id,
@@ -139,8 +129,7 @@ export function useServices(rootDir: string): UseServicesReturn {
   }, []);
 
   const getConfig = useCallback(
-    (id: string): ServiceConfig | undefined =>
-      serviceConfigs.find((c) => c.id === id),
+    (id: string): ServiceConfig | undefined => serviceConfigs.find((c) => c.id === id),
     [],
   );
 
@@ -150,10 +139,7 @@ export function useServices(rootDir: string): UseServicesReturn {
       if (!config) return;
 
       const currentService = servicesRef.current.find((s) => s.id === id);
-      if (
-        currentService?.status === 'running' ||
-        currentService?.status === 'starting'
-      ) {
+      if (currentService?.status === 'running' || currentService?.status === 'starting') {
         return;
       }
 
@@ -188,8 +174,7 @@ export function useServices(rootDir: string): UseServicesReturn {
 
         try {
           await mkdir(logDir, { recursive: true });
-          const logContent =
-            managed.logs.join('\n') + '\n\nError: ' + err.message;
+          const logContent = managed.logs.join('\n') + '\n\nError: ' + err.message;
           await writeFile(logFile, logContent);
         } catch {
           // ignore
@@ -212,10 +197,7 @@ export function useServices(rootDir: string): UseServicesReturn {
   const stop = useCallback(
     async (id: string): Promise<void> => {
       const currentService = servicesRef.current.find((s) => s.id === id);
-      if (
-        currentService?.status === 'stopped' ||
-        currentService?.status === 'stopping'
-      ) {
+      if (currentService?.status === 'stopped' || currentService?.status === 'stopping') {
         return;
       }
 

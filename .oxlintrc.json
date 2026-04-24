@@ -16,11 +16,5 @@
     "react-hooks/exhaustive-deps": "warn",
     "unicorn/no-empty-file": "off"
   },
-  "ignorePatterns": [
-    "dist",
-    "build",
-    "node_modules",
-    "**/*.d.ts",
-    "storybook-static"
-  ]
+  "ignorePatterns": ["dist", "build", "node_modules", "**/*.d.ts", "storybook-static"]
 }

@@ -14,17 +14,14 @@ export interface AppProps {
 export function App({ rootDir }: AppProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
-  const { services, start, stop, restart, startAll, stopAll } =
-    useServices(rootDir);
+  const { services, start, stop, restart, startAll, stopAll } = useServices(rootDir);
 
   const [selectedRow, setSelectedRow] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
   const [logServiceId, setLogServiceId] = useState<string | null>(null);
 
-  const hasRunningManagedServices = services.some(
-    (s) => s.status === 'running' && s.managedByTui,
-  );
+  const hasRunningManagedServices = services.some((s) => s.status === 'running' && s.managedByTui);
 
   const openUrl = (url: string) => exec(`open "${url}"`);
 
@@ -100,36 +97,24 @@ export function App({ rootDir }: AppProps) {
 
   const terminalHeight = stdout?.rows ?? 24;
 
-  const logService = logServiceId
-    ? services.find((s) => s.id === logServiceId)
-    : null;
+  const logService = logServiceId ? services.find((s) => s.id === logServiceId) : null;
 
   if (logService) {
     return (
       <Box flexDirection="column" width="100%" height={terminalHeight}>
-        <LogView
-          service={logService}
-          onClose={() => setLogServiceId(null)}
-          onRestart={restart}
-        />
+        <LogView service={logService} onClose={() => setLogServiceId(null)} onRestart={restart} />
       </Box>
     );
   }
 
-  const clampedRow = Math.min(
-    selectedRow,
-    Math.max(0, services.length - 1),
-  );
+  const clampedRow = Math.min(selectedRow, Math.max(0, services.length - 1));
 
   return (
     <Box flexDirection="column" width="100%" height={terminalHeight}>
       <Dashboard services={services} selectedRow={clampedRow} />
       {showHelp && <HelpModal />}
       {showExitPrompt && (
-        <ExitPrompt
-          hasRunningServices={hasRunningManagedServices}
-          onConfirm={handleExitConfirm}
-        />
+        <ExitPrompt hasRunningServices={hasRunningManagedServices} onConfirm={handleExitConfirm} />
       )}
     </Box>
   );

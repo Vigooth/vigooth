@@ -21,9 +21,7 @@ export function startService(
   onLog: (line: string) => void,
 ): ManagedProcess {
   const env = { ...process.env };
-  const args = config.args.map((arg) =>
-    arg.replace('{port}', String(port)),
-  );
+  const args = config.args.map((arg) => arg.replace('{port}', String(port)));
 
   if (config.portEnvVar) {
     env[config.portEnvVar] = String(port);
@@ -34,13 +32,11 @@ export function startService(
   let cwd = config.cwd ? path.resolve(rootDir, config.cwd) : rootDir;
 
   if (config.shellSetup) {
-    const quotedArgs = args
-      .map((arg) => (arg.includes(' ') ? `"${arg}"` : arg))
-      .join(' ');
-    const portOverride = config.portEnvVar
-      ? `export ${config.portEnvVar}=${port}`
-      : '';
-    const parts = [config.shellSetup, portOverride, `${config.command} ${quotedArgs}`].filter(Boolean);
+    const quotedArgs = args.map((arg) => (arg.includes(' ') ? `"${arg}"` : arg)).join(' ');
+    const portOverride = config.portEnvVar ? `export ${config.portEnvVar}=${port}` : '';
+    const parts = [config.shellSetup, portOverride, `${config.command} ${quotedArgs}`].filter(
+      Boolean,
+    );
     const fullCommand = parts.join(' && ');
     command = 'bash';
     finalArgs = ['-c', fullCommand];
@@ -92,10 +88,7 @@ export function startService(
   return { pid: child.pid!, process: child, logs, logFile };
 }
 
-export async function stopService(
-  pid: number,
-  processSettled?: Promise<unknown>,
-): Promise<void> {
+export async function stopService(pid: number, processSettled?: Promise<unknown>): Promise<void> {
   await new Promise<void>((resolve) => {
     treeKill(pid, 'SIGTERM', () => resolve());
   });

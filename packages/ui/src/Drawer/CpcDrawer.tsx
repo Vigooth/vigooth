@@ -1,16 +1,16 @@
-import { Drawer } from '@base-ui/react/drawer'
-import type { ReactNode } from 'react'
-import { cn } from '../utils/cn'
+import { Drawer } from '@base-ui/react/drawer';
+import type { ReactNode } from 'react';
+import { cn } from '../utils/cn';
 
 interface CpcDrawerProps {
-  trigger?: ReactNode
-  title?: string
-  children: ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  side?: 'left' | 'right'
-  showClose?: boolean
-  noPadding?: boolean
+  trigger?: ReactNode;
+  title?: string;
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  side?: 'left' | 'right';
+  showClose?: boolean;
+  noPadding?: boolean;
 }
 
 export function CpcDrawer({
@@ -50,5 +50,5 @@ export function CpcDrawer({
         </Drawer.Popup>
       </Drawer.Portal>
     </Drawer.Root>
-  )
+  );
 }

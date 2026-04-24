@@ -1,10 +1,10 @@
 {
   "name": "@vigooth/tui",
   "version": "0.1.0",
-  "type": "module",
   "bin": {
     "tui": "./bin/tui.js"
   },
+  "type": "module",
   "scripts": {
     "dev": "tsx src/index.tsx",
     "build": "tsup src/index.tsx --format esm --dts",

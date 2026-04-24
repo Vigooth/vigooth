@@ -1,33 +1,33 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from '../stores/AuthProvider'
-import { useAuth } from '../stores/auth'
-import { QueryProvider } from './providers'
-import { LoginPage } from './pages/LoginPage'
-import { UnlockPage } from './pages/UnlockPage'
-import { VaultPage } from './pages/VaultPage'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '../stores/AuthProvider';
+import { useAuth } from '../stores/auth';
+import { QueryProvider } from './providers';
+import { LoginPage } from './pages/LoginPage';
+import { UnlockPage } from './pages/UnlockPage';
+import { VaultPage } from './pages/VaultPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, masterPassword } = useAuth()
+  const { isAuthenticated, masterPassword } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (!masterPassword) {
-    return <Navigate to="/unlock" replace />
+    return <Navigate to="/unlock" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/unlock" replace />
+    return <Navigate to="/unlock" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function AppRoutes() {
@@ -52,7 +52,7 @@ function AppRoutes() {
       />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-  )
+  );
 }
 
 export function App() {
@@ -64,5 +64,5 @@ export function App() {
         </BrowserRouter>
       </AuthProvider>
     </QueryProvider>
-  )
+  );
 }

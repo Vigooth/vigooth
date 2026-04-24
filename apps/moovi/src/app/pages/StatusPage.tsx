@@ -1,10 +1,10 @@
-import { Header } from '@/components/layout/Header'
-import { CpcButton, cn } from '@vigooth/ui'
-import { useServiceHealth } from '@/hooks/useServiceHealth'
-import type { ServiceStatus } from '@/lib/api/health'
+import { Header } from '@/components/layout/Header';
+import { CpcButton, cn } from '@vigooth/ui';
+import { useServiceHealth } from '@/hooks/useServiceHealth';
+import type { ServiceStatus } from '@/lib/api/health';
 
 function ServiceRow({ service }: { service: ServiceStatus }) {
-  const isOk = service.status === 'ok'
+  const isOk = service.status === 'ok';
 
   return (
     <div className="flex items-center justify-between border-2 border-cpc-green-900 px-4 py-3">
@@ -13,21 +13,21 @@ function ServiceRow({ service }: { service: ServiceStatus }) {
         <span className="text-cpc-green-900 text-xs">{service.latency_ms}ms</span>
         <span
           className={cn(
-            "text-xs font-bold px-2 py-0.5 border",
+            'text-xs font-bold px-2 py-0.5 border',
             isOk
-              ? "text-cpc-green-500 border-cpc-green-500"
-              : "text-cpc-red-500 border-cpc-red-500",
+              ? 'text-cpc-green-500 border-cpc-green-500'
+              : 'text-cpc-red-500 border-cpc-red-500',
           )}
         >
           {isOk ? 'ONLINE' : 'OFFLINE'}
         </span>
       </div>
     </div>
-  )
+  );
 }
 
 export function StatusPage() {
-  const { data, isLoading, isFetching, refetch } = useServiceHealth()
+  const { data, isLoading, isFetching, refetch } = useServiceHealth();
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
@@ -77,5 +77,5 @@ export function StatusPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

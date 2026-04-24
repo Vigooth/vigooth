@@ -1,1 +1,1 @@
-export { CpcButton } from './CpcButton'
+export { CpcButton } from './CpcButton';

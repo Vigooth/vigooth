@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ReactNode } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,13 +15,13 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-})
+});
 
 // Only load devtools in development
-const isDev = import.meta.env.DEV
+const isDev = import.meta.env.DEV;
 
 interface QueryProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
@@ -30,7 +30,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
       {children}
       {isDev && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
-  )
+  );
 }
 
-export { queryClient }
+export { queryClient };

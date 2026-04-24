@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef } from 'react';
 
 export const Search = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   function Search(props, ref) {
@@ -7,6 +7,6 @@ export const Search = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
         <path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </svg>
-    )
+    );
   },
-)
+);

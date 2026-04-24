@@ -1,4 +1,4 @@
-import { CommandFn } from './types'
+import { CommandFn } from './types';
 
 export const help: CommandFn = (_args, _ctx, t) => {
   return {
@@ -14,6 +14,6 @@ export const help: CommandFn = (_args, _ctx, t) => {
   ${t('terminal.help.ls')}
   ${t('terminal.help.cat')}
   ${t('terminal.help.gen')}
-  ${t('terminal.help.pwd')}`
-  }
-}
+  ${t('terminal.help.pwd')}`,
+  };
+};

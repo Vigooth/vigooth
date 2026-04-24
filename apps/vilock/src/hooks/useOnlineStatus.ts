@@ -1,20 +1,20 @@
-import { useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react';
 
 function subscribe(callback: () => void) {
-  window.addEventListener('online', callback)
-  window.addEventListener('offline', callback)
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
   return () => {
-    window.removeEventListener('online', callback)
-    window.removeEventListener('offline', callback)
-  }
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
 }
 
 function getSnapshot() {
-  return navigator.onLine
+  return navigator.onLine;
 }
 
 function getServerSnapshot() {
-  return true // SSR assumes online
+  return true; // SSR assumes online
 }
 
 /**
@@ -22,5 +22,5 @@ function getServerSnapshot() {
  * Uses the browser's navigator.onLine API with event listeners
  */
 export function useOnlineStatus() {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

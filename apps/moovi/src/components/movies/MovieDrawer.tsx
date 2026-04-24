@@ -1,16 +1,16 @@
-import { Drawer } from '@base-ui/react/drawer'
-import type { Movie } from '@/types/movie'
-import { MovieDetails } from './MovieDetails'
+import { Drawer } from '@base-ui/react/drawer';
+import type { Movie } from '@/types/movie';
+import { MovieDetails } from './MovieDetails';
 
 interface MovieDrawerProps {
-  movie: Movie | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onDeleted?: () => void
+  movie: Movie | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDeleted?: () => void;
 }
 
 export function MovieDrawer({ movie, open, onOpenChange, onDeleted }: MovieDrawerProps) {
-  if (!movie) return null
+  if (!movie) return null;
 
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} swipeDirection="right">
@@ -32,8 +32,8 @@ export function MovieDrawer({ movie, open, onOpenChange, onDeleted }: MovieDrawe
               <MovieDetails
                 tmdbId={movie.tmdb_id}
                 onDeleted={() => {
-                  onOpenChange(false)
-                  onDeleted?.()
+                  onOpenChange(false);
+                  onDeleted?.();
                 }}
               />
             </Drawer.Content>
@@ -41,5 +41,5 @@ export function MovieDrawer({ movie, open, onOpenChange, onDeleted }: MovieDrawe
         </Drawer.Viewport>
       </Drawer.Portal>
     </Drawer.Root>
-  )
+  );
 }

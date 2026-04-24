@@ -1,27 +1,29 @@
-import { cn } from '../utils/cn'
+import { cn } from '../utils/cn';
 
 export interface AppConfig {
-  id: string
-  name: string
-  description: string
-  icon: string
-  url: string
-  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  url: string;
+  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta';
 }
 
 interface AppMenuProps {
-  apps: AppConfig[]
-  currentAppId?: string
-  portalUrl?: string
+  apps: AppConfig[];
+  currentAppId?: string;
+  portalUrl?: string;
 }
 
 const colorStyles: Record<AppConfig['color'], string> = {
   green: 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-cpc-grey-900',
   red: 'border-cpc-red-500 text-cpc-red-500 hover:bg-cpc-red-500 hover:text-cpc-grey-900',
   cyan: 'border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-cpc-grey-900',
-  yellow: 'border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900',
-  magenta: 'border-cpc-magenta-500 text-cpc-magenta-500 hover:bg-cpc-magenta-500 hover:text-cpc-grey-900',
-}
+  yellow:
+    'border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900',
+  magenta:
+    'border-cpc-magenta-500 text-cpc-magenta-500 hover:bg-cpc-magenta-500 hover:text-cpc-grey-900',
+};
 
 export function AppMenu({ apps, currentAppId, portalUrl }: AppMenuProps) {
   return (
@@ -66,5 +68,5 @@ export function AppMenu({ apps, currentAppId, portalUrl }: AppMenuProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

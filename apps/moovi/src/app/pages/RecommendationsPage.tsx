@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CpcLayout, cn } from '@vigooth/ui'
-import { useAuth } from '@/stores/auth'
-import { useMoviesQuery } from '@/hooks/useMoviesQuery'
-import { useRecommendations } from '@/hooks/useRecommendations'
-import { Header } from '@/components/layout/Header'
-import { getPosterUrl } from '@/utils/tmdbImage'
-import type { Recommendation } from '@/lib/api/recommendations'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcLayout, cn } from '@vigooth/ui';
+import { useAuth } from '@/stores/auth';
+import { useMoviesQuery } from '@/hooks/useMoviesQuery';
+import { useRecommendations } from '@/hooks/useRecommendations';
+import { Header } from '@/components/layout/Header';
+import { getPosterUrl } from '@/utils/tmdbImage';
+import type { Recommendation } from '@/lib/api/recommendations';
 
 const RATING_PRESETS = [
   { label: 'TOUTES', value: 0 },
@@ -14,71 +14,80 @@ const RATING_PRESETS = [
   { label: '6+', value: 6 },
   { label: '7+', value: 7 },
   { label: '8+', value: 8 },
-] as const
+] as const;
 
 export function RecommendationsPage() {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const { data } = useMoviesQuery({
     onAuthError: () => {
-      logout()
-      navigate('/login')
+      logout();
+      navigate('/login');
     },
-  })
+  });
 
   const {
-    recommendations, events, isLoading, error, tokens,
-    history, activeHistoryIndex, selectHistoryEntry,
-    generate, generateSimple, cancel,
-  } = useRecommendations()
+    recommendations,
+    events,
+    isLoading,
+    error,
+    tokens,
+    history,
+    activeHistoryIndex,
+    selectHistoryEntry,
+    generate,
+    generateSimple,
+    cancel,
+  } = useRecommendations();
 
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [showPicker, setShowPicker] = useState(false)
-  const [vibe, setVibe] = useState(50)
-  const [minRating, setMinRating] = useState(0)
-  const [yearFrom, setYearFrom] = useState('')
-  const [yearTo, setYearTo] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showPicker, setShowPicker] = useState(false);
+  const [vibe, setVibe] = useState(50);
+  const [minRating, setMinRating] = useState(0);
+  const [yearFrom, setYearFrom] = useState('');
+  const [yearTo, setYearTo] = useState('');
 
   const toggleMovie = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-  const allMovies = data?.movies ?? []
+  const allMovies = data?.movies ?? [];
 
-  const fromYear = yearFrom ? parseInt(yearFrom, 10) : undefined
-  const toYear = yearTo ? parseInt(yearTo, 10) : undefined
+  const fromYear = yearFrom ? parseInt(yearFrom, 10) : undefined;
+  const toYear = yearTo ? parseInt(yearTo, 10) : undefined;
 
   const filteredMovies = allMovies.filter((m) => {
     if (minRating > 0) {
-      if (!m.personal_rating || m.personal_rating < minRating) return false
+      if (!m.personal_rating || m.personal_rating < minRating) return false;
     }
-    return true
-  })
+    return true;
+  });
 
-  const hasFilters = minRating > 0
-  const movieIds = selectedIds.size > 0
-    ? Array.from(selectedIds)
-    : hasFilters
-      ? filteredMovies.map((m) => m.id)
-      : []
+  const hasFilters = minRating > 0;
+  const movieIds =
+    selectedIds.size > 0
+      ? Array.from(selectedIds)
+      : hasFilters
+        ? filteredMovies.map((m) => m.id)
+        : [];
 
   const handleGenerate = () => {
-    generateSimple(movieIds, vibe, fromYear, toYear)
-    setShowPicker(false)
-  }
+    generateSimple(movieIds, vibe, fromYear, toYear);
+    setShowPicker(false);
+  };
 
   const handleGenerateIA = () => {
-    generate(movieIds, vibe, fromYear, toYear)
-    setShowPicker(false)
-  }
+    generate(movieIds, vibe, fromYear, toYear);
+    setShowPicker(false);
+  };
 
-  const movies = filteredMovies
+  const movies = filteredMovies;
 
   return (
     <CpcLayout>
@@ -93,14 +102,20 @@ export function RecommendationsPage() {
               <select
                 value={activeHistoryIndex ?? ''}
                 onChange={(e) => {
-                  const idx = Number(e.target.value)
-                  if (!isNaN(idx)) selectHistoryEntry(idx)
+                  const idx = Number(e.target.value);
+                  if (!isNaN(idx)) selectHistoryEntry(idx);
                 }}
                 className="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 outline-none cursor-pointer"
               >
                 {history.map((entry, i) => (
                   <option key={entry.id} value={i}>
-                    #{i + 1} — {new Date(entry.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    #{i + 1} —{' '}
+                    {new Date(entry.created_at).toLocaleString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </option>
                 ))}
               </select>
@@ -115,7 +130,15 @@ export function RecommendationsPage() {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-cpc-cyan-500 text-xs">NICHE</span>
                   <span className="text-cpc-green-500 text-xs font-bold">
-                    {vibe <= 20 ? '100% PEPITES' : vibe <= 40 ? 'PLUTOT NICHE' : vibe <= 60 ? 'EQUILIBRE' : vibe <= 80 ? 'PLUTOT POPULAIRE' : '100% POPULAIRE'}
+                    {vibe <= 20
+                      ? '100% PEPITES'
+                      : vibe <= 40
+                        ? 'PLUTOT NICHE'
+                        : vibe <= 60
+                          ? 'EQUILIBRE'
+                          : vibe <= 80
+                            ? 'PLUTOT POPULAIRE'
+                            : '100% POPULAIRE'}
                   </span>
                   <span className="text-cpc-yellow-500 text-xs">POPULAIRE</span>
                 </div>
@@ -137,12 +160,15 @@ export function RecommendationsPage() {
                   {RATING_PRESETS.map((preset) => (
                     <button
                       key={preset.value}
-                      onClick={() => { setMinRating(preset.value); setSelectedIds(new Set()) }}
+                      onClick={() => {
+                        setMinRating(preset.value);
+                        setSelectedIds(new Set());
+                      }}
                       className={cn(
-                        "border px-2 py-0.5 text-xs transition-colors",
+                        'border px-2 py-0.5 text-xs transition-colors',
                         minRating === preset.value
-                          ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                          : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                          ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                          : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                       )}
                     >
                       {preset.label}
@@ -172,7 +198,10 @@ export function RecommendationsPage() {
                   />
                   {(yearFrom || yearTo) && (
                     <button
-                      onClick={() => { setYearFrom(''); setYearTo('') }}
+                      onClick={() => {
+                        setYearFrom('');
+                        setYearTo('');
+                      }}
                       className="text-cpc-green-900 text-xs hover:text-cpc-red-500 transition-colors"
                     >
                       RESET
@@ -187,14 +216,19 @@ export function RecommendationsPage() {
                   onClick={() => setShowPicker((p) => !p)}
                   className="text-cpc-green-900 text-xs hover:text-cpc-green-500 transition-colors"
                 >
-                  COLLECTION: {selectedIds.size > 0 ? (
-                    <span className="text-cpc-yellow-500">{selectedIds.size} FILM{selectedIds.size > 1 ? 'S' : ''}</span>
+                  COLLECTION:{' '}
+                  {selectedIds.size > 0 ? (
+                    <span className="text-cpc-yellow-500">
+                      {selectedIds.size} FILM{selectedIds.size > 1 ? 'S' : ''}
+                    </span>
                   ) : hasFilters ? (
-                    <span className="text-cpc-yellow-500">{filteredMovies.length} FILM{filteredMovies.length !== 1 ? 'S' : ''}</span>
+                    <span className="text-cpc-yellow-500">
+                      {filteredMovies.length} FILM{filteredMovies.length !== 1 ? 'S' : ''}
+                    </span>
                   ) : (
                     <span className="text-cpc-green-500">TOUT</span>
-                  )}
-                  {' '}{showPicker ? '\u25B2' : '\u25BC'}
+                  )}{' '}
+                  {showPicker ? '\u25B2' : '\u25BC'}
                 </button>
                 {selectedIds.size > 0 && (
                   <button
@@ -210,17 +244,17 @@ export function RecommendationsPage() {
               {showPicker && (
                 <div className="flex flex-wrap gap-2 max-h-48 overflow-auto mb-3 pt-2 border-t border-cpc-green-900">
                   {movies.map((movie) => {
-                    const selected = selectedIds.has(movie.id)
-                    const poster = getPosterUrl(movie.poster_path, 'w92')
+                    const selected = selectedIds.has(movie.id);
+                    const poster = getPosterUrl(movie.poster_path, 'w92');
                     return (
                       <button
                         key={movie.id}
                         onClick={() => toggleMovie(movie.id)}
                         className={cn(
-                          "border-2 flex items-center gap-2 px-2 py-1 text-xs transition-colors text-left",
+                          'border-2 flex items-center gap-2 px-2 py-1 text-xs transition-colors text-left',
                           selected
-                            ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                            : "border-cpc-green-900 text-cpc-green-500 hover:border-cpc-green-500",
+                            ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                            : 'border-cpc-green-900 text-cpc-green-500 hover:border-cpc-green-500',
                         )}
                       >
                         {poster && (
@@ -228,10 +262,12 @@ export function RecommendationsPage() {
                         )}
                         <span className="truncate max-w-[150px]">{movie.title}</span>
                         {movie.personal_rating && (
-                          <span className="text-cpc-yellow-500 flex-shrink-0">{movie.personal_rating}/10</span>
+                          <span className="text-cpc-yellow-500 flex-shrink-0">
+                            {movie.personal_rating}/10
+                          </span>
                         )}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -242,10 +278,10 @@ export function RecommendationsPage() {
                   onClick={handleGenerate}
                   disabled={!data || allMovies.length === 0}
                   className={cn(
-                    "border-2 px-6 py-2 text-xs font-bold transition-colors flex-1",
+                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
                     data && allMovies.length > 0
-                      ? "border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black"
-                      : "border-cpc-green-900 text-cpc-green-900 cursor-not-allowed",
+                      ? 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black'
+                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
                   )}
                 >
                   GENERATE
@@ -254,10 +290,10 @@ export function RecommendationsPage() {
                   onClick={handleGenerateIA}
                   disabled={!data || allMovies.length === 0}
                   className={cn(
-                    "border-2 px-6 py-2 text-xs font-bold transition-colors flex-1",
+                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
                     data && allMovies.length > 0
-                      ? "border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black"
-                      : "border-cpc-green-900 text-cpc-green-900 cursor-not-allowed",
+                      ? 'border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black'
+                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
                   )}
                 >
                   GENERATE IA
@@ -278,7 +314,6 @@ export function RecommendationsPage() {
             </div>
           )}
 
-
           {!data || allMovies.length === 0 ? (
             <div className="text-cpc-green-900 text-xs">
               ADD MOVIES TO YOUR COLLECTION FIRST TO GET RECOMMENDATIONS
@@ -293,21 +328,20 @@ export function RecommendationsPage() {
                 {tokens && (
                   <div className="text-cpc-yellow-500 text-xs">
                     TOKENS: {tokens.total_tokens.toLocaleString()}
-                    {tokens.input_tokens > 0 && ` (in: ${tokens.input_tokens.toLocaleString()} / out: ${tokens.output_tokens.toLocaleString()})`}
+                    {tokens.input_tokens > 0 &&
+                      ` (in: ${tokens.input_tokens.toLocaleString()} / out: ${tokens.output_tokens.toLocaleString()})`}
                   </div>
                 )}
               </div>
               {events
                 .filter((e) => e.type !== 'recommendation' && e.type !== 'done')
                 .map((event, i) => (
-                  <div key={i} className={cn("text-xs mb-1", eventColor(event.type))}>
+                  <div key={i} className={cn('text-xs mb-1', eventColor(event.type))}>
                     <span className="text-cpc-green-900">[{event.type.toUpperCase()}]</span>{' '}
                     {event.message}
                   </div>
                 ))}
-              {isLoading && (
-                <div className="text-cpc-cyan-500 text-xs animate-pulse">...</div>
-              )}
+              {isLoading && <div className="text-cpc-cyan-500 text-xs animate-pulse">...</div>}
             </div>
           )}
 
@@ -334,40 +368,40 @@ export function RecommendationsPage() {
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }
 
 function eventColor(type: string) {
   switch (type) {
     case 'thinking':
-      return 'text-cpc-cyan-500'
+      return 'text-cpc-cyan-500';
     case 'tool_call':
-      return 'text-cpc-green-500'
+      return 'text-cpc-green-500';
     case 'error':
-      return 'text-cpc-red-500'
+      return 'text-cpc-red-500';
     default:
-      return 'text-cpc-green-500'
+      return 'text-cpc-green-500';
   }
 }
 
 function RecommendationCard({ recommendation }: { recommendation: Recommendation }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const posterUrl = recommendation.poster_path
     ? getPosterUrl(recommendation.poster_path, 'w342')
-    : null
+    : null;
 
   const handleClick = () => {
     if (recommendation.tmdb_id) {
-      navigate(`/movie/${recommendation.tmdb_id}`)
+      navigate(`/movie/${recommendation.tmdb_id}`);
     }
-  }
+  };
 
   return (
     <div
       onClick={handleClick}
       className={cn(
-        "border-2 border-cpc-green-900 hover:border-cpc-cyan-500 transition-colors",
-        !!recommendation.tmdb_id && "cursor-pointer",
+        'border-2 border-cpc-green-900 hover:border-cpc-cyan-500 transition-colors',
+        !!recommendation.tmdb_id && 'cursor-pointer',
       )}
     >
       <div className="flex">
@@ -388,15 +422,9 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
 
         {/* Info */}
         <div className="p-3 flex-1 min-w-0">
-          <div className="text-cpc-cyan-500 text-sm font-bold truncate">
-            {recommendation.title}
-          </div>
-          <div className="text-cpc-green-900 text-xs mb-2">
-            {recommendation.year || ''}
-          </div>
-          <div className="text-cpc-green-500 text-xs leading-relaxed">
-            {recommendation.reason}
-          </div>
+          <div className="text-cpc-cyan-500 text-sm font-bold truncate">{recommendation.title}</div>
+          <div className="text-cpc-green-900 text-xs mb-2">{recommendation.year || ''}</div>
+          <div className="text-cpc-green-500 text-xs leading-relaxed">{recommendation.reason}</div>
           {recommendation.allocine_url && (
             <a
               href={recommendation.allocine_url}
@@ -411,5 +439,5 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -8,10 +8,7 @@ export interface ExitPromptProps {
   onConfirm: (choice: ExitChoice) => void;
 }
 
-export function ExitPrompt({
-  hasRunningServices = false,
-  onConfirm,
-}: ExitPromptProps) {
+export function ExitPrompt({ hasRunningServices = false, onConfirm }: ExitPromptProps) {
   useInput((input, key) => {
     const lower = input.toLowerCase();
     if (lower === 'y') onConfirm('yes');

@@ -1,43 +1,43 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Drawer } from '@base-ui/react/drawer'
-import { CpcLayout, cn, ListIcon, GridCompactIcon, CpcMenu, CpcMenuItem } from '@vigooth/ui'
-import { getAppsConfig } from '@vigooth/config'
-import { useAuth } from '@/stores/auth'
-import { usePublicCollectionQuery } from '@/hooks/usePublicCollectionQuery'
-import { useMyTmdbIds } from '@/hooks/useMyTmdbIds'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
-import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam'
-import { SearchBar } from '@/components/search/SearchBar'
-import { MovieGrid } from '@/components/movies/MovieGrid'
-import { PublicMovieDetails } from '@/components/movies/PublicMovieDetails'
-import type { Movie } from '@/types/movie'
+import { useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Drawer } from '@base-ui/react/drawer';
+import { CpcLayout, cn, ListIcon, GridCompactIcon, CpcMenu, CpcMenuItem } from '@vigooth/ui';
+import { getAppsConfig } from '@vigooth/config';
+import { useAuth } from '@/stores/auth';
+import { usePublicCollectionQuery } from '@/hooks/usePublicCollectionQuery';
+import { useMyTmdbIds } from '@/hooks/useMyTmdbIds';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam';
+import { SearchBar } from '@/components/search/SearchBar';
+import { MovieGrid } from '@/components/movies/MovieGrid';
+import { PublicMovieDetails } from '@/components/movies/PublicMovieDetails';
+import type { Movie } from '@/types/movie';
 
-type CompareFilter = 'all' | 'common' | 'unique'
+type CompareFilter = 'all' | 'common' | 'unique';
 
 export function PublicCollectionPage() {
-  const { userId } = useParams<{ userId: string }>()
-  const { isAuthenticated } = useAuth()
-  const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [search, setSearch] = useQueryParam('q')
-  const [minRating, setMinRating] = useQueryParamNumber('rating')
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid')
-  const [compareFilter, setCompareFilter] = useState<CompareFilter>('all')
-  const debouncedSearch = useDebounce(search, 300)
+  const { userId } = useParams<{ userId: string }>();
+  const { isAuthenticated } = useAuth();
+  const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useQueryParam('q');
+  const [minRating, setMinRating] = useQueryParamNumber('rating');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
+  const [compareFilter, setCompareFilter] = useState<CompareFilter>('all');
+  const debouncedSearch = useDebounce(search, 300);
 
-  const otherApps = getAppsConfig('movies')
-  const { data: myTmdbIds } = useMyTmdbIds()
+  const otherApps = getAppsConfig('movies');
+  const { data: myTmdbIds } = useMyTmdbIds();
 
   const openDrawer = (movie: Movie) => {
-    setDrawerMovie(movie)
-    setDrawerOpen(true)
-  }
+    setDrawerMovie(movie);
+    setDrawerOpen(true);
+  };
 
   const closeDrawer = () => {
-    setDrawerOpen(false)
-  }
+    setDrawerOpen(false);
+  };
 
   const {
     movies: allMovies,
@@ -50,25 +50,25 @@ export function PublicCollectionPage() {
   } = usePublicCollectionQuery(userId!, {
     search: debouncedSearch,
     minRating,
-  })
+  });
 
   const movies = useMemo(() => {
-    if (compareFilter === 'all' || !myTmdbIds) return allMovies
-    if (compareFilter === 'common') return allMovies.filter((m) => myTmdbIds.has(m.tmdb_id))
-    return allMovies.filter((m) => !myTmdbIds.has(m.tmdb_id))
-  }, [allMovies, compareFilter, myTmdbIds])
+    if (compareFilter === 'all' || !myTmdbIds) return allMovies;
+    if (compareFilter === 'common') return allMovies.filter((m) => myTmdbIds.has(m.tmdb_id));
+    return allMovies.filter((m) => !myTmdbIds.has(m.tmdb_id));
+  }, [allMovies, compareFilter, myTmdbIds]);
 
   const { scrollRef, sentinelRef } = useInfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  })
+  });
 
   const compareFilters: { label: string; value: CompareFilter }[] = [
     { label: 'TOUS', value: 'all' },
     { label: 'EN COMMUN', value: 'common' },
     { label: 'PAS DANS MA COLLECTION', value: 'unique' },
-  ]
+  ];
 
   return (
     <CpcLayout>
@@ -84,7 +84,12 @@ export function PublicCollectionPage() {
             }
           >
             {otherApps.map((app) => (
-              <CpcMenuItem key={app.id} onClick={() => { window.location.href = app.url }}>
+              <CpcMenuItem
+                key={app.id}
+                onClick={() => {
+                  window.location.href = app.url;
+                }}
+              >
                 {app.name}
               </CpcMenuItem>
             ))}
@@ -93,11 +98,7 @@ export function PublicCollectionPage() {
         </div>
 
         <div className="p-3 space-y-2">
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            placeholder="Search collection..."
-          />
+          <SearchBar value={search} onChange={setSearch} placeholder="Search collection..." />
 
           {/* Compare filter (only when logged in) */}
           {isAuthenticated && myTmdbIds && (
@@ -107,10 +108,10 @@ export function PublicCollectionPage() {
                   key={f.value}
                   onClick={() => setCompareFilter(f.value)}
                   className={cn(
-                    "border px-3 py-1 text-xs transition-colors whitespace-nowrap",
+                    'border px-3 py-1 text-xs transition-colors whitespace-nowrap',
                     compareFilter === f.value
-                      ? "border-cpc-magenta-500 text-cpc-magenta-500"
-                      : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                      ? 'border-cpc-magenta-500 text-cpc-magenta-500'
+                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                   )}
                 >
                   {f.label}
@@ -132,10 +133,10 @@ export function PublicCollectionPage() {
                   key={preset.value}
                   onClick={() => setMinRating(preset.value)}
                   className={cn(
-                    "border px-3 py-1 text-xs transition-colors",
+                    'border px-3 py-1 text-xs transition-colors',
                     minRating === preset.value
-                      ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                      : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                      ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                   )}
                 >
                   {preset.label}
@@ -146,10 +147,10 @@ export function PublicCollectionPage() {
               <button
                 onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
                 className={cn(
-                  "border p-1.5 transition-colors",
+                  'border p-1.5 transition-colors',
                   viewMode === 'list'
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <ListIcon size="sm" />
@@ -157,10 +158,10 @@ export function PublicCollectionPage() {
               <button
                 onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
                 className={cn(
-                  "border p-1.5 transition-colors",
+                  'border p-1.5 transition-colors',
                   viewMode === 'compact'
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <GridCompactIcon size="sm" />
@@ -187,24 +188,29 @@ export function PublicCollectionPage() {
                     ? `${movies.length}/${total}`
                     : `${total}`}{' '}
                 MOVIE{total !== 1 ? 'S' : ''}{' '}
-                {compareFilter === 'common' ? 'EN COMMUN' : compareFilter === 'unique' ? 'PAS DANS MA COLLECTION' : 'IN COLLECTION'}
+                {compareFilter === 'common'
+                  ? 'EN COMMUN'
+                  : compareFilter === 'unique'
+                    ? 'PAS DANS MA COLLECTION'
+                    : 'IN COLLECTION'}
               </div>
               <MovieGrid
                 movies={movies}
                 viewMode={viewMode}
                 onMovieClick={openDrawer}
                 emptyMessage={
-                  compareFilter === 'common' ? 'AUCUN FILM EN COMMUN'
-                  : compareFilter === 'unique' ? 'TOUS SES FILMS SONT DANS TA COLLECTION'
-                  : debouncedSearch || minRating > 0 ? 'NO RESULTS'
-                  : 'EMPTY COLLECTION'
+                  compareFilter === 'common'
+                    ? 'AUCUN FILM EN COMMUN'
+                    : compareFilter === 'unique'
+                      ? 'TOUS SES FILMS SONT DANS TA COLLECTION'
+                      : debouncedSearch || minRating > 0
+                        ? 'NO RESULTS'
+                        : 'EMPTY COLLECTION'
                 }
               />
               <div ref={sentinelRef} className="h-4" />
               {isFetchingNextPage && (
-                <div className="text-center py-3 text-cpc-cyan-500 text-xs">
-                  LOADING MORE...
-                </div>
+                <div className="text-center py-3 text-cpc-cyan-500 text-xs">LOADING MORE...</div>
               )}
             </>
           )}
@@ -213,7 +219,13 @@ export function PublicCollectionPage() {
 
       {/* Movie detail drawer (read-only) */}
       {drawerMovie && (
-        <Drawer.Root open={drawerOpen} onOpenChange={(open) => { if (!open) closeDrawer() }} swipeDirection="right">
+        <Drawer.Root
+          open={drawerOpen}
+          onOpenChange={(open) => {
+            if (!open) closeDrawer();
+          }}
+          swipeDirection="right"
+        >
           <Drawer.Portal>
             <Drawer.Backdrop className="moovi-drawer-backdrop" />
             <Drawer.Viewport>
@@ -224,7 +236,9 @@ export function PublicCollectionPage() {
                   </Drawer.Close>
                 </div>
                 <Drawer.Title className="sr-only">{drawerMovie.title}</Drawer.Title>
-                <Drawer.Description className="sr-only">{drawerMovie.title} details</Drawer.Description>
+                <Drawer.Description className="sr-only">
+                  {drawerMovie.title} details
+                </Drawer.Description>
                 <Drawer.Content className="flex-1 overflow-y-auto" key={drawerMovie.id}>
                   <PublicMovieDetails movie={drawerMovie} />
                 </Drawer.Content>
@@ -234,5 +248,5 @@ export function PublicCollectionPage() {
         </Drawer.Root>
       )}
     </CpcLayout>
-  )
+  );
 }

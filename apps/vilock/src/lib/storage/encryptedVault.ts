@@ -1,24 +1,22 @@
-import { get, set, del } from 'idb-keyval'
+import { get, set, del } from 'idb-keyval';
 
-const ENCRYPTED_VAULT_KEY = 'vilock-encrypted-vault'
+const ENCRYPTED_VAULT_KEY = 'vilock-encrypted-vault';
 
 export interface EncryptedVaultCache {
-  data: string // Encrypted vault data
-  updatedAt: string
+  data: string; // Encrypted vault data
+  updatedAt: string;
 }
 
 /**
  * Save encrypted vault to IndexedDB
  * Only stores encrypted data - passwords never stored in clear
  */
-export async function saveEncryptedVaultToCache(
-  encryptedData: string
-): Promise<void> {
+export async function saveEncryptedVaultToCache(encryptedData: string): Promise<void> {
   const cache: EncryptedVaultCache = {
     data: encryptedData,
     updatedAt: new Date().toISOString(),
-  }
-  await set(ENCRYPTED_VAULT_KEY, cache)
+  };
+  await set(ENCRYPTED_VAULT_KEY, cache);
 }
 
 /**
@@ -26,8 +24,8 @@ export async function saveEncryptedVaultToCache(
  * Returns null if no cache exists
  */
 export async function loadEncryptedVaultFromCache(): Promise<EncryptedVaultCache | null> {
-  const cache = await get<EncryptedVaultCache>(ENCRYPTED_VAULT_KEY)
-  return cache || null
+  const cache = await get<EncryptedVaultCache>(ENCRYPTED_VAULT_KEY);
+  return cache || null;
 }
 
 /**
@@ -35,5 +33,5 @@ export async function loadEncryptedVaultFromCache(): Promise<EncryptedVaultCache
  * Call this on logout
  */
 export async function clearEncryptedVaultCache(): Promise<void> {
-  await del(ENCRYPTED_VAULT_KEY)
+  await del(ENCRYPTED_VAULT_KEY);
 }

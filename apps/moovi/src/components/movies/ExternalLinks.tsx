@@ -1,19 +1,28 @@
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui'
-import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine'
-import { useYtsMovie } from '@/hooks/useYtsMovie'
+import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui';
+import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
+import { useYtsMovie } from '@/hooks/useYtsMovie';
 
 interface ExternalLinksProps {
-  imdbId: string | null
-  tmdbId: number
-  title: string
-  year: number
-  allocineId?: string | null
-  mediaType?: string
+  imdbId: string | null;
+  tmdbId: number;
+  title: string;
+  year: number;
+  allocineId?: string | null;
+  mediaType?: string;
 }
 
-export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaType = 'movie' }: ExternalLinksProps) {
-  const allocineUrl = allocineId ? getAllocineFilmUrl(allocineId) : getAllocineSearchUrl(title, year)
-  const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null)
+export function ExternalLinks({
+  imdbId,
+  tmdbId,
+  title,
+  year,
+  allocineId,
+  mediaType = 'movie',
+}: ExternalLinksProps) {
+  const allocineUrl = allocineId
+    ? getAllocineFilmUrl(allocineId)
+    : getAllocineSearchUrl(title, year);
+  const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -52,16 +61,16 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
         >
           {yts.url && (
             <>
-              <CpcMenuItem onClick={() => window.open(yts.url, '_blank')}>
-                Page YIFY
-              </CpcMenuItem>
+              <CpcMenuItem onClick={() => window.open(yts.url, '_blank')}>Page YIFY</CpcMenuItem>
               <CpcMenuSeparator />
             </>
           )}
           {yts.torrents.map((torrent) => (
             <CpcMenuItem
               key={`${torrent.quality}-${torrent.type}`}
-              onClick={() => { window.location.href = torrent.magnet }}
+              onClick={() => {
+                window.location.href = torrent.magnet;
+              }}
             >
               <span>{torrent.quality}</span>
               <span className="opacity-60 ml-1">
@@ -72,5 +81,5 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
         </CpcMenu>
       )}
     </div>
-  )
+  );
 }

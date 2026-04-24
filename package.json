@@ -1,9 +1,8 @@
 {
   "name": "vigooth",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev": "pnpm --filter @vigooth/portal dev",
     "dev:all": "pnpm --filter './apps/*' --parallel dev",
@@ -25,16 +24,17 @@
     "storybook": "pnpm --filter @vigooth/storybook dev",
     "build-storybook": "pnpm --filter @vigooth/storybook build"
   },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "tailwindcss": "^4.2.2"
+  },
   "devDependencies": {
     "husky": "^9.1.7",
     "oxfmt": "^0.46.0",
     "oxlint": "^1.61.0",
     "typescript": "~5.8.3"
   },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "tailwindcss": "^4.2.2"
-  },
+  "packageManager": "pnpm@10.14.0",
   "pnpm": {
     "packageExtensions": {
       "@inkjs/ui": {

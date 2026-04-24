@@ -26,75 +26,75 @@
   --text-6xl--line-height: 1;
 
   /* Colors — CPC palette */
-  --color-cpc-blue-50: #8080FF;
-  --color-cpc-blue-100: #6666FF;
-  --color-cpc-blue-200: #4D4DFF;
-  --color-cpc-blue-300: #3333FF;
-  --color-cpc-blue-400: #1A1AFF;
-  --color-cpc-blue-500: #0000FF;
-  --color-cpc-blue-600: #0000E6;
-  --color-cpc-blue-700: #0000CC;
-  --color-cpc-blue-800: #0000B3;
+  --color-cpc-blue-50: #8080ff;
+  --color-cpc-blue-100: #6666ff;
+  --color-cpc-blue-200: #4d4dff;
+  --color-cpc-blue-300: #3333ff;
+  --color-cpc-blue-400: #1a1aff;
+  --color-cpc-blue-500: #0000ff;
+  --color-cpc-blue-600: #0000e6;
+  --color-cpc-blue-700: #0000cc;
+  --color-cpc-blue-800: #0000b3;
   --color-cpc-blue-900: #000080;
 
-  --color-cpc-red-50: #FF8080;
-  --color-cpc-red-100: #FF6666;
-  --color-cpc-red-200: #FF4D4D;
-  --color-cpc-red-300: #FF3333;
-  --color-cpc-red-400: #FF1A1A;
-  --color-cpc-red-500: #FF0000;
-  --color-cpc-red-600: #E60000;
-  --color-cpc-red-700: #CC0000;
-  --color-cpc-red-800: #B30000;
+  --color-cpc-red-50: #ff8080;
+  --color-cpc-red-100: #ff6666;
+  --color-cpc-red-200: #ff4d4d;
+  --color-cpc-red-300: #ff3333;
+  --color-cpc-red-400: #ff1a1a;
+  --color-cpc-red-500: #ff0000;
+  --color-cpc-red-600: #e60000;
+  --color-cpc-red-700: #cc0000;
+  --color-cpc-red-800: #b30000;
   --color-cpc-red-900: #800000;
 
-  --color-cpc-green-50: #80FF80;
-  --color-cpc-green-100: #66FF66;
-  --color-cpc-green-200: #4DFF4D;
-  --color-cpc-green-300: #33FF33;
-  --color-cpc-green-400: #1AFF1A;
-  --color-cpc-green-500: #00FF00;
-  --color-cpc-green-600: #00E600;
-  --color-cpc-green-700: #00CC00;
-  --color-cpc-green-800: #00B300;
+  --color-cpc-green-50: #80ff80;
+  --color-cpc-green-100: #66ff66;
+  --color-cpc-green-200: #4dff4d;
+  --color-cpc-green-300: #33ff33;
+  --color-cpc-green-400: #1aff1a;
+  --color-cpc-green-500: #00ff00;
+  --color-cpc-green-600: #00e600;
+  --color-cpc-green-700: #00cc00;
+  --color-cpc-green-800: #00b300;
   --color-cpc-green-900: #008000;
 
-  --color-cpc-yellow-50: #FFFF80;
-  --color-cpc-yellow-100: #FFFF66;
-  --color-cpc-yellow-200: #FFFF4D;
-  --color-cpc-yellow-300: #FFFF33;
-  --color-cpc-yellow-400: #FFFF1A;
-  --color-cpc-yellow-500: #FFFF00;
-  --color-cpc-yellow-600: #E6E600;
-  --color-cpc-yellow-700: #CCCC00;
-  --color-cpc-yellow-800: #B3B300;
+  --color-cpc-yellow-50: #ffff80;
+  --color-cpc-yellow-100: #ffff66;
+  --color-cpc-yellow-200: #ffff4d;
+  --color-cpc-yellow-300: #ffff33;
+  --color-cpc-yellow-400: #ffff1a;
+  --color-cpc-yellow-500: #ffff00;
+  --color-cpc-yellow-600: #e6e600;
+  --color-cpc-yellow-700: #cccc00;
+  --color-cpc-yellow-800: #b3b300;
   --color-cpc-yellow-900: #808000;
 
-  --color-cpc-magenta-50: #FF80FF;
-  --color-cpc-magenta-100: #FF66FF;
-  --color-cpc-magenta-200: #FF4DFF;
-  --color-cpc-magenta-300: #FF33FF;
-  --color-cpc-magenta-400: #FF1AFF;
-  --color-cpc-magenta-500: #FF00FF;
-  --color-cpc-magenta-600: #E600E6;
-  --color-cpc-magenta-700: #CC00CC;
-  --color-cpc-magenta-800: #B300B3;
+  --color-cpc-magenta-50: #ff80ff;
+  --color-cpc-magenta-100: #ff66ff;
+  --color-cpc-magenta-200: #ff4dff;
+  --color-cpc-magenta-300: #ff33ff;
+  --color-cpc-magenta-400: #ff1aff;
+  --color-cpc-magenta-500: #ff00ff;
+  --color-cpc-magenta-600: #e600e6;
+  --color-cpc-magenta-700: #cc00cc;
+  --color-cpc-magenta-800: #b300b3;
   --color-cpc-magenta-900: #800080;
 
-  --color-cpc-cyan-50: #80FFFF;
-  --color-cpc-cyan-100: #66FFFF;
-  --color-cpc-cyan-200: #4DFFFF;
-  --color-cpc-cyan-300: #33FFFF;
-  --color-cpc-cyan-400: #1AFFFF;
-  --color-cpc-cyan-500: #00FFFF;
-  --color-cpc-cyan-600: #00E6E6;
-  --color-cpc-cyan-700: #00CCCC;
-  --color-cpc-cyan-800: #00B3B3;
+  --color-cpc-cyan-50: #80ffff;
+  --color-cpc-cyan-100: #66ffff;
+  --color-cpc-cyan-200: #4dffff;
+  --color-cpc-cyan-300: #33ffff;
+  --color-cpc-cyan-400: #1affff;
+  --color-cpc-cyan-500: #00ffff;
+  --color-cpc-cyan-600: #00e6e6;
+  --color-cpc-cyan-700: #00cccc;
+  --color-cpc-cyan-800: #00b3b3;
   --color-cpc-cyan-900: #008080;
 
-  --color-cpc-orange-500: #FF8000;
+  --color-cpc-orange-500: #ff8000;
 
-  --color-cpc-grey-50: #C0C0C0;
+  --color-cpc-grey-50: #c0c0c0;
   --color-cpc-grey-500: #808080;
   --color-cpc-grey-900: #0a0a0a;
 
@@ -107,30 +107,68 @@
   --animate-zoom-in: zoom-in 2s ease-in forwards;
 
   @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
   }
   @keyframes cursor {
-    0%, 50% { background-color: currentColor; }
-    51%, 100% { background-color: transparent; }
+    0%,
+    50% {
+      background-color: currentColor;
+    }
+    51%,
+    100% {
+      background-color: transparent;
+    }
   }
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes pulse-cpc {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
   @keyframes enter-door {
-    0% { transform: scale(1); filter: brightness(1); }
-    30% { transform: scale(1.1); }
-    60% { transform: scale(1.5); filter: brightness(0.8); }
-    100% { transform: scale(3); filter: brightness(0.3) blur(4px); opacity: 0; }
+    0% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    30% {
+      transform: scale(1.1);
+    }
+    60% {
+      transform: scale(1.5);
+      filter: brightness(0.8);
+    }
+    100% {
+      transform: scale(3);
+      filter: brightness(0.3) blur(4px);
+      opacity: 0;
+    }
   }
   @keyframes zoom-in {
-    0% { transform: scale(1); }
-    100% { transform: scale(10); opacity: 0; }
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(10);
+      opacity: 0;
+    }
   }
 }
 
@@ -139,26 +177,48 @@
 @layer components {
   /* CPC Screen effects */
   .cpc-screen {
-    background: linear-gradient(180deg, rgba(0,255,0,0.03) 0%, rgba(0,0,0,0) 50%, rgba(0,255,0,0.03) 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(0, 255, 0, 0.03) 0%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 255, 0, 0.03) 100%
+    );
     position: relative;
   }
   .cpc-screen::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.05) 2px, rgba(0,255,0,0.05) 4px);
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 0, 0.05) 2px,
+      rgba(0, 255, 0, 0.05) 4px
+    );
     pointer-events: none;
   }
 
   .cpc-screen-cyan {
-    background: linear-gradient(180deg, rgba(0,255,255,0.03) 0%, rgba(0,0,0,0) 50%, rgba(0,255,255,0.03) 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(0, 255, 255, 0.03) 0%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 255, 255, 0.03) 100%
+    );
     position: relative;
   }
   .cpc-screen-cyan::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.05) 2px, rgba(0,255,255,0.05) 4px);
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 255, 0.05) 2px,
+      rgba(0, 255, 255, 0.05) 4px
+    );
     pointer-events: none;
   }
 
@@ -167,7 +227,7 @@
   }
 
   .cpc-cursor {
-    background-color: #00FF00;
+    background-color: #00ff00;
     animation: var(--animate-cursor);
   }
 
@@ -273,10 +333,10 @@
     cursor: pointer;
     outline: none;
     user-select: none;
-    color: #FF0000;
+    color: #ff0000;
   }
   .cpc-menu-item-danger[data-highlighted] {
-    background: #FF0000;
+    background: #ff0000;
     color: #0a0a0a;
   }
 
@@ -313,12 +373,16 @@
   .cpc-drawer-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 40;
     transition: opacity 300ms ease;
   }
-  .cpc-drawer-backdrop[data-open] { opacity: 1; }
-  .cpc-drawer-backdrop[data-closed] { opacity: 0; }
+  .cpc-drawer-backdrop[data-open] {
+    opacity: 1;
+  }
+  .cpc-drawer-backdrop[data-closed] {
+    opacity: 0;
+  }
 
   .cpc-drawer-popup {
     position: fixed;
@@ -339,15 +403,23 @@
     left: 0;
     border-right: 4px solid var(--color-cpc-green-500);
   }
-  .cpc-drawer-left[data-open] { transform: translateX(0); }
-  .cpc-drawer-left[data-closed] { transform: translateX(-100%); }
+  .cpc-drawer-left[data-open] {
+    transform: translateX(0);
+  }
+  .cpc-drawer-left[data-closed] {
+    transform: translateX(-100%);
+  }
 
   .cpc-drawer-right {
     right: 0;
     border-left: 4px solid var(--color-cpc-green-500);
   }
-  .cpc-drawer-right[data-open] { transform: translateX(0); }
-  .cpc-drawer-right[data-closed] { transform: translateX(100%); }
+  .cpc-drawer-right[data-open] {
+    transform: translateX(0);
+  }
+  .cpc-drawer-right[data-closed] {
+    transform: translateX(100%);
+  }
 
   /* Door swing */
   .door-swing {
@@ -376,8 +448,12 @@
     transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
   }
   .moovi-drawer-backdrop[data-starting-style],
-  .moovi-drawer-backdrop[data-ending-style] { opacity: 0; }
-  .moovi-drawer-backdrop[data-swiping] { transition-duration: 0ms; }
+  .moovi-drawer-backdrop[data-ending-style] {
+    opacity: 0;
+  }
+  .moovi-drawer-backdrop[data-swiping] {
+    transition-duration: 0ms;
+  }
 
   .moovi-drawer-popup {
     position: fixed;
@@ -396,8 +472,13 @@
     transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
   }
   .moovi-drawer-popup[data-starting-style],
-  .moovi-drawer-popup[data-ending-style] { transform: translateX(100%); }
-  .moovi-drawer-popup[data-swiping] { transition-duration: 0ms; user-select: none; }
+  .moovi-drawer-popup[data-ending-style] {
+    transform: translateX(100%);
+  }
+  .moovi-drawer-popup[data-swiping] {
+    transition-duration: 0ms;
+    user-select: none;
+  }
 
   /* Chevron flip */
   .cpc-chevron-flip {
@@ -419,11 +500,19 @@
 }
 
 @keyframes door-swing {
-  0% { transform: perspective(1000px) rotateY(0deg); }
-  100% { transform: perspective(1000px) rotateY(-105deg); }
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(-105deg);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
 }

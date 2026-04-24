@@ -1,26 +1,26 @@
-import { forwardRef, useState } from 'react'
-import { cn } from '../utils/cn'
+import { forwardRef, useState } from 'react';
+import { cn } from '../utils/cn';
 
 interface CpcInputProps {
-  value: string
-  onChange: (value: string) => void
-  onEnter?: () => void
-  placeholder?: string
-  cursorBlink?: boolean
+  value: string;
+  onChange: (value: string) => void;
+  onEnter?: () => void;
+  placeholder?: string;
+  cursorBlink?: boolean;
 }
 
 const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
   ({ value, onChange, onEnter, placeholder = '', cursorBlink = true }, ref) => {
-    const [focused, setFocused] = useState(false)
+    const [focused, setFocused] = useState(false);
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' && onEnter) {
-        onEnter()
+        onEnter();
       }
-    }
+    };
 
-    const showPlaceholder = !value && !focused && placeholder
-    const showCursor = cursorBlink || focused
+    const showPlaceholder = !value && !focused && placeholder;
+    const showCursor = cursorBlink || focused;
 
     return (
       <div className="relative inline-flex items-baseline">
@@ -38,12 +38,17 @@ const CpcInput = forwardRef<HTMLInputElement, CpcInputProps>(
           className="absolute inset-0 bg-transparent border-none outline-none font-cpc text-transparent w-full"
           style={{ caretColor: 'transparent' }}
         />
-        <span className={cn('inline-block w-2 h-4 ml-0.5', showCursor ? 'cpc-cursor' : 'bg-transparent')} />
+        <span
+          className={cn(
+            'inline-block w-2 h-4 ml-0.5',
+            showCursor ? 'cpc-cursor' : 'bg-transparent',
+          )}
+        />
       </div>
-    )
+    );
   },
-)
+);
 
-CpcInput.displayName = 'CpcInput'
+CpcInput.displayName = 'CpcInput';
 
-export { CpcInput }
+export { CpcInput };

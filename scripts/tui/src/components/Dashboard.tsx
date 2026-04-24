@@ -56,11 +56,7 @@ export function Dashboard({ services, selectedRow }: DashboardProps) {
       <StatusBar />
       <Box flexDirection="column" paddingX={1} paddingY={1} flexGrow={1}>
         {services.map((service, i) => (
-          <ServiceRow
-            key={service.id}
-            service={service}
-            selected={i === selectedRow}
-          />
+          <ServiceRow key={service.id} service={service} selected={i === selectedRow} />
         ))}
         {errorServices.length > 0 && (
           <Box flexDirection="column" marginTop={1}>

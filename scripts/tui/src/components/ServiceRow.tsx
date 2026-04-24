@@ -11,8 +11,7 @@ export interface ServiceRowProps {
 const NAME_WIDTH = 10;
 
 export function ServiceRow({ service, selected = false }: ServiceRowProps) {
-  const isTransitioning =
-    service.status === 'starting' || service.status === 'stopping';
+  const isTransitioning = service.status === 'starting' || service.status === 'stopping';
 
   if (isTransitioning) {
     return (
@@ -43,8 +42,7 @@ export function ServiceRow({ service, selected = false }: ServiceRowProps) {
   return (
     <Box>
       <Text inverse={selected}>
-        <Text color={statusColor}>[{statusIcon}]</Text>{' '}
-        <Text>{service.id.padEnd(NAME_WIDTH)}</Text>{' '}
+        <Text color={statusColor}>[{statusIcon}]</Text> <Text>{service.id.padEnd(NAME_WIDTH)}</Text>{' '}
         <Text dimColor>{service.url}</Text>
       </Text>
     </Box>

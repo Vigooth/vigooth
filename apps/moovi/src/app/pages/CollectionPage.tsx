@@ -1,62 +1,55 @@
-import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CpcLayout, cn, ListIcon, GridCompactIcon } from '@vigooth/ui'
-import { useAuth } from '@/stores/auth'
-import { useMoviesQuery } from '@/hooks/useMoviesQuery'
-import { useBackfillOverviews } from '@/hooks/useBackfillOverviews'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
-import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam'
-import { Header } from '@/components/layout/Header'
-import { SearchBar } from '@/components/search/SearchBar'
-import { MovieGrid } from '@/components/movies/MovieGrid'
-import { MovieDrawer } from '@/components/movies/MovieDrawer'
-import type { Movie } from '@/types/movie'
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CpcLayout, cn, ListIcon, GridCompactIcon } from '@vigooth/ui';
+import { useAuth } from '@/stores/auth';
+import { useMoviesQuery } from '@/hooks/useMoviesQuery';
+import { useBackfillOverviews } from '@/hooks/useBackfillOverviews';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useQueryParam, useQueryParamNumber } from '@/hooks/useQueryParam';
+import { Header } from '@/components/layout/Header';
+import { SearchBar } from '@/components/search/SearchBar';
+import { MovieGrid } from '@/components/movies/MovieGrid';
+import { MovieDrawer } from '@/components/movies/MovieDrawer';
+import type { Movie } from '@/types/movie';
 
 export function CollectionPage() {
-  const navigate = useNavigate()
-  const { logout } = useAuth()
-  const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [search, setSearch] = useQueryParam('q')
-  const [minRating, setMinRating] = useQueryParamNumber('rating')
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid')
-  useBackfillOverviews()
-  const debouncedSearch = useDebounce(search, 300)
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [drawerMovie, setDrawerMovie] = useState<Movie | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useQueryParam('q');
+  const [minRating, setMinRating] = useQueryParamNumber('rating');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
+  useBackfillOverviews();
+  const debouncedSearch = useDebounce(search, 300);
 
   const openDrawer = (movie: Movie) => {
-    setDrawerMovie(movie)
-    setDrawerOpen(true)
-  }
+    setDrawerMovie(movie);
+    setDrawerOpen(true);
+  };
 
   const closeDrawer = () => {
-    setDrawerOpen(false)
-  }
+    setDrawerOpen(false);
+  };
 
   const onAuthError = useCallback(() => {
-    logout()
-    navigate('/login')
-  }, [logout, navigate])
+    logout();
+    navigate('/login');
+  }, [logout, navigate]);
 
-  const {
-    movies,
-    total,
-    isLoading,
-    isError,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useMoviesQuery({
-    search: debouncedSearch,
-    minRating,
-    onAuthError,
-  })
+  const { movies, total, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useMoviesQuery({
+      search: debouncedSearch,
+      minRating,
+      onAuthError,
+    });
 
   const { scrollRef, sentinelRef } = useInfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  })
+  });
 
   return (
     <CpcLayout>
@@ -64,11 +57,7 @@ export function CollectionPage() {
         <Header />
 
         <div className="p-3 space-y-2">
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            placeholder="Search collection..."
-          />
+          <SearchBar value={search} onChange={setSearch} placeholder="Search collection..." />
           <div className="flex items-center justify-between">
             <div className="flex gap-1">
               {[
@@ -82,10 +71,10 @@ export function CollectionPage() {
                   key={preset.value}
                   onClick={() => setMinRating(preset.value)}
                   className={cn(
-                    "border px-3 py-1 text-xs transition-colors",
+                    'border px-3 py-1 text-xs transition-colors',
                     minRating === preset.value
-                      ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                      : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                      ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                   )}
                 >
                   {preset.label}
@@ -96,10 +85,10 @@ export function CollectionPage() {
               <button
                 onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
                 className={cn(
-                  "border p-1.5 transition-colors",
+                  'border p-1.5 transition-colors',
                   viewMode === 'list'
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <ListIcon size="sm" />
@@ -107,10 +96,10 @@ export function CollectionPage() {
               <button
                 onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
                 className={cn(
-                  "border p-1.5 transition-colors",
+                  'border p-1.5 transition-colors',
                   viewMode === 'compact'
-                    ? "border-cpc-cyan-500 text-cpc-cyan-500"
-                    : "border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500",
+                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
+                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
                 )}
               >
                 <GridCompactIcon size="sm" />
@@ -131,10 +120,8 @@ export function CollectionPage() {
           ) : (
             <>
               <div className="text-cpc-green-500 text-xs mb-3">
-                {debouncedSearch || minRating > 0
-                  ? `${movies.length}/${total}`
-                  : `${total}`}{' '}
-                MOVIE{total !== 1 ? 'S' : ''} IN COLLECTION
+                {debouncedSearch || minRating > 0 ? `${movies.length}/${total}` : `${total}`} MOVIE
+                {total !== 1 ? 'S' : ''} IN COLLECTION
               </div>
               <MovieGrid
                 movies={movies}
@@ -144,9 +131,7 @@ export function CollectionPage() {
               />
               <div ref={sentinelRef} className="h-4" />
               {isFetchingNextPage && (
-                <div className="text-center py-3 text-cpc-cyan-500 text-xs">
-                  LOADING MORE...
-                </div>
+                <div className="text-center py-3 text-cpc-cyan-500 text-xs">LOADING MORE...</div>
               )}
             </>
           )}
@@ -156,9 +141,11 @@ export function CollectionPage() {
       <MovieDrawer
         movie={drawerMovie}
         open={drawerOpen}
-        onOpenChange={(open) => { if (!open) closeDrawer() }}
+        onOpenChange={(open) => {
+          if (!open) closeDrawer();
+        }}
         onDeleted={closeDrawer}
       />
     </CpcLayout>
-  )
+  );
 }

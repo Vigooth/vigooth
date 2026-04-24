@@ -17,12 +17,7 @@ const keybindings = [
 
 export function HelpModal() {
   return (
-    <Box
-      flexDirection="column"
-      borderStyle="single"
-      paddingX={2}
-      paddingY={1}
-    >
+    <Box flexDirection="column" borderStyle="single" paddingX={2} paddingY={1}>
       <Text bold>Keybindings</Text>
       <Text> </Text>
       {keybindings.map(({ key, action }) => (

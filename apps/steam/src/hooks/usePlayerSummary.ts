@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchPlayerSummary } from '@/lib/api/steam'
+import { useQuery } from '@tanstack/react-query';
+import { fetchPlayerSummary } from '@/lib/api/steam';
 
 export function usePlayerSummary(steamId: string | undefined) {
   return useQuery({
@@ -7,5 +7,5 @@ export function usePlayerSummary(steamId: string | undefined) {
     queryFn: () => fetchPlayerSummary(steamId!),
     enabled: !!steamId,
     staleTime: 1000 * 60 * 10,
-  })
+  });
 }

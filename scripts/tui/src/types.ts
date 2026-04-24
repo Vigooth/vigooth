@@ -14,13 +14,7 @@ export interface ServiceConfig {
 
 export interface ServiceState {
   id: string;
-  status:
-    | 'unknown'
-    | 'running'
-    | 'stopped'
-    | 'starting'
-    | 'stopping'
-    | 'error';
+  status: 'unknown' | 'running' | 'stopped' | 'starting' | 'stopping' | 'error';
   port: number;
   url: string;
   pid?: number;

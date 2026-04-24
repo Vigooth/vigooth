@@ -3,12 +3,9 @@ import type { ServiceConfig } from '../types.js';
 
 export function getPidFromPort(port: number): number | null {
   try {
-    const { stdout } = execaSync('lsof', [
-      '-i',
-      `:${port}`,
-      '-sTCP:LISTEN',
-      '-t',
-    ], { reject: false });
+    const { stdout } = execaSync('lsof', ['-i', `:${port}`, '-sTCP:LISTEN', '-t'], {
+      reject: false,
+    });
     const pid = parseInt(stdout.trim().split('\n')[0], 10);
     return isNaN(pid) ? null : pid;
   } catch {

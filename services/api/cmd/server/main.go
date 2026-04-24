@@ -77,7 +77,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
 		Domain: cookieDomain,
 		Secure: cookieSecure,
-		MaxAge: 86400, // 24h
+		MaxAge: 604800, // 7 days
 	})
 
 	// Steam handlers (optional — needs STEAM_API_KEY)

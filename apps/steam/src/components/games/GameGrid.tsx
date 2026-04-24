@@ -1,9 +1,9 @@
-import type { SteamGame } from '@/types/game'
-import { GameCard } from './GameCard'
+import type { SteamGame } from "@/types/game";
+import { GameCard } from "./GameCard";
 
 interface GameGridProps {
-  games: SteamGame[]
-  onGameClick?: (game: SteamGame) => void
+  games: SteamGame[];
+  onGameClick?: (game: SteamGame) => void;
 }
 
 export function GameGrid({ games, onGameClick }: GameGridProps) {
@@ -12,7 +12,7 @@ export function GameGrid({ games, onGameClick }: GameGridProps) {
       <div className="text-center py-12 text-cpc-green-500">
         <div className="text-lg mb-2">NO GAMES FOUND</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -21,5 +21,5 @@ export function GameGrid({ games, onGameClick }: GameGridProps) {
         <GameCard key={game.appid} game={game} onClick={onGameClick} />
       ))}
     </div>
-  )
+  );
 }

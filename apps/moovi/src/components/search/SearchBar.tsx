@@ -1,10 +1,10 @@
 interface SearchBarProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = 'Search movies...' }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Search movies..." }: SearchBarProps) {
   return (
     <div className="relative">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cpc-cyan-500">&gt;</span>
@@ -17,5 +17,5 @@ export function SearchBar({ value, onChange, placeholder = 'Search movies...' }:
         autoFocus
       />
     </div>
-  )
+  );
 }

@@ -1,23 +1,18 @@
-import { useNavigate } from 'react-router-dom'
-import { CpcLayout } from '@vigooth/ui'
-import { useWishlistQuery, useRemoveFromWishlist } from '@/hooks/useWishlist'
-import { Header } from '@/components/layout/Header'
-import { getPosterUrl } from '@/utils/tmdbImage'
-import type { WishlistItem } from '@/lib/api/wishlist'
+import { useNavigate } from "react-router-dom";
+import { CpcLayout } from "@vigooth/ui";
+import { useWishlistQuery, useRemoveFromWishlist } from "@/hooks/useWishlist";
+import { Header } from "@/components/layout/Header";
+import { getPosterUrl } from "@/utils/tmdbImage";
+import type { WishlistItem } from "@/lib/api/wishlist";
 
 function WishlistCard({ item }: { item: WishlistItem }) {
-  const navigate = useNavigate()
-  const removeFromWishlist = useRemoveFromWishlist()
-  const posterUrl = getPosterUrl(item.poster_path, 'w342')
+  const navigate = useNavigate();
+  const removeFromWishlist = useRemoveFromWishlist();
+  const posterUrl = getPosterUrl(item.poster_path, "w342");
 
   return (
-    <div
-      className="group border-2 border-cpc-green-900 hover:border-cpc-yellow-500 transition-colors"
-    >
-      <div
-        onClick={() => navigate(`/movie/${item.tmdb_id}`)}
-        className="cursor-pointer"
-      >
+    <div className="group border-2 border-cpc-green-900 hover:border-cpc-yellow-500 transition-colors">
+      <div onClick={() => navigate(`/movie/${item.tmdb_id}`)} className="cursor-pointer">
         <div className="aspect-[2/3] bg-cpc-grey-900 overflow-hidden relative">
           {posterUrl ? (
             <img
@@ -25,12 +20,15 @@ function WishlistCard({ item }: { item: WishlistItem }) {
               alt={item.title}
               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
               onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.nextElementSibling?.removeAttribute('hidden')
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextElementSibling?.removeAttribute("hidden");
               }}
             />
           ) : null}
-          <div hidden={!!posterUrl} className="w-full h-full flex items-center justify-center text-cpc-green-900">
+          <div
+            hidden={!!posterUrl}
+            className="w-full h-full flex items-center justify-center text-cpc-green-900"
+          >
             NO POSTER
           </div>
         </div>
@@ -49,16 +47,16 @@ function WishlistCard({ item }: { item: WishlistItem }) {
           disabled={removeFromWishlist.isPending}
           className="w-full border border-cpc-red-500 text-cpc-red-500 text-xs py-1 hover:bg-cpc-red-500 hover:text-black transition-colors"
         >
-          {removeFromWishlist.isPending ? 'REMOVING...' : 'REMOVE'}
+          {removeFromWishlist.isPending ? "REMOVING..." : "REMOVE"}
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 export function WishlistPage() {
-  const { data, isLoading, isError } = useWishlistQuery()
-  const items = data?.items ?? []
+  const { data, isLoading, isError } = useWishlistQuery();
+  const items = data?.items ?? [];
 
   return (
     <CpcLayout>
@@ -77,7 +75,7 @@ export function WishlistPage() {
           ) : (
             <>
               <div className="text-cpc-green-900 text-xs mb-3">
-                {data?.total ?? 0} MOVIE{(data?.total ?? 0) !== 1 ? 'S' : ''} IN WISHLIST
+                {data?.total ?? 0} MOVIE{(data?.total ?? 0) !== 1 ? "S" : ""} IN WISHLIST
               </div>
               {items.length === 0 ? (
                 <div className="text-center py-12 text-cpc-green-900">
@@ -96,5 +94,5 @@ export function WishlistPage() {
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }

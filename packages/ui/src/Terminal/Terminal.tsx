@@ -1,47 +1,47 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from "react";
 
 interface TerminalProps {
-  onCommand?: (command: string) => void
-  prompt?: string
+  onCommand?: (command: string) => void;
+  prompt?: string;
 }
 
-export function Terminal({ onCommand, prompt = 'READY' }: TerminalProps) {
-  const [currentInput, setCurrentInput] = useState('')
+export function Terminal({ onCommand, prompt = "READY" }: TerminalProps) {
+  const [currentInput, setCurrentInput] = useState("");
   const [history, setHistory] = useState<string[]>([
-    'Amstrad CPC 6128 64K Microcomputer (v3)',
-    'Copyright 1985 Amstrad Consumer Electronics plc',
-    'and Locomotive Software Ltd.',
-    'BASIC 1.1',
-    '',
-    'READY',
-  ])
-  const inputRef = useRef<HTMLInputElement>(null)
+    "Amstrad CPC 6128 64K Microcomputer (v3)",
+    "Copyright 1985 Amstrad Consumer Electronics plc",
+    "and Locomotive Software Ltd.",
+    "BASIC 1.1",
+    "",
+    "READY",
+  ]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }, [])
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (currentInput.trim()) {
-      const newHistory = [...history, currentInput]
-      setHistory(newHistory)
-      onCommand?.(currentInput)
-      setCurrentInput('')
+      const newHistory = [...history, currentInput];
+      setHistory(newHistory);
+      onCommand?.(currentInput);
+      setCurrentInput("");
 
       setTimeout(() => {
-        setHistory((prev) => [...prev, 'OK', '', prompt])
-      }, 100)
+        setHistory((prev) => [...prev, "OK", "", prompt]);
+      }, 100);
     }
-  }
+  };
 
   const handleClick = () => {
     if (inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }
+  };
 
   return (
     <div
@@ -64,7 +64,7 @@ export function Terminal({ onCommand, prompt = 'READY' }: TerminalProps) {
             onChange={(e) => setCurrentInput(e.target.value)}
             onSubmit={handleSubmit}
             className="absolute opacity-0 bg-transparent border-none outline-none font-cpc w-full"
-            style={{ caretColor: 'transparent' }}
+            style={{ caretColor: "transparent" }}
           />
           <span className="inline-block w-2 h-4 ml-1 cpc-cursor" />
         </div>
@@ -75,5 +75,5 @@ export function Terminal({ onCommand, prompt = 'READY' }: TerminalProps) {
         <button type="submit" />
       </form>
     </div>
-  )
+  );
 }

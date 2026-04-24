@@ -1,53 +1,49 @@
-import { useState, useRef, useEffect } from 'react'
-import { CpcLayout, AppMenu, Navigation, CpcInput } from '@vigooth/ui'
-import { getAppsConfig, apps, getAppUrl } from '@vigooth/config'
+import { useState, useRef, useEffect } from "react";
+import { CpcLayout, AppMenu, Navigation, CpcInput } from "@vigooth/ui";
+import { getAppsConfig, apps, getAppUrl } from "@vigooth/config";
 
 export function HomePage() {
-  const appsConfig = getAppsConfig('portal')
-  const [command, setCommand] = useState('')
-  const [history, setHistory] = useState<string[]>([
-    'Amstrad CPC 6128 - VIGOOTH OS',
-    'Ready',
-    '',
-  ])
-  const inputRef = useRef<HTMLInputElement>(null)
+  const appsConfig = getAppsConfig("portal");
+  const [command, setCommand] = useState("");
+  const [history, setHistory] = useState<string[]>(["Amstrad CPC 6128 - VIGOOTH OS", "Ready", ""]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    inputRef.current?.focus();
+  }, []);
 
   const handleCommand = () => {
-    const cmd = command.trim().toUpperCase()
-    setHistory((prev) => [...prev, `>${command}`])
-    setCommand('')
+    const cmd = command.trim().toUpperCase();
+    setHistory((prev) => [...prev, `>${command}`]);
+    setCommand("");
 
     // Parse RUN "APP" or just APP
-    const runMatch = cmd.match(/^RUN\s*"?([^"]+)"?$/)
-    const appName = runMatch ? runMatch[1] : cmd
+    const runMatch = cmd.match(/^RUN\s*"?([^"]+)"?$/);
+    const appName = runMatch ? runMatch[1] : cmd;
 
     // CAT command - list available disks
-    if (cmd === 'CAT' || cmd === 'DIR') {
+    if (cmd === "CAT" || cmd === "DIR") {
       const diskList = apps
-        .filter((a) => a.id !== 'portal')
+        .filter((a) => a.id !== "portal")
         .map((a) => `  ${a.name}.BAS`)
-        .join('\n')
-      setHistory((prev) => [...prev, 'Drive A:', diskList, '', 'Ready', ''])
-      return
+        .join("\n");
+      setHistory((prev) => [...prev, "Drive A:", diskList, "", "Ready", ""]);
+      return;
     }
 
     // HELP command
-    if (cmd === 'HELP') {
+    if (cmd === "HELP") {
       setHistory((prev) => [
         ...prev,
-        'Commands:',
-        '  CAT         - List available programs',
+        "Commands:",
+        "  CAT         - List available programs",
         '  RUN "name"  - Run a program',
-        '  HELP        - Show this help',
-        '',
-        'Ready',
-        '',
-      ])
-      return
+        "  HELP        - Show this help",
+        "",
+        "Ready",
+        "",
+      ]);
+      return;
     }
 
     // Find app by name
@@ -55,18 +51,18 @@ export function HomePage() {
       (a) =>
         a.name === appName ||
         a.id.toUpperCase() === appName ||
-        a.name.replace('-', '') === appName.replace('-', ''),
-    )
+        a.name.replace("-", "") === appName.replace("-", ""),
+    );
 
-    if (app && app.id !== 'portal') {
-      setHistory((prev) => [...prev, `Loading ${app.name}...`])
+    if (app && app.id !== "portal") {
+      setHistory((prev) => [...prev, `Loading ${app.name}...`]);
       setTimeout(() => {
-        window.location.href = getAppUrl(app.id)
-      }, 500)
+        window.location.href = getAppUrl(app.id);
+      }, 500);
     } else if (cmd) {
-      setHistory((prev) => [...prev, `Syntax error`, '', 'Ready', ''])
+      setHistory((prev) => [...prev, `Syntax error`, "", "Ready", ""]);
     }
-  }
+  };
 
   return (
     <CpcLayout>
@@ -93,7 +89,12 @@ export function HomePage() {
 
           <div className="flex items-baseline">
             <span className="text-cpc-green-500 mr-1">&gt;</span>
-            <CpcInput ref={inputRef} value={command} onChange={setCommand} onEnter={handleCommand} />
+            <CpcInput
+              ref={inputRef}
+              value={command}
+              onChange={setCommand}
+              onEnter={handleCommand}
+            />
           </div>
         </div>
 
@@ -108,5 +109,5 @@ export function HomePage() {
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { cn } from '@vigooth/ui'
+import { cn } from "@vigooth/ui";
 
 interface PersonalRatingProps {
-  value: number | null
-  onChange: (value: number | null) => void
-  disabled?: boolean
+  value: number | null;
+  onChange: (value: number | null) => void;
+  disabled?: boolean;
 }
 
 export function PersonalRating({ value, onChange, disabled }: PersonalRatingProps) {
@@ -28,5 +28,5 @@ export function PersonalRating({ value, onChange, disabled }: PersonalRatingProp
         ))}
       </div>
     </div>
-  )
+  );
 }

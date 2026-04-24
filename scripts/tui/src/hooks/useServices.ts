@@ -1,35 +1,30 @@
-import { useReducer, useRef, useEffect, useCallback } from 'react';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import type { ServiceState, ServiceConfig } from '../types.js';
-import { services as serviceConfigs } from '../lib/config.js';
-import { detectServiceStatus } from '../lib/detection.js';
-import {
-  startService,
-  stopService,
-  type ManagedProcess,
-  MAX_LOG_LINES,
-} from '../lib/process.js';
+import { useReducer, useRef, useEffect, useCallback } from "react";
+import { writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import type { ServiceState, ServiceConfig } from "../types.js";
+import { services as serviceConfigs } from "../lib/config.js";
+import { detectServiceStatus } from "../lib/detection.js";
+import { startService, stopService, type ManagedProcess, MAX_LOG_LINES } from "../lib/process.js";
 
 type Action =
   | {
-      type: 'SET_STATUS';
+      type: "SET_STATUS";
       id: string;
-      status: ServiceState['status'];
+      status: ServiceState["status"];
       pid?: number;
       managedByTui?: boolean;
       errorMessage?: string;
       logFile?: string;
     }
-  | { type: 'APPEND_LOG'; id: string; line: string }
-  | { type: 'CLEAR_LOGS'; id: string }
-  | { type: 'INIT'; services: ServiceState[] };
+  | { type: "APPEND_LOG"; id: string; line: string }
+  | { type: "CLEAR_LOGS"; id: string }
+  | { type: "INIT"; services: ServiceState[] };
 
 function reducer(state: ServiceState[], action: Action): ServiceState[] {
   switch (action.type) {
-    case 'INIT':
+    case "INIT":
       return action.services;
-    case 'SET_STATUS': {
+    case "SET_STATUS": {
       const current = state.find((s) => s.id === action.id);
       const newStatus = action.status;
       const newPid = action.pid ?? current?.pid;
@@ -57,7 +52,7 @@ function reducer(state: ServiceState[], action: Action): ServiceState[] {
           : s,
       );
     }
-    case 'APPEND_LOG':
+    case "APPEND_LOG":
       return state.map((s) =>
         s.id === action.id
           ? {
@@ -66,10 +61,8 @@ function reducer(state: ServiceState[], action: Action): ServiceState[] {
             }
           : s,
       );
-    case 'CLEAR_LOGS':
-      return state.map((s) =>
-        s.id === action.id ? { ...s, logs: [] } : s,
-      );
+    case "CLEAR_LOGS":
+      return state.map((s) => (s.id === action.id ? { ...s, logs: [] } : s));
     default:
       return state;
   }
@@ -78,12 +71,12 @@ function reducer(state: ServiceState[], action: Action): ServiceState[] {
 function buildInitialState(rootDir: string): ServiceState[] {
   return serviceConfigs.map((config) => ({
     id: config.id,
-    status: 'unknown' as const,
+    status: "unknown" as const,
     port: config.defaultPort,
-    url: config.urlTemplate.replace('{port}', String(config.defaultPort)),
+    url: config.urlTemplate.replace("{port}", String(config.defaultPort)),
     managedByTui: false,
     logs: [],
-    logFile: join(rootDir, 'tmp', `${config.id}.log`),
+    logFile: join(rootDir, "tmp", `${config.id}.log`),
   }));
 }
 
@@ -108,7 +101,7 @@ export function useServices(rootDir: string): UseServicesReturn {
     if (initializedRef.current) return;
     initializedRef.current = true;
     const initialState = buildInitialState(rootDir);
-    dispatch({ type: 'INIT', services: initialState });
+    dispatch({ type: "INIT", services: initialState });
   }, [rootDir]);
 
   // Poll for external services every 2 seconds
@@ -119,12 +112,9 @@ export function useServices(rootDir: string): UseServicesReturn {
         if (managed) continue;
         if (stoppingRef.current.has(config.id)) continue;
 
-        const { status, pid } = detectServiceStatus(
-          config,
-          config.defaultPort,
-        );
+        const { status, pid } = detectServiceStatus(config, config.defaultPort);
         dispatch({
-          type: 'SET_STATUS',
+          type: "SET_STATUS",
           id: config.id,
           status,
           pid: pid ?? undefined,
@@ -139,8 +129,7 @@ export function useServices(rootDir: string): UseServicesReturn {
   }, []);
 
   const getConfig = useCallback(
-    (id: string): ServiceConfig | undefined =>
-      serviceConfigs.find((c) => c.id === id),
+    (id: string): ServiceConfig | undefined => serviceConfigs.find((c) => c.id === id),
     [],
   );
 
@@ -150,27 +139,24 @@ export function useServices(rootDir: string): UseServicesReturn {
       if (!config) return;
 
       const currentService = servicesRef.current.find((s) => s.id === id);
-      if (
-        currentService?.status === 'running' ||
-        currentService?.status === 'starting'
-      ) {
+      if (currentService?.status === "running" || currentService?.status === "starting") {
         return;
       }
 
-      dispatch({ type: 'SET_STATUS', id, status: 'starting' });
+      dispatch({ type: "SET_STATUS", id, status: "starting" });
 
       const port = config.defaultPort;
       const onLog = (line: string) => {
-        dispatch({ type: 'APPEND_LOG', id, line });
+        dispatch({ type: "APPEND_LOG", id, line });
       };
 
       const managed = startService(config, port, rootDir, onLog);
       processesRef.current.set(id, managed);
 
       dispatch({
-        type: 'SET_STATUS',
+        type: "SET_STATUS",
         id,
-        status: 'running',
+        status: "running",
         pid: managed.pid,
         managedByTui: true,
         logFile: managed.logFile,
@@ -183,13 +169,12 @@ export function useServices(rootDir: string): UseServicesReturn {
           return;
         }
 
-        const logDir = join(rootDir, 'tmp');
+        const logDir = join(rootDir, "tmp");
         const logFile = join(logDir, `${id}.log`);
 
         try {
           await mkdir(logDir, { recursive: true });
-          const logContent =
-            managed.logs.join('\n') + '\n\nError: ' + err.message;
+          const logContent = managed.logs.join("\n") + "\n\nError: " + err.message;
           await writeFile(logFile, logContent);
         } catch {
           // ignore
@@ -197,9 +182,9 @@ export function useServices(rootDir: string): UseServicesReturn {
 
         processesRef.current.delete(id);
         dispatch({
-          type: 'SET_STATUS',
+          type: "SET_STATUS",
           id,
-          status: 'error',
+          status: "error",
           errorMessage: err.message,
           logFile,
           managedByTui: false,
@@ -212,14 +197,11 @@ export function useServices(rootDir: string): UseServicesReturn {
   const stop = useCallback(
     async (id: string): Promise<void> => {
       const currentService = servicesRef.current.find((s) => s.id === id);
-      if (
-        currentService?.status === 'stopped' ||
-        currentService?.status === 'stopping'
-      ) {
+      if (currentService?.status === "stopped" || currentService?.status === "stopping") {
         return;
       }
 
-      dispatch({ type: 'SET_STATUS', id, status: 'stopping' });
+      dispatch({ type: "SET_STATUS", id, status: "stopping" });
       stoppingRef.current.add(id);
 
       try {
@@ -237,9 +219,9 @@ export function useServices(rootDir: string): UseServicesReturn {
       }
 
       dispatch({
-        type: 'SET_STATUS',
+        type: "SET_STATUS",
         id,
-        status: 'stopped',
+        status: "stopped",
         pid: undefined,
         managedByTui: false,
       });
@@ -257,7 +239,7 @@ export function useServices(rootDir: string): UseServicesReturn {
 
   const startAll = useCallback(async (): Promise<void> => {
     for (const service of servicesRef.current) {
-      if (service.status === 'stopped') {
+      if (service.status === "stopped") {
         await start(service.id);
       }
     }
@@ -265,7 +247,7 @@ export function useServices(rootDir: string): UseServicesReturn {
 
   const stopAll = useCallback(async (): Promise<void> => {
     for (const service of servicesRef.current) {
-      if (service.status === 'running' && service.managedByTui) {
+      if (service.status === "running" && service.managedByTui) {
         await stop(service.id);
       }
     }

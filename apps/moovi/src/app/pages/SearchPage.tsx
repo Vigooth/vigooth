@@ -1,20 +1,16 @@
-import { useRef, useEffect, useCallback, useMemo } from 'react'
-import { CpcLayout } from '@vigooth/ui'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useQueryParam } from '@/hooks/useQueryParam'
-import {
-  useTmdbSearch,
-  useTmdbSearchPerson,
-  useTmdbDiscoverByPerson,
-} from '@/hooks/useTmdbSearch'
-import { useMoviesQuery } from '@/hooks/useMoviesQuery'
-import { Header } from '@/components/layout/Header'
-import { SearchBar } from '@/components/search/SearchBar'
-import { SearchResultCard } from '@/components/search/SearchResultCard'
+import { useRef, useEffect, useCallback, useMemo } from "react";
+import { CpcLayout } from "@vigooth/ui";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useQueryParam } from "@/hooks/useQueryParam";
+import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from "@/hooks/useTmdbSearch";
+import { useMoviesQuery } from "@/hooks/useMoviesQuery";
+import { Header } from "@/components/layout/Header";
+import { SearchBar } from "@/components/search/SearchBar";
+import { SearchResultCard } from "@/components/search/SearchResultCard";
 
 export function SearchPage() {
-  const [query, setQuery] = useQueryParam('q')
-  const debouncedQuery = useDebounce(query, 300)
+  const [query, setQuery] = useQueryParam("q");
+  const debouncedQuery = useDebounce(query, 300);
 
   const {
     data: searchData,
@@ -22,86 +18,79 @@ export function SearchPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useTmdbSearch(debouncedQuery)
+  } = useTmdbSearch(debouncedQuery);
 
   // Person search (parallel)
-  const { data: personData } = useTmdbSearchPerson(debouncedQuery)
+  const { data: personData } = useTmdbSearchPerson(debouncedQuery);
 
   const director = useMemo(
-    () =>
-      personData?.results.find(
-        (p) => p.known_for_department === 'Directing'
-      ) ?? null,
-    [personData]
-  )
+    () => personData?.results.find((p) => p.known_for_department === "Directing") ?? null,
+    [personData],
+  );
 
   const {
     data: directorData,
     fetchNextPage: fetchNextDirectorPage,
     hasNextPage: hasNextDirectorPage,
     isFetchingNextPage: isFetchingNextDirectorPage,
-  } = useTmdbDiscoverByPerson(director?.id ?? null)
+  } = useTmdbDiscoverByPerson(director?.id ?? null);
 
-  const { data: collectionData } = useMoviesQuery()
+  const { data: collectionData } = useMoviesQuery();
 
   const collectionKeys = new Set(
-    (collectionData?.movies ?? []).map((m) => `${m.media_type}:${m.tmdb_id}`)
-  )
+    (collectionData?.movies ?? []).map((m) => `${m.media_type}:${m.tmdb_id}`),
+  );
 
-  const results = (searchData?.pages.flatMap((page) => page.results) ?? [])
-    .filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
-  const totalResults = results.length
+  const results = (searchData?.pages.flatMap((page) => page.results) ?? []).filter(
+    (r) => r.media_type === "movie" || r.media_type === "tv",
+  );
+  const totalResults = results.length;
 
-  const directorResults =
-    directorData?.pages.flatMap((page) => page.results) ?? []
+  const directorResults = directorData?.pages.flatMap((page) => page.results) ?? [];
 
   // Infinite scroll observer for movie search
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage()
+        fetchNextPage();
       }
     },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
-  )
+    [fetchNextPage, hasNextPage, isFetchingNextPage],
+  );
 
   useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
-    const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 })
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [handleObserver])
+    const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleObserver]);
 
   // Infinite scroll observer for director filmography
-  const directorSentinelRef = useRef<HTMLDivElement>(null)
+  const directorSentinelRef = useRef<HTMLDivElement>(null);
 
   const handleDirectorObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
-      if (
-        entries[0].isIntersecting &&
-        hasNextDirectorPage &&
-        !isFetchingNextDirectorPage
-      ) {
-        fetchNextDirectorPage()
+      if (entries[0].isIntersecting && hasNextDirectorPage && !isFetchingNextDirectorPage) {
+        fetchNextDirectorPage();
       }
     },
-    [fetchNextDirectorPage, hasNextDirectorPage, isFetchingNextDirectorPage]
-  )
+    [fetchNextDirectorPage, hasNextDirectorPage, isFetchingNextDirectorPage],
+  );
 
   useEffect(() => {
-    const sentinel = directorSentinelRef.current
-    if (!sentinel) return
+    const sentinel = directorSentinelRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(handleDirectorObserver, {
       threshold: 0.1,
-    })
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [handleDirectorObserver])
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleDirectorObserver]);
 
   return (
     <CpcLayout>
@@ -123,9 +112,7 @@ export function SearchPage() {
               <div className="text-sm">Type a movie title or director name to search TMDB</div>
             </div>
           ) : searching ? (
-            <div className="text-center py-12 text-cpc-cyan-500">
-              SEARCHING...
-            </div>
+            <div className="text-center py-12 text-cpc-cyan-500">SEARCHING...</div>
           ) : (
             <>
               {/* Director filmography section */}
@@ -139,15 +126,14 @@ export function SearchPage() {
                       <SearchResultCard
                         key={`director-${result.id}`}
                         result={result}
-                        inCollection={collectionKeys.has(`${result.media_type ?? 'movie'}:${result.id}`)}
+                        inCollection={collectionKeys.has(
+                          `${result.media_type ?? "movie"}:${result.id}`,
+                        )}
                       />
                     ))}
                   </div>
 
-                  <div
-                    ref={directorSentinelRef}
-                    className="h-8 flex items-center justify-center"
-                  >
+                  <div ref={directorSentinelRef} className="h-8 flex items-center justify-center">
                     {isFetchingNextDirectorPage && (
                       <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
                     )}
@@ -166,13 +152,15 @@ export function SearchPage() {
               ) : results.length > 0 ? (
                 <div className="space-y-2">
                   <div className="text-cpc-green-900 text-xs mb-2">
-                    {totalResults} RESULT{totalResults !== 1 ? 'S' : ''}
+                    {totalResults} RESULT{totalResults !== 1 ? "S" : ""}
                   </div>
                   {results.map((result) => (
                     <SearchResultCard
                       key={result.id}
                       result={result}
-                      inCollection={collectionKeys.has(`${result.media_type ?? 'movie'}:${result.id}`)}
+                      inCollection={collectionKeys.has(
+                        `${result.media_type ?? "movie"}:${result.id}`,
+                      )}
                     />
                   ))}
 
@@ -189,5 +177,5 @@ export function SearchPage() {
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }

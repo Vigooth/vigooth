@@ -15,6 +15,7 @@ pnpm type-check   # Vérification TypeScript
 ### Fichiers clés
 
 **Terminal (commandes CLI) :**
+
 ```
 src/components/terminal/
 ├── Terminal.tsx              # Composant principal, parsing, historique, navigation clavier
@@ -36,6 +37,7 @@ src/components/terminal/
 ```
 
 **React Query & State Management :**
+
 ```
 src/app/providers/
 ├── QueryProvider.tsx         # QueryClientProvider (mémoire only, pas de persist)
@@ -48,6 +50,7 @@ src/hooks/
 ```
 
 **API & Persistence sécurisée :**
+
 ```
 src/lib/api/
 ├── client.ts                 # HTTP client (fetch + auth token)
@@ -59,6 +62,7 @@ src/lib/storage/
 ```
 
 **Vault (données et UI) :**
+
 ```
 src/app/pages/
 └── VaultPage.tsx             # Page principale, utilise les hooks React Query
@@ -73,6 +77,7 @@ src/components/vault/
 ```
 
 **Utilitaires :**
+
 ```
 src/utils/
 └── folderUtils.ts            # findFolderByName, getFolderByIndex, getEntriesForFolder, etc.
@@ -82,6 +87,7 @@ src/types/
 ```
 
 **Crypto et types :**
+
 ```
 src/lib/crypto/
 └── vault.ts                  # Types: VaultData, Folder, PasswordEntry
@@ -89,6 +95,7 @@ src/lib/crypto/
 ```
 
 **Traductions :**
+
 ```
 src/lib/i18n/locales/
 ├── fr.json                   # Français
@@ -100,42 +107,42 @@ src/lib/i18n/locales/
 ```typescript
 // Dossier
 interface Folder {
-  id: string
-  name: string           // Toujours UPPERCASE
-  color?: ColorType      // 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
-  createdAt: string
+  id: string;
+  name: string; // Toujours UPPERCASE
+  color?: ColorType; // 'green' | 'red' | 'cyan' | 'yellow' | 'magenta'
+  createdAt: string;
 }
 
 // Entrée mot de passe
 interface PasswordEntry {
-  id: string
-  folderId?: string      // undefined = racine (NON CLASSÉ)
-  name: string
-  username: string
-  password: string
-  url?: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  folderId?: string; // undefined = racine (NON CLASSÉ)
+  name: string;
+  username: string;
+  password: string;
+  url?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Vault complet
 interface VaultData {
-  entries: PasswordEntry[]
-  folders: Folder[]
+  entries: PasswordEntry[];
+  folders: Folder[];
 }
 
 // Contexte terminal
 interface CommandContext {
-  vault: VaultData | null
-  currentFolder: { id: string; name: string } | null
-  setCurrentFolder: (folder) => void
-  addEntry: (folderId, data) => Promise<PasswordEntry>
-  addFolder: (folder) => Promise<void>
-  removeFolder: (folderId) => Promise<void>
-  removeEntry: (entryId) => Promise<void>
-  moveEntries: (entryIds, targetFolderId) => Promise<void>
-  generatePassword: (length) => string
-  generateId: () => string
+  vault: VaultData | null;
+  currentFolder: { id: string; name: string } | null;
+  setCurrentFolder: (folder) => void;
+  addEntry: (folderId, data) => Promise<PasswordEntry>;
+  addFolder: (folder) => Promise<void>;
+  removeFolder: (folderId) => Promise<void>;
+  removeEntry: (entryId) => Promise<void>;
+  moveEntries: (entryIds, targetFolderId) => Promise<void>;
+  generatePassword: (length) => string;
+  generateId: () => string;
 }
 ```
 
@@ -233,12 +240,12 @@ Fonctions syncQueue:
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60,     // 1 minute
+      staleTime: 1000 * 60, // 1 minute
       refetchOnWindowFocus: true, // Données fraîches au focus
       // Pas de persistence - mots de passe en mémoire uniquement
     },
   },
-})
+});
 ```
 
 ### Synchronisation simplifiée
@@ -268,21 +275,21 @@ Au focus, les données serveur écrasent. Simple et efficace.
 
 **Vault (src/hooks/useVaultQuery.ts) :**
 
-| Hook | Description |
-|------|-------------|
-| `useVaultQuery` | Fetch + decrypt du vault |
-| `useAddFolder` | Mutation pour ajouter un dossier |
-| `useDeleteFolder` | Mutation pour supprimer un dossier |
-| `useAddEntry` | Mutation pour ajouter une entrée |
-| `useDeleteEntry` | Mutation pour supprimer une entrée |
-| `useMoveEntries` | Mutation batch pour déplacer des entrées |
+| Hook              | Description                              |
+| ----------------- | ---------------------------------------- |
+| `useVaultQuery`   | Fetch + decrypt du vault                 |
+| `useAddFolder`    | Mutation pour ajouter un dossier         |
+| `useDeleteFolder` | Mutation pour supprimer un dossier       |
+| `useAddEntry`     | Mutation pour ajouter une entrée         |
+| `useDeleteEntry`  | Mutation pour supprimer une entrée       |
+| `useMoveEntries`  | Mutation batch pour déplacer des entrées |
 
 **Sync (src/hooks/useSync.ts) :**
 
-| Hook | Description |
-|------|-------------|
-| `useSync` | Gère sync: `isSyncing`, `hasPending`, `triggerSync()` |
-| `useOnlineStatus` | Détection online/offline |
+| Hook              | Description                                           |
+| ----------------- | ----------------------------------------------------- |
+| `useSync`         | Gère sync: `isSyncing`, `hasPending`, `triggerSync()` |
+| `useOnlineStatus` | Détection online/offline                              |
 
 ### Ajout d'une nouvelle mutation
 
@@ -294,30 +301,30 @@ Au focus, les données serveur écrasent. Simple et efficace.
 
 ## Commandes terminal disponibles
 
-| Commande | Description |
-|----------|-------------|
-| `HELP` | Afficher l'aide |
-| `LS` | Lister les dossiers avec index [n] |
-| `CD <n\|nom>` | Naviguer par index ou nom (CD .. pour ROOT) |
-| `PWD` | Dossier courant |
-| `CAT [n\|nom]` | Lister les entrées d'un dossier |
-| `ADD <nom> [user] [pass] [url]` | Ajouter entrée au dossier courant |
-| `ADD <n\|nom> <nom> [...]` | Ajouter dans dossier par index ou nom |
-| `MKDIR <nom> [couleur]` | Créer dossier |
-| `RMDIR <nom> [--force]` | Supprimer dossier (--force si non vide) |
-| `RM <n>` | Supprimer dossier par index |
-| `RM <n.m>` | Supprimer entrée (dossier.entrée) |
-| `MV <source> <dest>` | Déplacer entrées vers dossier |
-| `GEN [longueur]` | Générer mot de passe |
+| Commande                        | Description                                 |
+| ------------------------------- | ------------------------------------------- |
+| `HELP`                          | Afficher l'aide                             |
+| `LS`                            | Lister les dossiers avec index [n]          |
+| `CD <n\|nom>`                   | Naviguer par index ou nom (CD .. pour ROOT) |
+| `PWD`                           | Dossier courant                             |
+| `CAT [n\|nom]`                  | Lister les entrées d'un dossier             |
+| `ADD <nom> [user] [pass] [url]` | Ajouter entrée au dossier courant           |
+| `ADD <n\|nom> <nom> [...]`      | Ajouter dans dossier par index ou nom       |
+| `MKDIR <nom> [couleur]`         | Créer dossier                               |
+| `RMDIR <nom> [--force]`         | Supprimer dossier (--force si non vide)     |
+| `RM <n>`                        | Supprimer dossier par index                 |
+| `RM <n.m>`                      | Supprimer entrée (dossier.entrée)           |
+| `MV <source> <dest>`            | Déplacer entrées vers dossier               |
+| `GEN [longueur]`                | Générer mot de passe                        |
 
 ### Syntaxe MV (batch)
 
-| Pattern | Exemple | Description |
-|---------|---------|-------------|
-| `n.m` | `MV 1.2 3` | Entrée unique |
-| `n{a,b,c}` | `MV 1{1,3,5} 2` | Liste d'entrées |
-| `n{a..b}` | `MV 1{1..4} 2` | Range d'entrées |
-| `n*` | `MV 1* 2` | Toutes les entrées |
+| Pattern    | Exemple         | Description        |
+| ---------- | --------------- | ------------------ |
+| `n.m`      | `MV 1.2 3`      | Entrée unique      |
+| `n{a,b,c}` | `MV 1{1,3,5} 2` | Liste d'entrées    |
+| `n{a..b}`  | `MV 1{1..4} 2`  | Range d'entrées    |
+| `n*`       | `MV 1* 2`       | Toutes les entrées |
 
 ## Conventions
 

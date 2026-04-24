@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { Navigation, CpcLayout } from '@vigooth/ui'
+import { Link } from "react-router-dom";
+import { Navigation, CpcLayout } from "@vigooth/ui";
 
 export function AboutPage() {
   return (
@@ -15,8 +15,8 @@ export function AboutPage() {
 
           <div className="space-y-4 text-cpc-green-500">
             <p className="text-lg">
-              Welcome to the Vigooth System - a retro-styled terminal interface
-              inspired by the classic Amstrad CPC 6128.
+              Welcome to the Vigooth System - a retro-styled terminal interface inspired by the
+              classic Amstrad CPC 6128.
             </p>
 
             <div className="mt-8 p-4 border border-cpc-magenta-900">
@@ -42,5 +42,5 @@ export function AboutPage() {
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }

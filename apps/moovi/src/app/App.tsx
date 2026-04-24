@@ -1,34 +1,34 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from '../stores/AuthProvider'
-import { useAuth } from '../stores/auth'
-import { QueryProvider } from './providers'
-import { LoginPage } from './pages/LoginPage'
-import { CollectionPage } from './pages/CollectionPage'
-import { SearchPage } from './pages/SearchPage'
-import { MoviePage } from './pages/MoviePage'
-import { RecommendationsPage } from './pages/RecommendationsPage'
-import { WishlistPage } from './pages/WishlistPage'
-import { StatusPage } from './pages/StatusPage'
-import { PublicCollectionPage } from './pages/PublicCollectionPage'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "../stores/AuthProvider";
+import { useAuth } from "../stores/auth";
+import { QueryProvider } from "./providers";
+import { LoginPage } from "./pages/LoginPage";
+import { CollectionPage } from "./pages/CollectionPage";
+import { SearchPage } from "./pages/SearchPage";
+import { MoviePage } from "./pages/MoviePage";
+import { RecommendationsPage } from "./pages/RecommendationsPage";
+import { WishlistPage } from "./pages/WishlistPage";
+import { StatusPage } from "./pages/StatusPage";
+import { PublicCollectionPage } from "./pages/PublicCollectionPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/collection" replace />
+    return <Navigate to="/collection" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function AppRoutes() {
@@ -101,7 +101,7 @@ function AppRoutes() {
       <Route path="/u/:userId" element={<PublicCollectionPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-  )
+  );
 }
 
 export function App() {
@@ -113,5 +113,5 @@ export function App() {
         </BrowserRouter>
       </AuthProvider>
     </QueryProvider>
-  )
+  );
 }

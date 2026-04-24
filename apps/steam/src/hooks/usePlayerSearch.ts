@@ -1,46 +1,46 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { resolveVanityUrl } from '@/lib/api/steam'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { resolveVanityUrl } from "@/lib/api/steam";
 
 export function usePlayerSearch() {
-  const navigate = useNavigate()
-  const [searching, setSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const search = async (input: string) => {
-    const trimmed = input.trim()
-    if (!trimmed) return
+    const trimmed = input.trim();
+    if (!trimmed) return;
 
-    setError(null)
-    setSearching(true)
+    setError(null);
+    setSearching(true);
 
     try {
       // If it looks like a 64-bit Steam ID, go directly
       if (/^\d{17}$/.test(trimmed)) {
-        navigate(`/u/${trimmed}`)
-        return
+        navigate(`/u/${trimmed}`);
+        return;
       }
 
       // Extract vanity name from profile URL
-      let vanity = trimmed
-      const urlMatch = trimmed.match(/steamcommunity\.com\/id\/([^/]+)/)
+      let vanity = trimmed;
+      const urlMatch = trimmed.match(/steamcommunity\.com\/id\/([^/]+)/);
       if (urlMatch) {
-        vanity = urlMatch[1]
+        vanity = urlMatch[1];
       }
-      const profileMatch = trimmed.match(/steamcommunity\.com\/profiles\/(\d{17})/)
+      const profileMatch = trimmed.match(/steamcommunity\.com\/profiles\/(\d{17})/);
       if (profileMatch) {
-        navigate(`/u/${profileMatch[1]}`)
-        return
+        navigate(`/u/${profileMatch[1]}`);
+        return;
       }
 
-      const steamId = await resolveVanityUrl(vanity)
-      navigate(`/u/${steamId}`)
+      const steamId = await resolveVanityUrl(vanity);
+      navigate(`/u/${steamId}`);
     } catch {
-      setError('User not found')
+      setError("User not found");
     } finally {
-      setSearching(false)
+      setSearching(false);
     }
-  }
+  };
 
-  return { search, searching, error }
+  return { search, searching, error };
 }

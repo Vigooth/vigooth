@@ -1,19 +1,28 @@
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui'
-import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine'
-import { useYtsMovie } from '@/hooks/useYtsMovie'
+import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from "@vigooth/ui";
+import { getAllocineSearchUrl, getAllocineFilmUrl } from "@/utils/allocine";
+import { useYtsMovie } from "@/hooks/useYtsMovie";
 
 interface ExternalLinksProps {
-  imdbId: string | null
-  tmdbId: number
-  title: string
-  year: number
-  allocineId?: string | null
-  mediaType?: string
+  imdbId: string | null;
+  tmdbId: number;
+  title: string;
+  year: number;
+  allocineId?: string | null;
+  mediaType?: string;
 }
 
-export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaType = 'movie' }: ExternalLinksProps) {
-  const allocineUrl = allocineId ? getAllocineFilmUrl(allocineId) : getAllocineSearchUrl(title, year)
-  const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null)
+export function ExternalLinks({
+  imdbId,
+  tmdbId,
+  title,
+  year,
+  allocineId,
+  mediaType = "movie",
+}: ExternalLinksProps) {
+  const allocineUrl = allocineId
+    ? getAllocineFilmUrl(allocineId)
+    : getAllocineSearchUrl(title, year);
+  const { data: yts } = useYtsMovie(mediaType === "movie" ? imdbId : null);
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -21,7 +30,7 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
         <CpcButton
           variant="outlined"
           color="yellow"
-          onClick={() => window.open(`https://www.imdb.com/title/${imdbId}`, '_blank')}
+          onClick={() => window.open(`https://www.imdb.com/title/${imdbId}`, "_blank")}
         >
           IMDb
         </CpcButton>
@@ -29,18 +38,18 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
       <CpcButton
         variant="outlined"
         color="cyan"
-        onClick={() => window.open(`https://www.themoviedb.org/movie/${tmdbId}`, '_blank')}
+        onClick={() => window.open(`https://www.themoviedb.org/movie/${tmdbId}`, "_blank")}
       >
         TMDB
       </CpcButton>
       <CpcButton
         variant="outlined"
         color="green"
-        onClick={() => window.open(allocineUrl, '_blank')}
+        onClick={() => window.open(allocineUrl, "_blank")}
       >
         ALLOCINE
       </CpcButton>
-      {mediaType === 'movie' && yts?.found && yts.torrents && yts.torrents.length > 0 && (
+      {mediaType === "movie" && yts?.found && yts.torrents && yts.torrents.length > 0 && (
         <CpcMenu
           color="red"
           trigger={
@@ -52,25 +61,25 @@ export function ExternalLinks({ imdbId, tmdbId, title, year, allocineId, mediaTy
         >
           {yts.url && (
             <>
-              <CpcMenuItem onClick={() => window.open(yts.url, '_blank')}>
-                Page YIFY
-              </CpcMenuItem>
+              <CpcMenuItem onClick={() => window.open(yts.url, "_blank")}>Page YIFY</CpcMenuItem>
               <CpcMenuSeparator />
             </>
           )}
           {yts.torrents.map((torrent) => (
             <CpcMenuItem
               key={`${torrent.quality}-${torrent.type}`}
-              onClick={() => { window.location.href = torrent.magnet }}
+              onClick={() => {
+                window.location.href = torrent.magnet;
+              }}
             >
               <span>{torrent.quality}</span>
               <span className="opacity-60 ml-1">
-                {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
+                {torrent.type !== "web" ? torrent.type : ""} — {torrent.size}
               </span>
             </CpcMenuItem>
           ))}
         </CpcMenu>
       )}
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { CpcLayout } from '@vigooth/ui'
-import { Header } from '@/components/layout/Header'
-import { MovieDetails } from '@/components/movies/MovieDetails'
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { CpcLayout } from "@vigooth/ui";
+import { Header } from "@/components/layout/Header";
+import { MovieDetails } from "@/components/movies/MovieDetails";
 
 export function MoviePage() {
-  const { tmdbId: tmdbIdParam } = useParams<{ tmdbId: string }>()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const tmdbIdNum = tmdbIdParam ? parseInt(tmdbIdParam, 10) : null
-  const mediaType = location.pathname.startsWith('/tv/') ? 'tv' : 'movie'
+  const { tmdbId: tmdbIdParam } = useParams<{ tmdbId: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const tmdbIdNum = tmdbIdParam ? parseInt(tmdbIdParam, 10) : null;
+  const mediaType = location.pathname.startsWith("/tv/") ? "tv" : "movie";
 
   if (!tmdbIdNum) {
     return (
@@ -20,7 +20,7 @@ export function MoviePage() {
           </div>
         </div>
       </CpcLayout>
-    )
+    );
   }
 
   return (
@@ -31,10 +31,10 @@ export function MoviePage() {
           <MovieDetails
             tmdbId={tmdbIdNum}
             mediaType={mediaType}
-            onDeleted={() => navigate('/collection')}
+            onDeleted={() => navigate("/collection")}
           />
         </div>
       </div>
     </CpcLayout>
-  )
+  );
 }

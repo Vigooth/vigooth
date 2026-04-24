@@ -1,73 +1,82 @@
-import { cn } from '@vigooth/ui'
-import { useTmdbMovieDetail, useTmdbMovieCredits, useTmdbTvDetail, useTmdbTvCredits } from '@/hooks/useTmdbSearch'
-import { useOmdbRatings } from '@/hooks/useOmdbRatings'
-import { useAllocineRatings } from '@/hooks/useAllocineRatings'
-import { getBackdropUrl, getPosterUrl } from '@/utils/tmdbImage'
-import { formatRuntime } from '@/utils/ratings'
-import { RatingBadge } from '@/components/movies/RatingBadge'
-import { ExternalLinks } from '@/components/movies/ExternalLinks'
-import { PersonalRating } from '@/components/movies/PersonalRating'
-import type { Movie } from '@/types/movie'
+import { cn } from "@vigooth/ui";
+import {
+  useTmdbMovieDetail,
+  useTmdbMovieCredits,
+  useTmdbTvDetail,
+  useTmdbTvCredits,
+} from "@/hooks/useTmdbSearch";
+import { useOmdbRatings } from "@/hooks/useOmdbRatings";
+import { useAllocineRatings } from "@/hooks/useAllocineRatings";
+import { getBackdropUrl, getPosterUrl } from "@/utils/tmdbImage";
+import { formatRuntime } from "@/utils/ratings";
+import { RatingBadge } from "@/components/movies/RatingBadge";
+import { ExternalLinks } from "@/components/movies/ExternalLinks";
+import { PersonalRating } from "@/components/movies/PersonalRating";
+import type { Movie } from "@/types/movie";
 
 interface PublicMovieDetailsProps {
-  movie: Movie
+  movie: Movie;
 }
 
 export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
-  const isTv = movie.media_type === 'tv'
-  const tmdbIdNum = movie.tmdb_id
+  const isTv = movie.media_type === "tv";
+  const tmdbIdNum = movie.tmdb_id;
 
   // TMDB data
-  const { data: movieDetails } = useTmdbMovieDetail(isTv ? null : tmdbIdNum)
-  const { data: movieCredits } = useTmdbMovieCredits(isTv ? null : tmdbIdNum)
-  const { data: tvDetails } = useTmdbTvDetail(isTv ? tmdbIdNum : null)
-  const { data: tvCredits } = useTmdbTvCredits(isTv ? tmdbIdNum : null)
+  const { data: movieDetails } = useTmdbMovieDetail(isTv ? null : tmdbIdNum);
+  const { data: movieCredits } = useTmdbMovieCredits(isTv ? null : tmdbIdNum);
+  const { data: tvDetails } = useTmdbTvDetail(isTv ? tmdbIdNum : null);
+  const { data: tvCredits } = useTmdbTvCredits(isTv ? tmdbIdNum : null);
 
-  const tmdbDetails = isTv ? tvDetails : movieDetails
-  const credits = isTv ? tvCredits : movieCredits
+  const tmdbDetails = isTv ? tvDetails : movieDetails;
+  const credits = isTv ? tvCredits : movieCredits;
 
   const imdbId = isTv
-    ? (tvDetails?.external_ids?.imdb_id || movie.imdb_id || null)
-    : (movieDetails?.imdb_id || movie.imdb_id || null)
+    ? tvDetails?.external_ids?.imdb_id || movie.imdb_id || null
+    : movieDetails?.imdb_id || movie.imdb_id || null;
 
-  const { data: omdb } = useOmdbRatings(imdbId)
-  const { data: allocine } = useAllocineRatings(imdbId)
+  const { data: omdb } = useOmdbRatings(imdbId);
+  const { data: allocine } = useAllocineRatings(imdbId);
 
   // Prefer TMDB data, fall back to collection data
-  const title = (isTv ? tvDetails?.name : movieDetails?.title) || movie.title
-  const originalTitle = (isTv ? tvDetails?.original_name : movieDetails?.original_title) || movie.original_title
-  const overview = tmdbDetails?.overview || movie.overview || ''
-  const posterPath = tmdbDetails?.poster_path || movie.poster_path
-  const backdropPath = tmdbDetails?.backdrop_path || movie.backdrop_path
-  const runtimeMinutes = isTv ? (tvDetails?.episode_run_time?.[0] || 0) : (movieDetails?.runtime || movie.runtime || 0)
+  const title = (isTv ? tvDetails?.name : movieDetails?.title) || movie.title;
+  const originalTitle =
+    (isTv ? tvDetails?.original_name : movieDetails?.original_title) || movie.original_title;
+  const overview = tmdbDetails?.overview || movie.overview || "";
+  const posterPath = tmdbDetails?.poster_path || movie.poster_path;
+  const backdropPath = tmdbDetails?.backdrop_path || movie.backdrop_path;
+  const runtimeMinutes = isTv
+    ? tvDetails?.episode_run_time?.[0] || 0
+    : movieDetails?.runtime || movie.runtime || 0;
 
   const director = isTv
-    ? (tvDetails?.created_by?.[0]?.name || credits?.crew.find((c) => c.job === 'Director')?.name || movie.director || '')
-    : (credits?.crew.find((c) => c.job === 'Director')?.name || movie.director || '')
-  const genres = (isTv ? tvDetails?.genres : movieDetails?.genres)?.map((g) => g.name)
-    || (movie.genres ? tryParseGenres(movie.genres) : [])
-  const dateStr = isTv ? tvDetails?.first_air_date : movieDetails?.release_date
-  const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : movie.year
-  const seasonInfo = isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : ''
+    ? tvDetails?.created_by?.[0]?.name ||
+      credits?.crew.find((c) => c.job === "Director")?.name ||
+      movie.director ||
+      ""
+    : credits?.crew.find((c) => c.job === "Director")?.name || movie.director || "";
+  const genres =
+    (isTv ? tvDetails?.genres : movieDetails?.genres)?.map((g) => g.name) ||
+    (movie.genres ? tryParseGenres(movie.genres) : []);
+  const dateStr = isTv ? tvDetails?.first_air_date : movieDetails?.release_date;
+  const year = dateStr ? parseInt(dateStr.substring(0, 4), 10) : movie.year;
+  const seasonInfo =
+    isTv && tvDetails ? `${tvDetails.number_of_seasons}S ${tvDetails.number_of_episodes}EP` : "";
 
-  const imdbRating = movie.imdb_rating ?? omdb?.imdbRating ?? null
-  const metascore = movie.metascore ?? omdb?.metascore ?? null
-  const rottenTomatoes = movie.rotten_tomatoes ?? omdb?.rottenTomatoes ?? null
+  const imdbRating = movie.imdb_rating ?? omdb?.imdbRating ?? null;
+  const metascore = movie.metascore ?? omdb?.metascore ?? null;
+  const rottenTomatoes = movie.rotten_tomatoes ?? omdb?.rottenTomatoes ?? null;
 
-  const backdropUrl = getBackdropUrl(backdropPath)
-  const posterUrl = getPosterUrl(posterPath, 'w342')
-  const runtime = formatRuntime(runtimeMinutes)
+  const backdropUrl = getBackdropUrl(backdropPath);
+  const posterUrl = getPosterUrl(posterPath, "w342");
+  const runtime = formatRuntime(runtimeMinutes);
 
   return (
     <>
       {/* Backdrop */}
       {backdropUrl && (
         <div className="relative h-48 md:h-64 overflow-hidden">
-          <img
-            src={backdropUrl}
-            alt=""
-            className="w-full h-full object-cover opacity-30"
-          />
+          <img src={backdropUrl} alt="" className="w-full h-full object-cover opacity-30" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black" />
         </div>
       )}
@@ -150,11 +159,7 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
           {/* Personal rating (read-only) */}
           {movie.personal_rating != null && (
             <div className="mt-3">
-              <PersonalRating
-                value={movie.personal_rating}
-                onChange={() => {}}
-                disabled
-              />
+              <PersonalRating value={movie.personal_rating} onChange={() => {}} disabled />
             </div>
           )}
         </div>
@@ -188,22 +193,27 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
         {movie.notes && (
           <div className="mb-6">
             <div className="text-cpc-cyan-500 text-sm font-bold mb-1">NOTES</div>
-            <div className="text-cpc-green-500 text-sm leading-relaxed whitespace-pre-wrap">{movie.notes}</div>
+            <div className="text-cpc-green-500 text-sm leading-relaxed whitespace-pre-wrap">
+              {movie.notes}
+            </div>
           </div>
         )}
       </div>
     </>
-  )
+  );
 }
 
 function tryParseGenres(genresStr: string): string[] {
-  if (!genresStr) return []
+  if (!genresStr) return [];
   try {
-    const parsed = JSON.parse(genresStr)
-    if (Array.isArray(parsed)) return parsed
+    const parsed = JSON.parse(genresStr);
+    if (Array.isArray(parsed)) return parsed;
   } catch {
     // Genres stored as comma-separated string
-    return genresStr.split(',').map((g) => g.trim()).filter(Boolean)
+    return genresStr
+      .split(",")
+      .map((g) => g.trim())
+      .filter(Boolean);
   }
-  return []
+  return [];
 }

@@ -1,31 +1,31 @@
-import { createContext, useContext, ReactNode } from 'react'
-import { ColorType } from '../../types/colors'
+import { createContext, useContext, ReactNode } from "react";
+import { ColorType } from "../../types/colors";
 
 export type SidebarView =
-  | { type: 'folder'; folderId: string | null; activeNoteId?: string }
-  | { type: 'note'; noteId: string }
+  | { type: "folder"; folderId: string | null; activeNoteId?: string }
+  | { type: "note"; noteId: string };
 
 interface SidebarContextValue {
-  activeView: SidebarView
-  selectFolder: (folderId: string | null) => void
-  selectNote: (noteId: string, folderId?: string | null) => void
-  addFolder: (name: string, color: ColorType) => void
-  deleteFolder: (folderId: string) => void
-  addNote: (title: string, color: ColorType, folderId?: string) => void
-  deleteNote: (noteId: string) => void
+  activeView: SidebarView;
+  selectFolder: (folderId: string | null) => void;
+  selectNote: (noteId: string, folderId?: string | null) => void;
+  addFolder: (name: string, color: ColorType) => void;
+  deleteFolder: (folderId: string) => void;
+  addNote: (title: string, color: ColorType, folderId?: string) => void;
+  deleteNote: (noteId: string) => void;
 }
 
-const SidebarContext = createContext<SidebarContextValue | null>(null)
+const SidebarContext = createContext<SidebarContextValue | null>(null);
 
 interface SidebarProviderProps {
-  children: ReactNode
-  activeView: SidebarView
-  onSelectFolder: (folderId: string | null) => void
-  onSelectNote: (noteId: string, folderId?: string | null) => void
-  onAddFolder: (name: string, color: ColorType) => void
-  onDeleteFolder: (folderId: string) => void
-  onAddNote: (title: string, color: ColorType) => void
-  onDeleteNote: (noteId: string) => void
+  children: ReactNode;
+  activeView: SidebarView;
+  onSelectFolder: (folderId: string | null) => void;
+  onSelectNote: (noteId: string, folderId?: string | null) => void;
+  onAddFolder: (name: string, color: ColorType) => void;
+  onDeleteFolder: (folderId: string) => void;
+  onAddNote: (title: string, color: ColorType) => void;
+  onDeleteNote: (noteId: string) => void;
 }
 
 export function SidebarProvider({
@@ -52,13 +52,13 @@ export function SidebarProvider({
     >
       {children}
     </SidebarContext.Provider>
-  )
+  );
 }
 
 export function useSidebar() {
-  const context = useContext(SidebarContext)
+  const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error('useSidebar must be used within a SidebarProvider')
+    throw new Error("useSidebar must be used within a SidebarProvider");
   }
-  return context
+  return context;
 }

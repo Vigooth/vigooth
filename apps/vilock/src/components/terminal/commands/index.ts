@@ -1,18 +1,18 @@
-import { CommandFn } from './types'
-import { help } from './help'
-import { cd } from './cd'
-import { pwd } from './pwd'
-import { add } from './add'
-import { mkdir } from './mkdir'
-import { rmdir } from './rmdir'
-import { rm } from './rm'
-import { mv } from './mv'
-import { ls } from './ls'
-import { cat } from './cat'
-import { gen } from './gen'
-import { edit } from './edit'
+import { CommandFn } from "./types";
+import { help } from "./help";
+import { cd } from "./cd";
+import { pwd } from "./pwd";
+import { add } from "./add";
+import { mkdir } from "./mkdir";
+import { rmdir } from "./rmdir";
+import { rm } from "./rm";
+import { mv } from "./mv";
+import { ls } from "./ls";
+import { cat } from "./cat";
+import { gen } from "./gen";
+import { edit } from "./edit";
 
-export type { CommandContext, CommandResult, CommandFn } from './types'
+export type { CommandContext, CommandResult, CommandFn } from "./types";
 
 export const commands: Record<string, CommandFn> = {
   HELP: help,
@@ -27,4 +27,4 @@ export const commands: Record<string, CommandFn> = {
   LS: ls,
   CAT: cat,
   GEN: gen,
-}
+};

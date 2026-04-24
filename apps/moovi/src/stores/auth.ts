@@ -1,44 +1,44 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext } from "react";
 
 export interface User {
-  id: string
-  email: string
+  id: string;
+  email: string;
 }
 
 export interface AuthState {
-  user: User | null
-  isAuthenticated: boolean
+  user: User | null;
+  isAuthenticated: boolean;
 }
 
 export interface AuthContextType extends AuthState {
-  login: (user: User) => void
-  logout: () => void
+  login: (user: User) => void;
+  logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | null>(null)
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }
 
 export function getInitialAuthState(): AuthState {
-  const userJson = localStorage.getItem('user')
+  const userJson = localStorage.getItem("user");
 
-  let user: User | null = null
+  let user: User | null = null;
   if (userJson) {
     try {
-      user = JSON.parse(userJson)
+      user = JSON.parse(userJson);
     } catch {
-      localStorage.removeItem('user')
+      localStorage.removeItem("user");
     }
   }
 
   return {
     user,
     isAuthenticated: !!user,
-  }
+  };
 }

@@ -23,7 +23,7 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 // endpoints. A token without a "typ" claim is rejected.
 func (m *AuthMiddleware) RequireAuth(allowedTypes ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := m.extractToken(c)
+		tokenString := m.extractToken(c, allowedTypes)
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authentication"})
 			c.Abort()
@@ -83,15 +83,17 @@ func contains(list []string, v string) bool {
 	return false
 }
 
-// extractToken reads the JWT from the HttpOnly cookie first, then falls back to
-// the Authorization header for backward compatibility.
-func (m *AuthMiddleware) extractToken(c *gin.Context) string {
-	// 1. Try HttpOnly cookie
-	if token, err := c.Cookie("auth_token"); err == nil && token != "" {
-		return token
+// extractToken reads the JWT from the HttpOnly cookie matching one of the
+// allowed token types, falling back to the Authorization header.
+// Scoping the cookie to the token type lets user and steam sessions coexist
+// on the same domain instead of overwriting each other.
+func (m *AuthMiddleware) extractToken(c *gin.Context, allowedTypes []string) string {
+	for _, t := range allowedTypes {
+		if token, err := c.Cookie(cookieNameForType(t)); err == nil && token != "" {
+			return token
+		}
 	}
 
-	// 2. Fallback: Authorization header
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		return ""
@@ -103,4 +105,13 @@ func (m *AuthMiddleware) extractToken(c *gin.Context) string {
 	}
 
 	return parts[1]
+}
+
+func cookieNameForType(tokenType string) string {
+	switch tokenType {
+	case "steam":
+		return "steam_token"
+	default:
+		return "auth_token"
+	}
 }

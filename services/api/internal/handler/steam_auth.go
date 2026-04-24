@@ -99,7 +99,7 @@ func (h *SteamAuthHandler) Callback(c *gin.Context) {
 
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(
-		"auth_token",
+		"steam_token",
 		tokenString,
 		h.cookieConfig.MaxAge,
 		"/",
@@ -152,7 +152,7 @@ func (h *SteamAuthHandler) Me(c *gin.Context) {
 func (h *SteamAuthHandler) Logout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(
-		"auth_token",
+		"steam_token",
 		"",
 		-1,
 		"/",
@@ -164,7 +164,7 @@ func (h *SteamAuthHandler) Logout(c *gin.Context) {
 }
 
 func (h *SteamAuthHandler) extractToken(c *gin.Context) string {
-	if token, err := c.Cookie("auth_token"); err == nil && token != "" {
+	if token, err := c.Cookie("steam_token"); err == nil && token != "" {
 		return token
 	}
 	authHeader := c.GetHeader("Authorization")

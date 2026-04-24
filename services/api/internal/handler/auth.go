@@ -28,6 +28,10 @@ func NewAuthHandler(authService *service.AuthService, cookieConfig CookieConfig)
 }
 
 func (h *AuthHandler) setAuthCookie(c *gin.Context, token string) {
+	// Strict: cookie is never sent on cross-site requests. Kills CSRF. Tradeoff:
+	// arriving via an external link (email, chat) shows a logged-out state until
+	// the user navigates within the site — acceptable for vilock's threat model.
+	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(
 		"auth_token",
 		token,
@@ -37,7 +41,6 @@ func (h *AuthHandler) setAuthCookie(c *gin.Context, token string) {
 		h.cookieConfig.Secure,
 		true, // HttpOnly
 	)
-	c.SetSameSite(http.SameSiteLaxMode)
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -89,6 +92,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
+	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(
 		"auth_token",
 		"",

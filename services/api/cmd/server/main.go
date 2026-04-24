@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Vigooth/vigooth/services/api/internal/handler"
 	"github.com/Vigooth/vigooth/services/api/internal/llm"
@@ -19,7 +21,10 @@ import (
 func main() {
 	// Config
 	port := getEnv("PORT", "8080")
-	jwtSecret := getEnv("JWT_SECRET", "dev-secret-change-in-production")
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET is required")
+	}
 	tmdbApiKey := os.Getenv("TMDB_API_KEY")
 	omdbApiKey := os.Getenv("OMDB_API_KEY")
 	steamApiKey := os.Getenv("STEAM_API_KEY")
@@ -117,17 +122,20 @@ func main() {
 	// Router
 	r := gin.Default()
 
-	// CORS
-	r.Use(middleware.CORS())
+	// CORS — allowlist from env (comma-separated), e.g.
+	// CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5177,https://vigooth.com
+	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	r.Use(middleware.CORS(allowedOrigins))
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Auth routes
-	r.POST("/auth/register", authHandler.Register)
-	r.POST("/auth/login", authHandler.Login)
+	// Auth routes — rate limited to slow down brute force / enumeration
+	authLimiter := middleware.RateLimit(10, time.Minute)
+	r.POST("/auth/register", authLimiter, authHandler.Register)
+	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
 
 	// Steam auth routes

@@ -33,22 +33,63 @@ function FriendRow({ friend, onClick }: { friend: FriendWithProfile; onClick: ()
   );
 }
 
-function CollapsedSidebar({
-  friendCount,
-  onExpand,
+function CollapsedFriendRow({
+  friend,
+  onClick,
 }: {
-  friendCount: number | null;
-  onExpand: () => void;
+  friend: FriendWithProfile;
+  onClick: () => void;
 }) {
   return (
     <div
-      className="flex flex-col items-center w-12 border-l border-cpc-green-900 shrink-0 h-full cursor-pointer hover:bg-cpc-magenta-500/10 transition-colors"
-      onClick={onExpand}
+      className="group flex items-center justify-center py-1.5 hover:bg-cpc-magenta-500/10 cursor-pointer transition-colors"
+      onClick={onClick}
+      title={friend.personaname}
     >
-      <div className="p-2 text-cpc-magenta-500 text-[10px] font-bold writing-mode-vertical">
-        FRIENDS
+      {friend.avatarfull ? (
+        <img
+          src={friend.avatarfull}
+          alt={friend.personaname}
+          className="w-6 h-6 border border-cpc-green-900 group-hover:border-cpc-magenta-500 transition-colors shrink-0"
+        />
+      ) : (
+        <div className="w-6 h-6 border border-cpc-green-900 flex items-center justify-center text-cpc-green-900 text-[8px] shrink-0">
+          ?
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CollapsedSidebar({
+  friends,
+  friendCount,
+  onExpand,
+  onFriendClick,
+}: {
+  friends: FriendWithProfile[];
+  friendCount: number | null;
+  onExpand: () => void;
+  onFriendClick: (steamid: string) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center w-12 border-l border-cpc-green-900 shrink-0 h-full overflow-hidden">
+      <div
+        className="w-full py-2 text-center text-cpc-magenta-500 text-[10px] font-bold border-b border-cpc-green-900 cursor-pointer hover:bg-cpc-magenta-500/10 transition-colors"
+        onClick={onExpand}
+        title="Expand"
+      >
+        {friendCount ?? '·'}
       </div>
-      {friendCount !== null && <div className="text-cpc-green-900 text-[10px]">{friendCount}</div>}
+      <div className="flex-1 w-full overflow-y-auto">
+        {friends.map((friend) => (
+          <CollapsedFriendRow
+            key={friend.steamid}
+            friend={friend}
+            onClick={() => onFriendClick(friend.steamid)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -200,7 +241,18 @@ export function FriendsSidebar() {
 
       {/* Desktop sidebar */}
       {collapsed ? (
-        <CollapsedSidebar friendCount={friends?.length ?? null} onExpand={handleExpand} />
+        <div className="hidden lg:flex relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-cpc-magenta-500/30 z-10"
+            onMouseDown={handleMouseDown}
+          />
+          <CollapsedSidebar
+            friends={filtered}
+            friendCount={friends?.length ?? null}
+            onExpand={handleExpand}
+            onFriendClick={handleFriendClick}
+          />
+        </div>
       ) : (
         <div
           className="hidden lg:flex flex-col shrink-0 h-full overflow-hidden relative"

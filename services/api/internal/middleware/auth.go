@@ -18,7 +18,10 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 	}
 }
 
-func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
+// RequireAuth enforces a valid JWT whose "typ" claim is one of the allowed
+// types. Pass "user" for moovi/vilock endpoints and "steam" for Steam-specific
+// endpoints. A token without a "typ" claim is rejected.
+func (m *AuthMiddleware) RequireAuth(allowedTypes ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := m.extractToken(c)
 		if tokenString == "" {
@@ -41,12 +44,21 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		// Extract user ID from claims
+		// Extract claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
 			c.Abort()
 			return
+		}
+
+		if len(allowedTypes) > 0 {
+			tokenType, _ := claims["typ"].(string)
+			if !contains(allowedTypes, tokenType) {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "token type not allowed for this endpoint"})
+				c.Abort()
+				return
+			}
 		}
 
 		userID, ok := claims["sub"].(string)
@@ -60,6 +72,15 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		c.Set("userID", userID)
 		c.Next()
 	}
+}
+
+func contains(list []string, v string) bool {
+	for _, s := range list {
+		if s == v {
+			return true
+		}
+	}
+	return false
 }
 
 // extractToken reads the JWT from the HttpOnly cookie first, then falls back to

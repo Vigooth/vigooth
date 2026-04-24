@@ -155,7 +155,7 @@ func main() {
 	// Steam proxy routes (protected)
 	if steamProxyHandler != nil {
 		steam := r.Group("/api/steam")
-		steam.Use(authMiddleware.RequireAuth())
+		steam.Use(authMiddleware.RequireAuth("steam"))
 		{
 			steam.GET("/owned-games/:steamId", steamProxyHandler.OwnedGames)
 			steam.GET("/player-summary/:steamId", steamProxyHandler.PlayerSummary)
@@ -168,7 +168,7 @@ func main() {
 
 	// Protected routes
 	api := r.Group("/api")
-	api.Use(authMiddleware.RequireAuth())
+	api.Use(authMiddleware.RequireAuth("user"))
 	{
 		api.GET("/vault", vaultHandler.GetVault)
 		api.PUT("/vault", vaultHandler.SaveVault)

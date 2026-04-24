@@ -77,6 +77,12 @@ function streamFromEndpoint(
     signal,
   })
     .then((response) => {
+      if (response.status === 401) {
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        throw new Error('Unauthorized')
+      }
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }

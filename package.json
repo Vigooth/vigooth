@@ -17,8 +17,8 @@
     "build:vilock": "pnpm --filter @vigooth/vilock build",
     "build:moovi": "pnpm --filter @vigooth/moovi build",
     "build:steam": "pnpm --filter @vigooth/steam build",
-    "lint": "pnpm -r lint",
-    "format": "prettier --write .",
+    "lint": "oxlint",
+    "format": "oxfmt .",
     "type-check": "pnpm -r type-check",
     "prepare": "husky install",
     "tui": "pnpm --filter @vigooth/tui dev",
@@ -27,7 +27,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "prettier": "^3.2.5",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
     "typescript": "~5.8.3"
   },
   "dependencies": {

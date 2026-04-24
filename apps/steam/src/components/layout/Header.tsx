@@ -22,9 +22,9 @@ export function Header() {
       <CpcMenu
         color="magenta"
         trigger={
-          <button className="text-cpc-magenta-500 font-bold shrink-0 cursor-pointer hover:text-cpc-yellow-500 transition-colors">
+          <CpcButton variant="text" color="magenta" size="lg">
             STEAM
-          </button>
+          </CpcButton>
         }
       >
         {otherApps.map((app) => (

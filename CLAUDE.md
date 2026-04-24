@@ -7,9 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Development server**: `pnpm dev` - starts Vite development server with HMR
 - **Build**: `pnpm build` - runs type-check and builds for production
 - **Type checking**: `pnpm type-check` - runs TypeScript compiler without emitting files
-- **Linting**: `pnpm lint` - runs ESLint on TypeScript/TSX files
+- **Linting**: `pnpm lint` - runs oxlint on the repo
 - **Preview**: `pnpm preview` - preview production build locally
-- **Format**: `pnpm format` - formats code using Prettier
+- **Format**: `pnpm format` - formats code using oxfmt
 
 ## Package Manager
 
@@ -76,11 +76,11 @@ services/
 ### Tech Stack
 - **React 19.1.1** with TypeScript
 - **Vite** for build tooling and development server
-- **twin.macro + Emotion** for CSS-in-JS with Tailwind utilities
+- **Tailwind CSS v4** via `@tailwindcss/vite` plugin
 - **@base-ui-components/react** for headless UI primitives (Menu, Drawer)
 - **TanStack Query** for server state management
-- **ESLint** for linting with React-specific rules
-- **Prettier** for code formatting
+- **Oxlint** for linting (Rust-based, replaces ESLint)
+- **Oxfmt** for code formatting (Rust-based, replaces Prettier)
 - **Go + Gin** for backend API (services/api/)
 
 ### Shared UI Library (@vigooth/ui)

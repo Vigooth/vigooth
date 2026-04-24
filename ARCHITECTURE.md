@@ -88,8 +88,7 @@ import { useAuth } from '@vigooth/auth'
 - **React 19** + TypeScript
 - **Vite** - Build tooling
 - **pnpm workspaces** - Gestion monorepo
-- **twin.macro** + **Emotion** - CSS-in-JS
-- **Tailwind CSS v3** - Utilities (v4 incompatible avec twin.macro)
+- **Tailwind CSS v4** - Utilities via `@tailwindcss/vite`
 - **Storybook** - Documentation composants (stories colocalisées dans packages/ui/)
 
 ## Hébergement (options économiques)

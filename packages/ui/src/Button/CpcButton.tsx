@@ -1,13 +1,15 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../utils/cn'
 
-type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange'
-type CpcVariant = 'outlined' | 'filled' | 'text'
+export type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange'
+export type CpcVariant = 'outlined' | 'filled' | 'text'
+export type CpcSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 interface CpcButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
   variant?: CpcVariant
   color?: CpcColor
+  size?: CpcSize
 }
 
 const colorMap = {
@@ -26,10 +28,19 @@ const variantClass: Record<CpcVariant, string> = {
   text: 'cpc-btn-text',
 }
 
+const sizeClass: Record<CpcSize, string> = {
+  xs: 'cpc-btn-xs',
+  sm: 'cpc-btn-sm',
+  md: 'cpc-btn-md',
+  lg: 'cpc-btn-lg',
+  xl: 'cpc-btn-xl',
+}
+
 export function CpcButton({
   children,
   variant = 'outlined',
   color = 'green',
+  size = 'sm',
   className,
   style,
   ...props
@@ -38,7 +49,7 @@ export function CpcButton({
 
   return (
     <button
-      className={cn('cpc-btn', variantClass[variant], className)}
+      className={cn('cpc-btn', variantClass[variant], sizeClass[size], className)}
       style={{
         '--btn-color': c.base,
         '--btn-dark': c.dark,

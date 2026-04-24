@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "pnpm type-check && vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,18 +20,10 @@
     "react-router-dom": "^7.12.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
-    "@typescript-eslint/eslint-plugin": "^8.53.1",
-    "@typescript-eslint/parser": "^8.53.1",
     "@vitejs/plugin-react": "^4.7.0",
-    "eslint": "^9.39.2",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.26",
-    "globals": "^17.1.0",
     "typescript": "~5.8.3",
-    "typescript-eslint": "^8.53.1",
     "vite": "^7.1.0"
   }
 }

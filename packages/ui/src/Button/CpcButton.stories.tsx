@@ -1,5 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { CpcButton } from './CpcButton'
+import { CpcButton, type CpcColor, type CpcSize, type CpcVariant } from './CpcButton'
+
+const CPC_COLORS: readonly CpcColor[] = ['green', 'cyan', 'red', 'yellow', 'magenta', 'blue', 'orange']
+const CPC_VARIANTS: readonly CpcVariant[] = ['outlined', 'filled', 'text']
+const CPC_SIZES: readonly CpcSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
 
 const meta = {
   title: 'Components/CpcButton',
@@ -13,14 +17,9 @@ const meta = {
   },
   tags: ['autodocs'],
   argTypes: {
-    variant: {
-      control: 'select',
-      options: ['outlined', 'filled', 'text'],
-    },
-    color: {
-      control: 'select',
-      options: ['green', 'cyan', 'red', 'yellow', 'magenta', 'blue', 'orange'],
-    },
+    variant: { control: 'select', options: CPC_VARIANTS },
+    color: { control: 'select', options: CPC_COLORS },
+    size: { control: 'select', options: CPC_SIZES },
     disabled: { control: 'boolean' },
   },
 } satisfies Meta<typeof CpcButton>
@@ -61,14 +60,26 @@ export const Disabled: Story = {
   },
 }
 
+export const AllSizes: Story = {
+  render: () => (
+    <div className="flex items-center gap-2">
+      {CPC_SIZES.map((size) => (
+        <CpcButton key={size} size={size} color="green">
+          {size.toUpperCase()}
+        </CpcButton>
+      ))}
+    </div>
+  ),
+}
+
 export const AllVariants: Story = {
   render: () => (
     <div className="flex flex-col gap-6">
-      {(['outlined', 'filled', 'text'] as const).map((variant) => (
+      {CPC_VARIANTS.map((variant) => (
         <div key={variant} className="flex flex-col gap-2">
           <span className="text-cpc-green-500/60 text-xs font-cpc uppercase">{variant}</span>
           <div className="flex flex-wrap gap-2">
-            {(['green', 'cyan', 'red', 'yellow', 'magenta', 'blue', 'orange'] as const).map((color) => (
+            {CPC_COLORS.map((color) => (
               <CpcButton key={color} variant={variant} color={color}>
                 {color.toUpperCase()}
               </CpcButton>

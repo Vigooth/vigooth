@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CpcLayout, CpcDrawer } from '@vigooth/ui'
+import { CpcLayout, CpcDrawer, CpcMenu, CpcMenuItem, CpcButton } from '@vigooth/ui'
+import { getAppsConfig } from '@vigooth/config'
 import { useAuth } from '../../stores/auth'
 import {
   generatePassword,
@@ -34,6 +35,8 @@ import {
 } from '@/hooks/useVaultQuery'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useSync } from '@/hooks/useSync'
+
+const otherApps = getAppsConfig('vilock')
 
 export function VaultPage() {
   const { t } = useTranslation()
@@ -255,7 +258,20 @@ export function VaultPage() {
                 >
                   ☰
                 </button>
-                <span className="text-cpc-red-500 font-bold">{t('app.name')}</span>
+                <CpcMenu
+                  color="red"
+                  trigger={
+                    <CpcButton variant="text" color="red" size="lg">
+                      {t('app.name')}
+                    </CpcButton>
+                  }
+                >
+                  {otherApps.map((app) => (
+                    <CpcMenuItem key={app.id} onClick={() => { window.location.href = app.url }}>
+                      {app.name}
+                    </CpcMenuItem>
+                  ))}
+                </CpcMenu>
                 {saving && <span className="text-cpc-yellow-500 text-xs">{t('vault.saving')}</span>}
                 {isSyncing && <span className="text-cpc-cyan-500 text-xs animate-pulse">{t('status.syncing')}</span>}
                 {!isOnline && <span className="text-cpc-red-500 text-xs animate-pulse">{t('status.offline')}</span>}

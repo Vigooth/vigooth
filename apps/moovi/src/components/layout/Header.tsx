@@ -22,9 +22,9 @@ export function Header() {
       <CpcMenu
         color="cyan"
         trigger={
-          <button className="text-cpc-cyan-500 font-bold shrink-0 cursor-pointer hover:text-cpc-yellow-500 transition-colors">
+          <CpcButton variant="text" color="cyan" size="lg">
             MOOVI
-          </button>
+          </CpcButton>
         }
       >
         {otherApps.map((app) => (

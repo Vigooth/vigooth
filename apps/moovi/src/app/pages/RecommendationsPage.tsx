@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcLayout, cn } from '@vigooth/ui';
+import { CpcButton, CpcLayout, cn } from '@vigooth/ui';
 import { useAuth } from '@/stores/auth';
 import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { useRecommendations } from '@/hooks/useRecommendations';
@@ -158,21 +158,17 @@ export function RecommendationsPage() {
                 <div className="text-cpc-green-900 text-xs mb-1">NOTE PERSO</div>
                 <div className="flex gap-1">
                   {RATING_PRESETS.map((preset) => (
-                    <button
+                    <CpcButton
                       key={preset.value}
+                      size="xs"
+                      color={minRating === preset.value ? 'cyan' : 'green'}
                       onClick={() => {
                         setMinRating(preset.value);
                         setSelectedIds(new Set());
                       }}
-                      className={cn(
-                        'border px-2 py-0.5 text-xs transition-colors',
-                        minRating === preset.value
-                          ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                          : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                      )}
                     >
                       {preset.label}
-                    </button>
+                    </CpcButton>
                   ))}
                 </div>
               </div>
@@ -197,24 +193,28 @@ export function RecommendationsPage() {
                     className="bg-black border border-cpc-green-900 text-cpc-green-500 text-xs px-2 py-1 w-20 outline-none focus:border-cpc-cyan-500"
                   />
                   {(yearFrom || yearTo) && (
-                    <button
+                    <CpcButton
+                      size="xs"
+                      variant="text"
+                      color="red"
                       onClick={() => {
                         setYearFrom('');
                         setYearTo('');
                       }}
-                      className="text-cpc-green-900 text-xs hover:text-cpc-red-500 transition-colors"
                     >
                       RESET
-                    </button>
+                    </CpcButton>
                   )}
                 </div>
               </div>
 
               {/* Collection filter */}
               <div className="flex items-center justify-between mb-2">
-                <button
+                <CpcButton
+                  size="xs"
+                  variant="text"
+                  color="green"
                   onClick={() => setShowPicker((p) => !p)}
-                  className="text-cpc-green-900 text-xs hover:text-cpc-green-500 transition-colors"
                 >
                   COLLECTION:{' '}
                   {selectedIds.size > 0 ? (
@@ -229,14 +229,16 @@ export function RecommendationsPage() {
                     <span className="text-cpc-green-500">TOUT</span>
                   )}{' '}
                   {showPicker ? '\u25B2' : '\u25BC'}
-                </button>
+                </CpcButton>
                 {selectedIds.size > 0 && (
-                  <button
+                  <CpcButton
+                    size="xs"
+                    variant="text"
+                    color="red"
                     onClick={() => setSelectedIds(new Set())}
-                    className="text-cpc-green-900 text-xs hover:text-cpc-red-500 transition-colors"
                   >
                     RESET
-                  </button>
+                  </CpcButton>
                 )}
               </div>
 
@@ -247,15 +249,12 @@ export function RecommendationsPage() {
                     const selected = selectedIds.has(movie.id);
                     const poster = getPosterUrl(movie.poster_path, 'w92');
                     return (
-                      <button
+                      <CpcButton
                         key={movie.id}
+                        size="xs"
+                        color={selected ? 'cyan' : 'green'}
+                        className="gap-2 text-left"
                         onClick={() => toggleMovie(movie.id)}
-                        className={cn(
-                          'border-2 flex items-center gap-2 px-2 py-1 text-xs transition-colors text-left',
-                          selected
-                            ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                            : 'border-cpc-green-900 text-cpc-green-500 hover:border-cpc-green-500',
-                        )}
                       >
                         {poster && (
                           <img src={poster} alt="" className="w-6 h-9 object-cover flex-shrink-0" />
@@ -266,7 +265,7 @@ export function RecommendationsPage() {
                             {movie.personal_rating}/10
                           </span>
                         )}
-                      </button>
+                      </CpcButton>
                     );
                   })}
                 </div>
@@ -274,30 +273,26 @@ export function RecommendationsPage() {
 
               {/* Generate buttons */}
               <div className="flex gap-3">
-                <button
+                <CpcButton
+                  size="md"
+                  fullWidth
+                  color="green"
+                  className="justify-center font-bold"
                   onClick={handleGenerate}
                   disabled={!data || allMovies.length === 0}
-                  className={cn(
-                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
-                    data && allMovies.length > 0
-                      ? 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black'
-                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
-                  )}
                 >
                   GENERATE
-                </button>
-                <button
+                </CpcButton>
+                <CpcButton
+                  size="md"
+                  fullWidth
+                  color="cyan"
+                  className="justify-center font-bold"
                   onClick={handleGenerateIA}
                   disabled={!data || allMovies.length === 0}
-                  className={cn(
-                    'border-2 px-6 py-2 text-xs font-bold transition-colors flex-1',
-                    data && allMovies.length > 0
-                      ? 'border-cpc-cyan-500 text-cpc-cyan-500 hover:bg-cpc-cyan-500 hover:text-black'
-                      : 'border-cpc-green-900 text-cpc-green-900 cursor-not-allowed',
-                  )}
                 >
                   GENERATE IA
-                </button>
+                </CpcButton>
               </div>
             </div>
           )}
@@ -305,12 +300,15 @@ export function RecommendationsPage() {
           {/* Cancel button during loading */}
           {isLoading && (
             <div className="mb-4">
-              <button
+              <CpcButton
+                size="md"
+                fullWidth
+                color="red"
+                className="justify-center font-bold"
                 onClick={cancel}
-                className="border-2 border-cpc-red-500 text-cpc-red-500 px-6 py-2 text-xs font-bold hover:bg-cpc-red-500 hover:text-black transition-colors w-full"
               >
                 CANCEL
-              </button>
+              </CpcButton>
             </div>
           )}
 

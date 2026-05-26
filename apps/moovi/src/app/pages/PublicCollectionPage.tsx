@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Drawer } from '@base-ui/react/drawer';
-import { CpcLayout, cn, ListIcon, GridCompactIcon, CpcMenu, CpcMenuItem } from '@vigooth/ui';
+import {
+  CpcButton,
+  CpcLayout,
+  ListIcon,
+  GridCompactIcon,
+  CpcMenu,
+  CpcMenuItem,
+} from '@vigooth/ui';
 import { getAppsConfig } from '@vigooth/config';
 import { useAuth } from '@/stores/auth';
 import { usePublicCollectionQuery } from '@/hooks/usePublicCollectionQuery';
@@ -78,9 +85,9 @@ export function PublicCollectionPage() {
           <CpcMenu
             color="cyan"
             trigger={
-              <button className="text-cpc-cyan-500 font-bold shrink-0 cursor-pointer hover:text-cpc-yellow-500 transition-colors">
+              <CpcButton size="sm" variant="text" color="cyan" className="font-bold shrink-0">
                 MOOVI
-              </button>
+              </CpcButton>
             }
           >
             {otherApps.map((app) => (
@@ -104,18 +111,15 @@ export function PublicCollectionPage() {
           {isAuthenticated && myTmdbIds && (
             <div className="flex gap-1 overflow-x-auto scrollbar-none">
               {compareFilters.map((f) => (
-                <button
+                <CpcButton
                   key={f.value}
+                  size="xs"
+                  color={compareFilter === f.value ? 'magenta' : 'green'}
+                  className="whitespace-nowrap"
                   onClick={() => setCompareFilter(f.value)}
-                  className={cn(
-                    'border px-3 py-1 text-xs transition-colors whitespace-nowrap',
-                    compareFilter === f.value
-                      ? 'border-cpc-magenta-500 text-cpc-magenta-500'
-                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                  )}
                 >
                   {f.label}
-                </button>
+                </CpcButton>
               ))}
             </div>
           )}
@@ -129,43 +133,31 @@ export function PublicCollectionPage() {
                 { label: '7+', value: 7 },
                 { label: '8+', value: 8 },
               ].map((preset) => (
-                <button
+                <CpcButton
                   key={preset.value}
+                  size="xs"
+                  color={minRating === preset.value ? 'cyan' : 'green'}
                   onClick={() => setMinRating(preset.value)}
-                  className={cn(
-                    'border px-3 py-1 text-xs transition-colors',
-                    minRating === preset.value
-                      ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                  )}
                 >
                   {preset.label}
-                </button>
+                </CpcButton>
               ))}
             </div>
             <div className="flex gap-1">
-              <button
+              <CpcButton
+                size="xs"
+                color={viewMode === 'list' ? 'cyan' : 'green'}
                 onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-                className={cn(
-                  'border p-1.5 transition-colors',
-                  viewMode === 'list'
-                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                )}
               >
                 <ListIcon size="sm" />
-              </button>
-              <button
+              </CpcButton>
+              <CpcButton
+                size="xs"
+                color={viewMode === 'compact' ? 'cyan' : 'green'}
                 onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
-                className={cn(
-                  'border p-1.5 transition-colors',
-                  viewMode === 'compact'
-                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                )}
               >
                 <GridCompactIcon size="sm" />
-              </button>
+              </CpcButton>
             </div>
           </div>
         </div>

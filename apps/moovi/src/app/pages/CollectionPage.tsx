@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcLayout, cn, ListIcon, GridCompactIcon } from '@vigooth/ui';
+import { CpcButton, CpcLayout, ListIcon, GridCompactIcon } from '@vigooth/ui';
 import { useAuth } from '@/stores/auth';
 import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { useBackfillOverviews } from '@/hooks/useBackfillOverviews';
@@ -67,43 +67,31 @@ export function CollectionPage() {
                 { label: '7+', value: 7 },
                 { label: '8+', value: 8 },
               ].map((preset) => (
-                <button
+                <CpcButton
                   key={preset.value}
+                  size="xs"
+                  color={minRating === preset.value ? 'cyan' : 'green'}
                   onClick={() => setMinRating(preset.value)}
-                  className={cn(
-                    'border px-3 py-1 text-xs transition-colors',
-                    minRating === preset.value
-                      ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                      : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                  )}
                 >
                   {preset.label}
-                </button>
+                </CpcButton>
               ))}
             </div>
             <div className="flex gap-1">
-              <button
+              <CpcButton
+                size="xs"
+                color={viewMode === 'list' ? 'cyan' : 'green'}
                 onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-                className={cn(
-                  'border p-1.5 transition-colors',
-                  viewMode === 'list'
-                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                )}
               >
                 <ListIcon size="sm" />
-              </button>
-              <button
+              </CpcButton>
+              <CpcButton
+                size="xs"
+                color={viewMode === 'compact' ? 'cyan' : 'green'}
                 onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
-                className={cn(
-                  'border p-1.5 transition-colors',
-                  viewMode === 'compact'
-                    ? 'border-cpc-cyan-500 text-cpc-cyan-500'
-                    : 'border-cpc-green-900 text-cpc-green-900 hover:text-cpc-green-500 hover:border-cpc-green-500',
-                )}
               >
                 <GridCompactIcon size="sm" />
-              </button>
+              </CpcButton>
             </div>
           </div>
         </div>

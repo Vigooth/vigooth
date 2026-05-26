@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { CpcLayout } from '@vigooth/ui';
+import { CpcButton, CpcLayout } from '@vigooth/ui';
 import { useWishlistQuery, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import { Header } from '@/components/layout/Header';
 import { getPosterUrl } from '@/utils/tmdbImage';
@@ -42,13 +42,16 @@ function WishlistCard({ item }: { item: WishlistItem }) {
       </div>
 
       <div className="px-2 pb-2">
-        <button
+        <CpcButton
+          size="xs"
+          color="red"
+          fullWidth
+          className="justify-center"
           onClick={() => removeFromWishlist.mutate(item.tmdb_id)}
           disabled={removeFromWishlist.isPending}
-          className="w-full border border-cpc-red-500 text-cpc-red-500 text-xs py-1 hover:bg-cpc-red-500 hover:text-black transition-colors"
         >
           {removeFromWishlist.isPending ? 'REMOVING...' : 'REMOVE'}
-        </button>
+        </CpcButton>
       </div>
     </div>
   );

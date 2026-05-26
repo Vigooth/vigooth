@@ -1,5 +1,5 @@
-import { useRef, useEffect, useCallback, useMemo } from 'react';
-import { CpcLayout } from '@vigooth/ui';
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import { CpcButton, CpcLayout, ListIcon, GridCompactIcon } from '@vigooth/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from '@/hooks/useTmdbSearch';
@@ -8,8 +8,17 @@ import { Header } from '@/components/layout/Header';
 import { SearchBar } from '@/components/search/SearchBar';
 import { SearchResultCard } from '@/components/search/SearchResultCard';
 
+type ViewMode = 'grid' | 'list' | 'compact';
+
+const gridClasses: Record<ViewMode, string> = {
+  grid: 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3',
+  list: 'flex flex-col gap-2',
+  compact: 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2',
+};
+
 export function SearchPage() {
   const [query, setQuery] = useQueryParam('q');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const debouncedQuery = useDebounce(query, 300);
 
   const {
@@ -97,12 +106,28 @@ export function SearchPage() {
       <div className="h-full flex flex-col">
         <Header />
 
-        <div className="p-3">
+        <div className="p-3 space-y-2">
           <SearchBar
             value={query}
             onChange={setQuery}
             placeholder="Search movies or directors on TMDB..."
           />
+          <div className="flex items-center justify-end gap-1">
+            <CpcButton
+              size="xs"
+              color={viewMode === 'list' ? 'cyan' : 'green'}
+              onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
+            >
+              <ListIcon size="sm" />
+            </CpcButton>
+            <CpcButton
+              size="xs"
+              color={viewMode === 'compact' ? 'cyan' : 'green'}
+              onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
+            >
+              <GridCompactIcon size="sm" />
+            </CpcButton>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto px-3 pb-3">
@@ -121,11 +146,12 @@ export function SearchPage() {
                   <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
                     FILMS DE {director.name.toUpperCase()}
                   </div>
-                  <div className="space-y-2">
+                  <div className={gridClasses[viewMode]}>
                     {directorResults.map((result) => (
                       <SearchResultCard
                         key={`director-${result.id}`}
                         result={result}
+                        viewMode={viewMode}
                         inCollection={collectionKeys.has(
                           `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
@@ -150,19 +176,22 @@ export function SearchPage() {
                   <div className="text-sm mt-1">Try a different search term</div>
                 </div>
               ) : results.length > 0 ? (
-                <div className="space-y-2">
+                <div>
                   <div className="text-cpc-green-900 text-xs mb-2">
                     {totalResults} RESULT{totalResults !== 1 ? 'S' : ''}
                   </div>
-                  {results.map((result) => (
-                    <SearchResultCard
-                      key={result.id}
-                      result={result}
-                      inCollection={collectionKeys.has(
-                        `${result.media_type ?? 'movie'}:${result.id}`,
-                      )}
-                    />
-                  ))}
+                  <div className={gridClasses[viewMode]}>
+                    {results.map((result) => (
+                      <SearchResultCard
+                        key={result.id}
+                        result={result}
+                        viewMode={viewMode}
+                        inCollection={collectionKeys.has(
+                          `${result.media_type ?? 'movie'}:${result.id}`,
+                        )}
+                      />
+                    ))}
+                  </div>
 
                   {/* Sentinel for infinite scroll */}
                   <div ref={sentinelRef} className="h-8 flex items-center justify-center">

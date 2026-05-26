@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { cn } from '@vigooth/ui';
+import { CpcButton, cn } from '@vigooth/ui';
 import {
   useTmdbMovieDetail,
   useTmdbMovieCredits,
@@ -265,7 +265,9 @@ export function MovieDetails({
           {/* Wishlist button - only when not in collection */}
           {!inCollection && (
             <div className="mt-3">
-              <button
+              <CpcButton
+                size="xs"
+                color={isWishlisted ? 'yellow' : 'green'}
                 onClick={() => {
                   if (isWishlisted) {
                     removeFromWishlist.mutate(tmdbId);
@@ -279,15 +281,9 @@ export function MovieDetails({
                   }
                 }}
                 disabled={addToWishlist.isPending || removeFromWishlist.isPending}
-                className={cn(
-                  'border-2 px-4 py-1 text-xs transition-colors',
-                  isWishlisted
-                    ? 'border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-black'
-                    : 'border-cpc-green-500 text-cpc-green-500 hover:bg-cpc-green-500 hover:text-black',
-                )}
               >
                 {isWishlisted ? 'WISHLISTED' : 'ADD TO WISHLIST'}
-              </button>
+              </CpcButton>
             </div>
           )}
         </div>
@@ -336,27 +332,22 @@ export function MovieDetails({
             {showDeleteConfirm ? (
               <div className="flex items-center gap-3">
                 <span className="text-cpc-red-500 text-sm">CONFIRM DELETE?</span>
-                <button
+                <CpcButton
+                  size="xs"
+                  color="red"
                   onClick={handleDelete}
                   disabled={deleteMovie.isPending}
-                  className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
                 >
                   {deleteMovie.isPending ? 'DELETING...' : 'YES, DELETE'}
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="border-2 border-cpc-green-500 text-cpc-green-500 px-3 py-1 text-xs hover:bg-cpc-green-500 hover:text-black transition-colors"
-                >
+                </CpcButton>
+                <CpcButton size="xs" color="green" onClick={() => setShowDeleteConfirm(false)}>
                   CANCEL
-                </button>
+                </CpcButton>
               </div>
             ) : (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="border-2 border-cpc-red-500 text-cpc-red-500 px-3 py-1 text-xs hover:bg-cpc-red-500 hover:text-black transition-colors"
-              >
+              <CpcButton size="xs" color="red" onClick={() => setShowDeleteConfirm(true)}>
                 REMOVE FROM COLLECTION
-              </button>
+              </CpcButton>
             )}
           </div>
         )}

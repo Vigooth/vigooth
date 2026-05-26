@@ -10,6 +10,7 @@ interface CpcButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: CpcVariant;
   color?: CpcColor;
   size?: CpcSize;
+  fullWidth?: boolean;
 }
 
 const colorMap = {
@@ -41,6 +42,7 @@ export function CpcButton({
   variant = 'outlined',
   color = 'green',
   size = 'sm',
+  fullWidth = false,
   className,
   style,
   ...props
@@ -49,7 +51,13 @@ export function CpcButton({
 
   return (
     <button
-      className={cn('cpc-btn', variantClass[variant], sizeClass[size], className)}
+      className={cn(
+        'cpc-btn',
+        variantClass[variant],
+        sizeClass[size],
+        fullWidth && 'w-full',
+        className,
+      )}
       style={
         {
           '--btn-color': c.base,

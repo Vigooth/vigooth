@@ -63,6 +63,7 @@ services:
       - frontend_vilock:/app/apps/vilock/dist
       - frontend_moovi:/app/apps/moovi/dist
       - frontend_steam:/app/apps/steam/dist
+      - frontend_dnd:/app/apps/dnd/dist
       - pnpm_store:/app/.pnpm-store
     command: >
       sh -c "
@@ -73,7 +74,8 @@ services:
         pnpm build:portal &&
         pnpm build:vilock &&
         pnpm build:moovi &&
-        pnpm build:steam
+        pnpm build:steam &&
+        pnpm build:dnd
       "
     networks: []
 
@@ -93,6 +95,7 @@ services:
       - frontend_vilock:/srv/vilock:ro
       - frontend_moovi:/srv/moovi:ro
       - frontend_steam:/srv/steam:ro
+      - frontend_dnd:/srv/dnd:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -106,6 +109,7 @@ volumes:
   frontend_vilock:
   frontend_moovi:
   frontend_steam:
+  frontend_dnd:
   pnpm_store:
   caddy_data:
   caddy_config:

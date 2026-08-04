@@ -6,6 +6,8 @@ import {
   renderDungeon,
   renderGrid,
   renderFog,
+  renderAudioZones,
+  hitTestZone,
   type FogViewMode,
   createLayers,
   syncStamps,
@@ -15,7 +17,9 @@ import {
   applyResize,
   applyRotation,
   exportDungeonPng,
+  exportDungeonSvg,
   downloadBlob,
+  downloadSvg,
   type HandleKind,
   type WorldPointerEvent,
   type ContextMenuEvent,
@@ -27,6 +31,13 @@ import { useHistory } from '@/features/history';
 import { useCampaigns, CampaignDialog } from '@/features/persistence';
 import { InitiativePanel } from '@/features/initiative';
 import type { InitiativeState } from '@/types/initiative';
+import {
+  AudioMixerPanel,
+  useSceneAudioSync,
+  usePlayingCues,
+  audioEngine,
+} from '@/features/audio';
+import type { AudioZone, SceneAudio } from '@/types/audio';
 import {
   activeScene as activeSceneOf,
   makeCampaign,
@@ -44,6 +55,7 @@ import {
   setCell,
 } from '@/types/dungeon';
 import { ContextMenu, type ContextMenuItem } from '@/components/ContextMenu';
+import { PromptDialog } from '../components/PromptDialog';
 import { EditorHeader } from '../components/EditorHeader';
 import { ToolPalette, type ToolId } from '../components/ToolPalette';
 import { SceneTabs } from '../components/SceneTabs';
@@ -116,6 +128,8 @@ export function EditorPage() {
   const [gridVisible, setGridVisible] = useState(false);
   const [playerView, setPlayerView] = useState(false);
   const [initiativeOpen, setInitiativeOpen] = useState(false);
+  const [audioOpen, setAudioOpen] = useState(false);
+  const [promptOpen, setPromptOpen] = useState(false);
   const [ctxMenu, setCtxMenu] = useState<CtxMenuState | null>(null);
   const [campaignDialogOpen, setCampaignDialogOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -200,6 +214,36 @@ export function EditorPage() {
     renderFog(layers.fog, dungeonRef.current, mode, TILE_SIZE);
   }, []);
 
+  // Audio sync — hooks must run unconditionally on each render
+  const playingCues = usePlayingCues();
+  useSceneAudioSync(scene.id, scene.audio);
+
+  const playingCuesRef = useRef(playingCues);
+  const sceneAudioRef = useRef(scene.audio);
+  playingCuesRef.current = playingCues;
+  sceneAudioRef.current = scene.audio;
+
+  const refreshAudio = useCallback(() => {
+    const layers = layersRef.current;
+    if (!layers) return;
+    renderAudioZones(layers.audio, sceneAudioRef.current, playingCuesRef.current);
+  }, []);
+
+  const updateAudio = useCallback((next: SceneAudio) => {
+    const now = Date.now();
+    setCampaign((c) => ({
+      ...c,
+      scenes: c.scenes.map((s) =>
+        s.id === c.activeSceneId ? { ...s, audio: next, updatedAt: now } : s,
+      ),
+      updatedAt: now,
+    }));
+  }, []);
+
+  useEffect(() => {
+    refreshAudio();
+  }, [scene.audio, playingCues, refreshAudio]);
+
   const handleReady = useCallback(
     (world: Container, app: Application, api: CanvasApi) => {
       worldRef.current = world;
@@ -210,6 +254,7 @@ export function EditorPage() {
       void syncStamps(layersRef.current, dungeonRef.current.stamps);
       refreshGrid();
       refreshFog();
+      refreshAudio();
       fitToView(api, app, dungeonRef.current.width, dungeonRef.current.height);
 
       const tick = () => {
@@ -219,7 +264,7 @@ export function EditorPage() {
       };
       app.ticker.add(tick);
     },
-    [refreshGrid, refreshFog],
+    [refreshGrid, refreshFog, refreshAudio],
   );
 
   useEffect(() => {
@@ -330,7 +375,7 @@ export function EditorPage() {
       if (last && last.x === tx && last.y === ty) return;
       lastPaintedRef.current = { x: tx, y: ty };
       const t = toolRef.current;
-      if (t === 'select') return;
+      if (t === 'select' || t === 'zone') return;
       if (t === 'fog' || t === 'reveal') {
         setFog(d, tx, ty, t === 'fog' ? 1 : 0);
         refreshFog();
@@ -478,6 +523,39 @@ export function EditorPage() {
           }
         }
 
+        // ZONE tool drops a new audio zone immediately
+        if (toolRef.current === 'zone') {
+          const sceneAudio = scene.audio;
+          if (sceneAudio.cues.length === 0) {
+            window.alert('Add at least one audio cue first (open AUDIO panel and drop an MP3).');
+            return;
+          }
+          const lastCue = sceneAudio.cues[sceneAudio.cues.length - 1];
+          const zone: AudioZone = {
+            id: crypto.randomUUID(),
+            cueId: lastCue.id,
+            x: e.worldX,
+            y: e.worldY,
+            radius: TILE_SIZE * 4,
+            label: lastCue.name,
+          };
+          updateAudio({ ...sceneAudio, zones: [...sceneAudio.zones, zone] });
+          return;
+        }
+
+        // SELECT tool: hit-test audio zones before falling to stamps/marquee
+        if (toolRef.current === 'select') {
+          const zoneHit = hitTestZone(scene.audio, e.worldX, e.worldY);
+          if (zoneHit) {
+            const cue = scene.audio.cues.find((c) => c.id === zoneHit.cueId);
+            if (cue) {
+              if (audioEngine.isPlaying(cue.id)) audioEngine.pause(cue.id, 200);
+              else void audioEngine.play(cue, scene.audio.masterVolume, 200);
+            }
+            return;
+          }
+        }
+
         const hit = findStampAt(e.worldX, e.worldY);
         prevSelectedAtStartRef.current = new Set(selectedRef.current);
         if (hit) {
@@ -541,11 +619,18 @@ export function EditorPage() {
       refreshOverlay,
       startMultiDrag,
       updateMarquee,
+      scene.audio,
+      updateAudio,
     ],
   );
 
   const handleContextMenu = useCallback(
     (e: ContextMenuEvent): boolean => {
+      const zoneHit = hitTestZone(scene.audio, e.worldX, e.worldY);
+      if (zoneHit) {
+        setCtxMenu({ x: e.clientX, y: e.clientY, stampIds: [`zone:${zoneHit.id}`] });
+        return true;
+      }
       const hit = findStampAt(e.worldX, e.worldY);
       if (!hit) {
         setCtxMenu(null);
@@ -563,7 +648,16 @@ export function EditorPage() {
       setCtxMenu({ x: e.clientX, y: e.clientY, stampIds: ids });
       return true;
     },
-    [findStampAt],
+    [findStampAt, scene.audio],
+  );
+
+  // --- audio zone ops ---
+
+  const deleteAudioZone = useCallback(
+    (zoneId: string) => {
+      updateAudio({ ...scene.audio, zones: scene.audio.zones.filter((z) => z.id !== zoneId) });
+    },
+    [scene.audio, updateAudio],
   );
 
   // --- stamp ops ---
@@ -819,13 +913,21 @@ export function EditorPage() {
 
   // --- export ---
 
-  const handleExport = useCallback(async () => {
-    const blob = await exportDungeonPng(dungeonRef.current, { tileSize: 64, padding: 16 });
-    const name = `${campaignRef.current.name}-${activeSceneOf(campaignRef.current).name}`
+  const exportName = useCallback((): string => {
+    return `${campaignRef.current.name}-${activeSceneOf(campaignRef.current).name}`
       .replace(/[^a-z0-9-_]+/gi, '_')
       .toLowerCase();
-    downloadBlob(blob, `${name}.png`);
   }, []);
+
+  const handleExport = useCallback(async () => {
+    const blob = await exportDungeonPng(dungeonRef.current, { tileSize: 64, padding: 16 });
+    downloadBlob(blob, `${exportName()}.png`);
+  }, [exportName]);
+
+  const handleExportSvg = useCallback(() => {
+    const svg = exportDungeonSvg(dungeonRef.current, { tileSize: 64, padding: 16 });
+    downloadSvg(svg, `${exportName()}.svg`);
+  }, [exportName]);
 
   // --- campaign management ---
 
@@ -882,13 +984,21 @@ export function EditorPage() {
   }, [deleteStamps, handleRedo, handleUndo]);
 
   const ctxItems: ContextMenuItem[] = ctxMenu
-    ? [
-        { label: 'DUPLICATE', onClick: () => duplicateStamps(ctxMenu.stampIds) },
-        { label: 'BRING TO FRONT', onClick: () => reorderStamps(ctxMenu.stampIds, 'front') },
-        { label: 'SEND TO BACK', onClick: () => reorderStamps(ctxMenu.stampIds, 'back') },
-        { label: 'SWITCH LAYER', onClick: () => switchLayer(ctxMenu.stampIds) },
-        { label: 'DELETE', onClick: () => deleteStamps(ctxMenu.stampIds), danger: true },
-      ]
+    ? ctxMenu.stampIds[0]?.startsWith('zone:')
+      ? [
+          {
+            label: 'DELETE ZONE',
+            danger: true,
+            onClick: () => deleteAudioZone(ctxMenu.stampIds[0].slice(5)),
+          },
+        ]
+      : [
+          { label: 'DUPLICATE', onClick: () => duplicateStamps(ctxMenu.stampIds) },
+          { label: 'BRING TO FRONT', onClick: () => reorderStamps(ctxMenu.stampIds, 'front') },
+          { label: 'SEND TO BACK', onClick: () => reorderStamps(ctxMenu.stampIds, 'back') },
+          { label: 'SWITCH LAYER', onClick: () => switchLayer(ctxMenu.stampIds) },
+          { label: 'DELETE', onClick: () => deleteStamps(ctxMenu.stampIds), danger: true },
+        ]
     : [];
 
   return (
@@ -914,6 +1024,8 @@ export function EditorPage() {
         onRevealAll={revealAll}
         initiativeOpen={initiativeOpen}
         onInitiativeToggle={() => setInitiativeOpen((v) => !v)}
+        audioOpen={audioOpen}
+        onAudioToggle={() => setAudioOpen((v) => !v)}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
         onUndo={handleUndo}
@@ -923,6 +1035,8 @@ export function EditorPage() {
         onSave={() => setCampaignDialogOpen(true)}
         onLoad={() => setCampaignDialogOpen(true)}
         onExport={handleExport}
+        onExportSvg={handleExportSvg}
+        onPromptHelp={() => setPromptOpen(true)}
       />
 
       <SceneTabs
@@ -963,6 +1077,7 @@ export function EditorPage() {
           </div>
         </div>
 
+        {audioOpen && <AudioMixerPanel audio={scene.audio} onChange={updateAudio} />}
         {initiativeOpen && (
           <InitiativePanel state={scene.initiative} onChange={updateInitiative} />
         )}
@@ -976,6 +1091,8 @@ export function EditorPage() {
           onClose={() => setCtxMenu(null)}
         />
       )}
+
+      {promptOpen && <PromptDialog onClose={() => setPromptOpen(false)} />}
 
       {campaignDialogOpen && (
         <CampaignDialog

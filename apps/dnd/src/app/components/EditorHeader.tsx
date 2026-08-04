@@ -23,6 +23,8 @@ interface EditorHeaderProps {
   onRevealAll: () => void;
   initiativeOpen: boolean;
   onInitiativeToggle: () => void;
+  audioOpen: boolean;
+  onAudioToggle: () => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -32,6 +34,8 @@ interface EditorHeaderProps {
   onSave: () => void;
   onLoad: () => void;
   onExport: () => void;
+  onExportSvg: () => void;
+  onPromptHelp: () => void;
 }
 
 export function EditorHeader(props: EditorHeaderProps) {
@@ -65,6 +69,12 @@ export function EditorHeader(props: EditorHeaderProps) {
         <CpcButton size="xs" color="yellow" onClick={props.onExport}>
           EXPORT PNG
         </CpcButton>
+        <CpcButton size="xs" color="yellow" onClick={props.onExportSvg}>
+          EXPORT SVG
+        </CpcButton>
+        <CpcButton size="xs" color="magenta" onClick={props.onPromptHelp}>
+          AI PROMPT
+        </CpcButton>
         <CpcButton
           size="xs"
           color={props.gridVisible ? 'cyan' : 'green'}
@@ -91,6 +101,13 @@ export function EditorHeader(props: EditorHeaderProps) {
           onClick={props.onInitiativeToggle}
         >
           INIT
+        </CpcButton>
+        <CpcButton
+          size="xs"
+          color={props.audioOpen ? 'cyan' : 'blue'}
+          onClick={props.onAudioToggle}
+        >
+          AUDIO
         </CpcButton>
       </div>
 

@@ -7,6 +7,7 @@ export interface MapLayers {
   decor: Container;
   tokens: Container;
   fog: Container;
+  audio: Container;
   overlay: Container;
 }
 
@@ -17,7 +18,8 @@ export function createLayers(world: Container): MapLayers {
   const decor = new Container({ label: 'decor' });
   const tokens = new Container({ label: 'tokens' });
   const fog = new Container({ label: 'fog' });
+  const audio = new Container({ label: 'audio' });
   const overlay = new Container({ label: 'overlay' });
-  world.addChild(tiles, animations, grid, decor, tokens, fog, overlay);
-  return { tiles, animations, grid, decor, tokens, fog, overlay };
+  world.addChild(tiles, animations, grid, decor, tokens, fog, audio, overlay);
+  return { tiles, animations, grid, decor, tokens, fog, audio, overlay };
 }

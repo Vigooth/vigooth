@@ -3,7 +3,7 @@ import { CpcButton } from '@vigooth/ui';
 import { CellType, type CellTypeValue, type StampLayer } from '@/types/dungeon';
 import { useHorizontalResize } from '@/hooks/useHorizontalResize';
 
-export type ToolId = 'select' | 'fog' | 'reveal' | CellTypeValue;
+export type ToolId = 'select' | 'fog' | 'reveal' | 'zone' | CellTypeValue;
 
 const paintTools: { label: string; cellType: CellTypeValue; color: 'green' | 'cyan' | 'blue' | 'red' | 'yellow' | 'orange' | 'magenta' }[] = [
   { label: 'WALL', cellType: CellType.Wall, color: 'green' },
@@ -81,6 +81,17 @@ export function ToolPalette(props: ToolPaletteProps) {
         onClick={() => props.onToolChange('reveal')}
       >
         REVEAL
+      </CpcButton>
+
+      <div className="text-cpc-green-900 text-xs mt-3 mb-1">AUDIO</div>
+      <CpcButton
+        size="xs"
+        fullWidth
+        color={props.tool === 'zone' ? 'cyan' : 'blue'}
+        className="justify-start"
+        onClick={() => props.onToolChange('zone')}
+      >
+        ZONE
       </CpcButton>
 
       <div className="text-cpc-green-900 text-xs mt-3 mb-1">STAMPS</div>

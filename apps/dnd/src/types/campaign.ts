@@ -1,11 +1,13 @@
 import type { Dungeon } from './dungeon';
 import { emptyInitiative, type InitiativeState } from './initiative';
+import { emptySceneAudio, type SceneAudio } from './audio';
 
 export interface Scene {
   id: string;
   name: string;
   dungeon: Dungeon;
   initiative: InitiativeState;
+  audio: SceneAudio;
   createdAt: number;
   updatedAt: number;
 }
@@ -34,6 +36,7 @@ export function makeScene(name: string, dungeon: Dungeon): Scene {
     name,
     dungeon,
     initiative: emptyInitiative(),
+    audio: emptySceneAudio(),
     createdAt: now,
     updatedAt: now,
   };

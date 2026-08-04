@@ -2,6 +2,7 @@ import type { Campaign, CampaignMeta } from '@/types/campaign';
 import { campaignMeta, makeCampaign, makeScene } from '@/types/campaign';
 import type { Dungeon } from '@/types/dungeon';
 import { emptyInitiative } from '@/types/initiative';
+import { emptySceneAudio } from '@/types/audio';
 
 const INDEX_KEY = 'dnd:campaigns:index';
 const ITEM_PREFIX = 'dnd:campaigns:item:';
@@ -71,6 +72,9 @@ export function loadCampaign(id: string): Campaign | null {
     }
     if (!scene.initiative) {
       scene.initiative = emptyInitiative();
+    }
+    if (!scene.audio) {
+      scene.audio = emptySceneAudio();
     }
   }
   return c;

@@ -20,8 +20,11 @@ export { renderSelection } from './render/renderSelection';
 export { renderGrid } from './render/renderGrid';
 export { renderFog } from './render/renderFog';
 export type { FogViewMode } from './render/renderFog';
+export { renderAudioZones, hitTestZone } from './render/renderAudioZones';
 export { animatePatterns, clearAnimatedGraphics } from './render/animatePatterns';
 export type { MarqueeRect } from './render/renderSelection';
 
 export { exportDungeonPng, downloadBlob } from './export/exportPng';
 export type { ExportOptions } from './export/exportPng';
+export { exportDungeonSvg, downloadSvg } from './export/exportSvg';
+export type { ExportSvgOptions } from './export/exportSvg';

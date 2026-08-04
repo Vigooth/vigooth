@@ -49,6 +49,16 @@ export const apps: AppDefinition[] = [
     prodPath: '/steam',
     prodSubdomain: 'app-steam',
   },
+  {
+    id: 'dnd',
+    name: 'DND',
+    description: 'Game master map editor with scenes, fog of war, and initiative',
+    icon: '🎲',
+    color: 'yellow',
+    devPort: 5178,
+    prodPath: '/dnd',
+    prodSubdomain: 'app-dnd',
+  },
 ];
 
 function isDev(): boolean {

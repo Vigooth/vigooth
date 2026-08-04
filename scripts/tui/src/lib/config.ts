@@ -50,6 +50,15 @@ export const services: ServiceConfig[] = [
     processPattern: /vite.*steam/,
   },
   {
+    id: 'dnd',
+    name: 'dnd',
+    command: 'pnpm',
+    args: ['--filter', '@vigooth/dnd', 'dev'],
+    defaultPort: 5178,
+    urlTemplate: 'http://localhost:{port}',
+    processPattern: /vite.*dnd/,
+  },
+  {
     id: 'storybook',
     name: 'storybook',
     command: 'pnpm',

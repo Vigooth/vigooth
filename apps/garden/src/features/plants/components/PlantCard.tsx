@@ -6,8 +6,9 @@ interface PlantCardProps {
   plant: Plant;
   /** This plant's occupations, already resolved to bed names for display. */
   placements: { occupation: Occupation; bedName: string }[];
-  onEdit: (plant: Plant) => void;
-  onDelete: (plant: Plant) => void;
+  /** Omitted on a public garden, where the footer is dropped entirely. */
+  onEdit?: (plant: Plant) => void;
+  onDelete?: (plant: Plant) => void;
 }
 
 const frenchDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
@@ -22,11 +23,11 @@ export function PlantCard({ plant, placements, onEdit, onDelete }: PlantCardProp
   const photoUrl = usePlantPhoto(plant.id, plant.has_photo);
 
   const handleEdit = () => {
-    onEdit(plant);
+    onEdit?.(plant);
   };
 
   const handleDelete = () => {
-    onDelete(plant);
+    onDelete?.(plant);
   };
 
   return (
@@ -93,14 +94,20 @@ export function PlantCard({ plant, placements, onEdit, onDelete }: PlantCardProp
         </ul>
       )}
 
-      <footer className="flex gap-2">
-        <CpcButton variant="outlined" color="green" size="xs" onClick={handleEdit}>
-          MODIFIER
-        </CpcButton>
-        <CpcButton variant="text" color="red" size="xs" onClick={handleDelete}>
-          SUPPRIMER
-        </CpcButton>
-      </footer>
+      {(onEdit || onDelete) && (
+        <footer className="flex gap-2">
+          {onEdit && (
+            <CpcButton variant="outlined" color="green" size="xs" onClick={handleEdit}>
+              MODIFIER
+            </CpcButton>
+          )}
+          {onDelete && (
+            <CpcButton variant="text" color="red" size="xs" onClick={handleDelete}>
+              SUPPRIMER
+            </CpcButton>
+          )}
+        </footer>
+      )}
     </article>
   );
 }

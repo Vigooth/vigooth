@@ -1,5 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { getGarden } from '@/lib/api/garden';
+import {
+  fetchPlantPhotoUrl,
+  fetchPublicPlantPhotoUrl,
+  getGarden,
+  getPublicGarden,
+} from '@/lib/api/garden';
 import type { Bed, Conflict, Garden, Occupation, Plant } from '@/types/garden';
 
 interface GardenStore {
@@ -15,6 +20,14 @@ interface GardenStore {
   conflicts: Conflict[];
   loading: boolean;
   error: string | null;
+  /**
+   * True when showing someone else's garden to a visitor. Views use it to drop
+   * every editing affordance — the API would refuse the write anyway, but a
+   * button that always fails is worse than no button.
+   */
+  readOnly: boolean;
+  /** Resolves a plant photo through whichever endpoint this view is entitled to. */
+  photoUrlFor: (plantId: string) => Promise<string>;
   /** Re-read the whole garden. Every mutation ends with this. */
   reload: () => Promise<void>;
   plantName: (plantId: string) => string;
@@ -29,7 +42,16 @@ const GardenContext = createContext<GardenStore | null>(null);
 
 const EMPTY_GARDEN: Garden = { beds: [], plants: [], occupations: [], conflicts: [] };
 
-export function GardenProvider({ children }: { children: React.ReactNode }) {
+interface GardenProviderProps {
+  children: React.ReactNode;
+  /**
+   * Whose garden to show, when showing it publicly. Omitted for the signed-in
+   * owner, who is identified by their session instead.
+   */
+  publicUserId?: string;
+}
+
+export function GardenProvider({ children, publicUserId }: GardenProviderProps) {
   const [garden, setGarden] = useState<Garden | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,14 +59,14 @@ export function GardenProvider({ children }: { children: React.ReactNode }) {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      setGarden(await getGarden());
+      setGarden(publicUserId ? await getPublicGarden(publicUserId) : await getGarden());
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Failed to load the garden');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [publicUserId]);
 
   useEffect(() => {
     void reload();
@@ -69,6 +91,11 @@ export function GardenProvider({ children }: { children: React.ReactNode }) {
       conflicts: data.conflicts,
       loading,
       error,
+      readOnly: publicUserId !== undefined,
+      photoUrlFor: (plantId) =>
+        publicUserId
+          ? fetchPublicPlantPhotoUrl(publicUserId, plantId)
+          : fetchPlantPhotoUrl(plantId),
       reload,
       plantName: (plantId) => plantsById.get(plantId)?.name ?? 'Plante inconnue',
       bedName: (bedId) => bedsById.get(bedId)?.name ?? 'Emplacement inconnu',
@@ -76,7 +103,7 @@ export function GardenProvider({ children }: { children: React.ReactNode }) {
       conflictsForBed: (bedId) => data.conflicts.filter((c) => c.bed_id === bedId),
       occupationsForBed: (bedId) => data.occupations.filter((o) => o.bed_id === bedId),
     };
-  }, [garden, loading, error, reload]);
+  }, [garden, loading, error, reload, publicUserId]);
 
   return <GardenContext.Provider value={value}>{children}</GardenContext.Provider>;
 }

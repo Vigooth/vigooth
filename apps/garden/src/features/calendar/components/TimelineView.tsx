@@ -46,6 +46,7 @@ export function TimelineView() {
     reload,
     plantName,
     conflictedOccupationIds,
+    readOnly,
   } = useGarden();
   const [editing, setEditing] = useState<Editing>({ mode: 'none' });
   const [actionError, setActionError] = useState<string | null>(null);
@@ -105,7 +106,7 @@ export function TimelineView() {
     setYear(Number(event.target.value));
   };
 
-  const canCreate = beds.length > 0 && plants.length > 0;
+  const canCreate = !readOnly && beds.length > 0 && plants.length > 0;
 
   return (
     <section className="flex flex-col gap-4">
@@ -128,25 +129,27 @@ export function TimelineView() {
               </option>
             ))}
           </select>
-          <CpcButton
-            variant="filled"
-            color="yellow"
-            size="xs"
-            onClick={handleCreate}
-            disabled={!canCreate}
-          >
-            + OCCUPATION
-          </CpcButton>
+          {!readOnly && (
+            <CpcButton
+              variant="filled"
+              color="yellow"
+              size="xs"
+              onClick={handleCreate}
+              disabled={!canCreate}
+            >
+              + OCCUPATION
+            </CpcButton>
+          )}
         </div>
       </header>
 
-      {!canCreate && !loading && (
+      {!canCreate && !readOnly && !loading && (
         <p className="text-xs text-cpc-yellow-500">
           Ajoute au moins une plante et un emplacement avant de planifier une occupation.
         </p>
       )}
 
-      {editing.mode !== 'none' && (
+      {editing.mode !== 'none' && !readOnly && (
         <OccupationForm
           beds={beds}
           plants={plants}
@@ -195,8 +198,8 @@ export function TimelineView() {
                 track={track}
                 plantName={plantName}
                 conflicted={conflictedOccupationIds}
-                onEdit={(occupation) => setEditing({ mode: 'edit', occupation })}
-                onDelete={handleDelete}
+                onEdit={readOnly ? undefined : (occupation) => setEditing({ mode: 'edit', occupation })}
+                onDelete={readOnly ? undefined : handleDelete}
               />
             ))}
           </div>
@@ -250,8 +253,9 @@ interface TimelineRowProps {
   track: ReturnType<typeof yearWindow>;
   plantName: (plantId: string) => string;
   conflicted: Set<string>;
-  onEdit: (occupation: Occupation) => void;
-  onDelete: (occupation: Occupation) => void;
+  /** Both omitted on a public garden, where a bar is a label rather than a control. */
+  onEdit?: (occupation: Occupation) => void;
+  onDelete?: (occupation: Occupation) => void;
 }
 
 function TimelineRow({
@@ -332,22 +336,35 @@ function TimelineRow({
                 })}
               </div>
 
-              <button
-                type="button"
-                className="h-full w-full px-1 text-left text-xs text-cpc-green-500"
-                onClick={() => onEdit(occupation)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  onDelete(occupation);
-                }}
-                title="Clic pour modifier, clic droit pour supprimer"
-              >
-                <span className="truncate">
+              {onEdit || onDelete ? (
+                <button
+                  type="button"
+                  className="h-full w-full px-1 text-left text-xs text-cpc-green-500"
+                  onClick={() => onEdit?.(occupation)}
+                  onContextMenu={(event) => {
+                    if (!onDelete) return;
+                    event.preventDefault();
+                    onDelete(occupation);
+                  }}
+                  title={
+                    onDelete
+                      ? 'Clic pour modifier, clic droit pour supprimer'
+                      : 'Clic pour modifier'
+                  }
+                >
+                  <span className="truncate">
+                    {band.clippedStart && '‹'}
+                    {plantName(occupation.plant_id)}
+                    {band.clippedEnd && '›'}
+                  </span>
+                </button>
+              ) : (
+                <span className="block h-full w-full truncate px-1 text-xs text-cpc-green-500">
                   {band.clippedStart && '‹'}
                   {plantName(occupation.plant_id)}
                   {band.clippedEnd && '›'}
                 </span>
-              </button>
+              )}
             </div>
           );
         })}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { CpcButton } from '@vigooth/ui';
 import { getPortalUrl } from '@vigooth/config';
 import { TimelineView } from '@/features/calendar/components/TimelineView';
@@ -7,6 +8,7 @@ import { PlantsView } from '@/features/plants/components/PlantsView';
 import { AuthProvider, useAuth } from '@/stores/AuthStore';
 import { GardenProvider } from '@/stores/GardenStore';
 import { LoginScreen } from './pages/LoginScreen';
+import { PublicGardenPage } from './pages/PublicGardenPage';
 
 type Tab = 'plants' | 'calendar' | 'plan';
 
@@ -18,9 +20,22 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function App() {
   return (
-    <AuthProvider>
-      <AuthGate />
-    </AuthProvider>
+    <BrowserRouter>
+      <Routes>
+        {/* Public gardens sit outside AuthProvider on purpose: a visitor has no
+            session, and wrapping them would put a login screen in front of a page
+            that is meant to need none. */}
+        <Route path="/u/:userId" element={<PublicGardenPage />} />
+        <Route
+          path="*"
+          element={
+            <AuthProvider>
+              <AuthGate />
+            </AuthProvider>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
@@ -42,6 +57,22 @@ function AuthGate() {
 function GardenShell() {
   const { user, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>('plants');
+  const [copied, setCopied] = useState(false);
+
+  // The owner has no other way to discover their own public URL — it is keyed by
+  // a uuid they never see anywhere else.
+  const handleCopyPublicLink = async () => {
+    if (!user) return;
+    const link = `${window.location.origin}/u/${user.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard needs a secure context and permission; fall back to showing it.
+      window.prompt('Lien public de ton jardin :', link);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black p-4 font-mono text-cpc-green-500">
@@ -52,6 +83,9 @@ function GardenShell() {
         </div>
         <div className="flex items-center gap-3">
           {user && <span className="text-xs text-cpc-green-900">{user.email}</span>}
+          <CpcButton variant="outlined" color="cyan" size="xs" onClick={handleCopyPublicLink}>
+            {copied ? 'LIEN COPIE' : 'LIEN PUBLIC'}
+          </CpcButton>
           <CpcButton variant="text" color="red" size="xs" onClick={signOut}>
             DECONNEXION
           </CpcButton>

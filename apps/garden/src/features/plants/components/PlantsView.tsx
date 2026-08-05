@@ -9,7 +9,7 @@ import { PlantForm } from './PlantForm';
 type Editing = { mode: 'none' } | { mode: 'create' } | { mode: 'edit'; plant: Plant };
 
 export function PlantsView() {
-  const { plants, occupations, loading, error, reload, bedName } = useGarden();
+  const { plants, occupations, loading, error, reload, bedName, readOnly } = useGarden();
   const [editing, setEditing] = useState<Editing>({ mode: 'none' });
   const [search, setSearch] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
@@ -83,13 +83,15 @@ export function PlantsView() {
             placeholder="RECHERCHER"
             className="border-2 border-cpc-green-900 bg-black px-2 py-1 font-mono text-xs text-cpc-green-500 outline-none focus:border-cpc-green-500"
           />
-          <CpcButton variant="filled" color="green" size="xs" onClick={handleCreate}>
-            + PLANTE
-          </CpcButton>
+          {!readOnly && (
+            <CpcButton variant="filled" color="green" size="xs" onClick={handleCreate}>
+              + PLANTE
+            </CpcButton>
+          )}
         </div>
       </header>
 
-      {editing.mode !== 'none' && (
+      {editing.mode !== 'none' && !readOnly && (
         <PlantForm
           plant={editing.mode === 'edit' ? editing.plant : undefined}
           onSaved={handleSaved}
@@ -113,8 +115,8 @@ export function PlantsView() {
             key={plant.id}
             plant={plant}
             placements={placementsByPlant.get(plant.id) ?? []}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={readOnly ? undefined : handleEdit}
+            onDelete={readOnly ? undefined : handleDelete}
           />
         ))}
       </div>

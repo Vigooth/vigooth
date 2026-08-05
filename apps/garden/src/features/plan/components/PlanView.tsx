@@ -14,7 +14,7 @@ function bedKindLabel(kind: string): string {
 }
 
 export function PlanView() {
-  const { beds, loading, error, reload, occupationsForBed, plantName, conflictsForBed } =
+  const { beds, loading, error, reload, occupationsForBed, plantName, conflictsForBed, readOnly } =
     useGarden();
 
   /**
@@ -142,10 +142,12 @@ export function PlanView() {
             className="hidden"
             onChange={handlePhotoChange}
           />
-          <CpcButton variant="outlined" color="cyan" size="xs" onClick={handlePickPhoto}>
-            {planPhoto ? 'CHANGER LE PLAN' : 'CHARGER UNE PHOTO'}
-          </CpcButton>
-          {draft === null ? (
+          {!readOnly && (
+            <CpcButton variant="outlined" color="cyan" size="xs" onClick={handlePickPhoto}>
+              {planPhoto ? 'CHANGER LE PLAN' : 'CHARGER UNE PHOTO'}
+            </CpcButton>
+          )}
+          {readOnly ? null : draft === null ? (
             <CpcButton variant="filled" color="orange" size="xs" onClick={handleStartDraft}>
               + TRACER UN EMPLACEMENT
             </CpcButton>
@@ -193,8 +195,10 @@ export function PlanView() {
               className="absolute inset-0 h-full w-full"
             />
           ) : (
-            <div className="absolute inset-0 grid place-items-center text-xs text-cpc-green-900">
-              CHARGE UNE PHOTO AERIENNE DU JARDIN
+            <div className="absolute inset-0 grid place-items-center px-4 text-center text-xs text-cpc-green-900">
+              {/* The backdrop lives in localStorage, so a visitor never has it —
+                  the bed outlines still draw over the empty frame. */}
+              {readOnly ? 'PLAN NON PARTAGE' : 'CHARGE UNE PHOTO AERIENNE DU JARDIN'}
             </div>
           )}
 
@@ -264,7 +268,7 @@ export function PlanView() {
         </div>
 
         <aside className="flex flex-col gap-3">
-          {draft !== null ? (
+          {draft !== null && !readOnly ? (
             <DraftPanel pointCount={draft.length} onSave={handleSaveDraft} />
           ) : selectedBed ? (
             <BedPanel
@@ -275,8 +279,8 @@ export function PlanView() {
                 window: `${occupation.starts_on} → ${occupation.ends_on}`,
               }))}
               conflictCount={conflictsForBed(selectedBed.id).length}
-              onClearShape={handleClearShape}
-              onDelete={handleDeleteBed}
+              onClearShape={readOnly ? undefined : handleClearShape}
+              onDelete={readOnly ? undefined : handleDeleteBed}
             />
           ) : (
             <div className="border-2 border-cpc-green-900 p-3 text-xs text-cpc-green-900">
@@ -345,17 +349,18 @@ interface BedPanelProps {
   bed: Bed;
   occupations: { id: string; label: string; window: string }[];
   conflictCount: number;
-  onClearShape: (bed: Bed) => void;
-  onDelete: (bed: Bed) => void;
+  /** Both omitted on a public garden, where the panel is informational only. */
+  onClearShape?: (bed: Bed) => void;
+  onDelete?: (bed: Bed) => void;
 }
 
 function BedPanel({ bed, occupations, conflictCount, onClearShape, onDelete }: BedPanelProps) {
   const handleClear = () => {
-    onClearShape(bed);
+    onClearShape?.(bed);
   };
 
   const handleDelete = () => {
-    onDelete(bed);
+    onDelete?.(bed);
   };
 
   return (
@@ -385,14 +390,20 @@ function BedPanel({ bed, occupations, conflictCount, onClearShape, onDelete }: B
         <span className="text-xs text-cpc-green-900">Aucune occupation planifiée</span>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        <CpcButton variant="outlined" color="yellow" size="xs" onClick={handleClear}>
-          EFFACER LE TRACE
-        </CpcButton>
-        <CpcButton variant="text" color="red" size="xs" onClick={handleDelete}>
-          SUPPRIMER
-        </CpcButton>
-      </div>
+      {(onClearShape || onDelete) && (
+        <div className="flex flex-wrap gap-2">
+          {onClearShape && (
+            <CpcButton variant="outlined" color="yellow" size="xs" onClick={handleClear}>
+              EFFACER LE TRACE
+            </CpcButton>
+          )}
+          {onDelete && (
+            <CpcButton variant="text" color="red" size="xs" onClick={handleDelete}>
+              SUPPRIMER
+            </CpcButton>
+          )}
+        </div>
+      )}
     </div>
   );
 }

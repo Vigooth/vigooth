@@ -14,6 +14,14 @@ export function getGarden(): Promise<Garden> {
   return request<Garden>('/api/garden');
 }
 
+/**
+ * The same payload for a visitor with no session. Knowing the user id is the only
+ * thing gating this, so treat a garden link as public once shared.
+ */
+export function getPublicGarden(userId: string): Promise<Garden> {
+  return request<Garden>(`/public/garden/${userId}`);
+}
+
 // --- Beds
 
 export function createBed(input: SaveBedInput): Promise<Bed> {
@@ -49,6 +57,11 @@ export function uploadPlantPhoto(id: string, blob: Blob): Promise<void> {
 /** Caller owns the returned blob URL and must revoke it. */
 export function fetchPlantPhotoUrl(id: string): Promise<string> {
   return fetchBlobUrl(`/api/garden/plants/${id}/photo`);
+}
+
+/** Same, for a visitor with no session. Caller owns and must revoke the URL. */
+export function fetchPublicPlantPhotoUrl(userId: string, id: string): Promise<string> {
+  return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/photo`);
 }
 
 // --- Occupations

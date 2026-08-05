@@ -48,6 +48,40 @@ func (h *GardenHandler) GetGarden(c *gin.Context) {
 	c.JSON(http.StatusOK, garden)
 }
 
+// GetPublicGarden serves someone's garden to an unauthenticated visitor.
+//
+// The user id comes from the path instead of a token, which is the whole
+// difference from GetGarden — the service is already parameterised by user, so
+// there is no second read path to keep in step. Knowing the id is the only thing
+// gating access, so this exposes a garden to anyone who has the link.
+func (h *GardenHandler) GetPublicGarden(c *gin.Context) {
+	garden, err := h.gardenService.GetGarden(c.Param("userId"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load garden")
+		return
+	}
+	c.JSON(http.StatusOK, garden)
+}
+
+// GetPublicPlantPhoto serves a plant photo without a session.
+//
+// Public read would be pointless without this: the plant cards are traced
+// photographs, and an anonymous visitor with no photos sees empty frames. Note
+// the consequence — these bytes are readable by anyone holding the garden link.
+func (h *GardenHandler) GetPublicPlantPhoto(c *gin.Context) {
+	data, mime, err := h.gardenService.GetPlantPhoto(c.Param("userId"), c.Param("id"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load photo")
+		return
+	}
+	if mime == "" {
+		mime = "application/octet-stream"
+	}
+	// Public, so a shared cache may hold it — unlike the authenticated route.
+	c.Header("Cache-Control", "public, max-age=300")
+	c.Data(http.StatusOK, mime, data)
+}
+
 // --- Beds
 
 func (h *GardenHandler) CreateBed(c *gin.Context) {

@@ -153,6 +153,8 @@ func main() {
 
 	// Public routes (no auth)
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
+	r.GET("/public/garden/:userId", gardenHandler.GetPublicGarden)
+	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
 
 	// Public proxy routes (no user data, just external API proxies)
 	pub := r.Group("/api")

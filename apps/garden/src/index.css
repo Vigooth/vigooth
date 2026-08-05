@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import 'tailwindcss';
+@import '../../../packages/styles/src/theme.css';
+
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+
+@layer base {
+  :root {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #000000;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background-color: #000000;
+    /* Unlike the dnd editor this app scrolls: the plant list and the season
+       timeline are both taller than a viewport. Only horizontal overflow is
+       clamped, so a wide timeline scrolls inside its own container instead of
+       dragging the whole page sideways. */
+    overflow-x: hidden;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  button {
+    border-radius: 0;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    background-color: transparent;
+    cursor: pointer;
+  }
+}

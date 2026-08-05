@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { logout as apiLogout, type User } from '@/lib/api/auth';
+import { logout as apiLogout, me, type User } from '@/lib/api/auth';
 import { UNAUTHORIZED_EVENT } from '@/lib/api/client';
 
 const STORAGE_KEY = 'garden:user';
@@ -7,6 +7,12 @@ const STORAGE_KEY = 'garden:user';
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
+  /**
+   * True while the first session probe is in flight and nothing local says who
+   * the user is. Rendering the login form during this window would flash it in
+   * front of anyone arriving with a valid cookie from a sibling app.
+   */
+  checking: boolean;
   signIn: (user: User) => void;
   signOut: () => void;
 }
@@ -33,6 +39,9 @@ function readStoredUser(): User | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(readStoredUser);
+  // A stored note is enough to render straight away; the probe below then either
+  // confirms it or clears it. Only a first-time visitor waits.
+  const [checking, setChecking] = useState(() => readStoredUser() === null);
 
   const signIn = useCallback((next: User) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -59,9 +68,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => globalThis.removeEventListener(UNAUTHORIZED_EVENT, clear);
   }, [clear]);
 
+  /**
+   * Adopt an existing session on boot.
+   *
+   * The auth cookie covers every app on the domain, so signing in on moovi
+   * already authenticates this one — but localStorage is per-origin, so only the
+   * server can say so. A 401 here simply means no session; the listener above has
+   * already cleared any stale note by the time this settles.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    me()
+      .then((found) => {
+        if (cancelled) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(found));
+        setUser(found);
+      })
+      .catch(() => {
+        // No session, or a token for an account that no longer exists.
+      })
+      .finally(() => {
+        if (!cancelled) setChecking(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const value = useMemo<AuthStore>(
-    () => ({ user, isAuthenticated: user !== null, signIn, signOut }),
-    [user, signIn, signOut],
+    () => ({ user, isAuthenticated: user !== null, checking, signIn, signOut }),
+    [user, checking, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

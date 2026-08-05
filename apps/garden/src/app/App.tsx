@@ -45,7 +45,19 @@ export function App() {
  * initial load never fires an unauthenticated request.
  */
 function AuthGate() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, checking } = useAuth();
+
+  // Nothing local identifies the visitor yet and the session probe is still out.
+  // Showing the form now would flash it at anyone arriving with a live cookie
+  // from moovi or vilock.
+  if (checking) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-black font-mono text-xs text-cpc-green-900">
+        VERIFICATION DE LA SESSION...
+      </div>
+    );
+  }
+
   if (!isAuthenticated) return <LoginScreen />;
   return (
     <GardenProvider>

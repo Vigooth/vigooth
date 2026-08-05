@@ -29,3 +29,14 @@ export async function register(email: string, password: string): Promise<User> {
 export function logout(): Promise<void> {
   return requestVoid('/auth/logout', { method: 'POST' });
 }
+
+/**
+ * Ask who owns the auth cookie. Throws with status 401 when there is no session.
+ *
+ * The cookie is scoped to the whole domain, so it already arrives here from a
+ * sign-in on any sibling app — but localStorage is per-origin, so this is the only
+ * way to tell an active session from no session on first load.
+ */
+export function me(): Promise<User> {
+  return request<AuthResponse>('/auth/me').then((response) => response.user);
+}

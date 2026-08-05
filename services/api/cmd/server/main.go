@@ -142,6 +142,10 @@ func main() {
 	r.POST("/auth/register", authLimiter, authHandler.Register)
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+	// Session probe. Registered on its own rather than under /api so every app can
+	// ask who owns the domain-wide cookie; the 401 from the middleware is the
+	// "no session" answer.
+	r.GET("/auth/me", authMiddleware.RequireAuth("user"), authHandler.Me)
 
 	// Steam auth routes
 	if steamAuthHandler != nil {

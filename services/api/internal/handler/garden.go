@@ -200,6 +200,67 @@ func (h *GardenHandler) GetPlantPhoto(c *gin.Context) {
 	c.Data(http.StatusOK, mime, data)
 }
 
+// --- Plan photo
+
+// servePhoto writes image bytes with the right caching for its audience.
+func servePhoto(c *gin.Context, data []byte, mime string, public bool) {
+	if mime == "" {
+		mime = "application/octet-stream"
+	}
+	if public {
+		c.Header("Cache-Control", "public, max-age=300")
+	} else {
+		// One user's image behind an auth cookie: no shared cache may keep it.
+		c.Header("Cache-Control", "private, max-age=300")
+	}
+	c.Data(http.StatusOK, mime, data)
+}
+
+func (h *GardenHandler) UploadPlanPhoto(c *gin.Context) {
+	body := http.MaxBytesReader(c.Writer, c.Request.Body, service.MaxPhotoBytes+1)
+	data, err := io.ReadAll(body)
+	if err != nil {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "photo exceeds the maximum size"})
+		return
+	}
+
+	if err := h.gardenService.SetPlanPhoto(c.GetString("userID"), data, c.ContentType()); err != nil {
+		respondGardenError(c, err, "failed to store the plan photo")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "plan photo stored"})
+}
+
+func (h *GardenHandler) GetPlanPhoto(c *gin.Context) {
+	data, mime, err := h.gardenService.GetPlanPhoto(c.GetString("userID"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load the plan photo")
+		return
+	}
+	servePhoto(c, data, mime, false)
+}
+
+// GetPublicPlanPhoto serves the plan backdrop to a visitor.
+//
+// This is the reason the plan photo moved out of localStorage at all: bed
+// outlines over an empty frame tell a visitor nothing about the garden.
+func (h *GardenHandler) GetPublicPlanPhoto(c *gin.Context) {
+	data, mime, err := h.gardenService.GetPlanPhoto(c.Param("userId"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load the plan photo")
+		return
+	}
+	servePhoto(c, data, mime, true)
+}
+
+func (h *GardenHandler) DeletePlanPhoto(c *gin.Context) {
+	if err := h.gardenService.DeletePlanPhoto(c.GetString("userID")); err != nil {
+		respondGardenError(c, err, "failed to remove the plan photo")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "plan photo removed"})
+}
+
 // --- Occupations
 
 func (h *GardenHandler) CreateOccupation(c *gin.Context) {

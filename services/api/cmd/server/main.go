@@ -155,6 +155,7 @@ func main() {
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
 	r.GET("/public/garden/:userId", gardenHandler.GetPublicGarden)
 	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
+	r.GET("/public/garden/:userId/plan/photo", gardenHandler.GetPublicPlanPhoto)
 
 	// Public proxy routes (no user data, just external API proxies)
 	pub := r.Group("/api")
@@ -213,6 +214,10 @@ func main() {
 		api.DELETE("/garden/plants/:id", gardenHandler.DeletePlant)
 		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
 		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)
+
+		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
+		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)
+		api.DELETE("/garden/plan/photo", gardenHandler.DeletePlanPhoto)
 
 		api.POST("/garden/occupations", gardenHandler.CreateOccupation)
 		api.PUT("/garden/occupations/:id", gardenHandler.UpdateOccupation)

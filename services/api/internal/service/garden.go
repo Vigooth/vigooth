@@ -50,12 +50,17 @@ func (s *GardenService) GetGarden(userID string) (*model.GardenResponse, error) 
 	if err != nil {
 		return nil, err
 	}
+	hasPlanPhoto, err := s.gardenRepo.HasPlanPhoto(userID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &model.GardenResponse{
-		Beds:        beds,
-		Plants:      plants,
-		Occupations: occupations,
-		Conflicts:   DetectConflicts(occupations),
+		Beds:         beds,
+		Plants:       plants,
+		Occupations:  occupations,
+		Conflicts:    DetectConflicts(occupations),
+		HasPlanPhoto: hasPlanPhoto,
 	}, nil
 }
 
@@ -227,6 +232,26 @@ func (s *GardenService) SetPlantPhoto(userID, id string, data []byte, mime strin
 
 func (s *GardenService) GetPlantPhoto(userID, id string) ([]byte, string, error) {
 	return s.gardenRepo.GetPlantPhoto(userID, id)
+}
+
+// --- Plan photo
+
+func (s *GardenService) SetPlanPhoto(userID string, data []byte, mime string) error {
+	if len(data) > MaxPhotoBytes {
+		return ErrPhotoTooLarge
+	}
+	if _, ok := allowedPhotoMimes[mime]; !ok {
+		return ErrPhotoUnsupported
+	}
+	return s.gardenRepo.SetPlanPhoto(userID, data, mime)
+}
+
+func (s *GardenService) GetPlanPhoto(userID string) ([]byte, string, error) {
+	return s.gardenRepo.GetPlanPhoto(userID)
+}
+
+func (s *GardenService) DeletePlanPhoto(userID string) error {
+	return s.gardenRepo.DeletePlanPhoto(userID)
 }
 
 // --- Occupations

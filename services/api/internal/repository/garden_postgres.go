@@ -233,6 +233,68 @@ func (r *PostgresGardenRepository) GetPlantPhoto(userID, id string) ([]byte, str
 	return data, mime, nil
 }
 
+// --- Plan photo
+
+// SetPlanPhoto upserts, because the row is the user's single plan slot rather
+// than a record they create and then edit — there is no "first upload" case worth
+// distinguishing from a replacement.
+func (r *PostgresGardenRepository) SetPlanPhoto(userID string, data []byte, mime string) error {
+	_, err := r.pool.Exec(context.Background(),
+		`INSERT INTO garden_settings (user_id, plan_photo, plan_photo_mime, updated_at)
+		 VALUES ($1, $2, $3, NOW())
+		 ON CONFLICT (user_id) DO UPDATE
+		   SET plan_photo = EXCLUDED.plan_photo,
+		       plan_photo_mime = EXCLUDED.plan_photo_mime,
+		       updated_at = NOW()`,
+		userID, data, mime,
+	)
+	return err
+}
+
+func (r *PostgresGardenRepository) GetPlanPhoto(userID string) ([]byte, string, error) {
+	var data []byte
+	var mime string
+	err := r.pool.QueryRow(context.Background(),
+		`SELECT plan_photo, COALESCE(plan_photo_mime, '') FROM garden_settings
+		 WHERE user_id = $1`, userID).Scan(&data, &mime)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, "", ErrGardenNoPhoto
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	if len(data) == 0 {
+		return nil, "", ErrGardenNoPhoto
+	}
+	return data, mime, nil
+}
+
+// HasPlanPhoto never selects the bytes: it runs on every garden read, and
+// dragging the image through the connection just to test for its presence would
+// make the main payload pay for a picture it does not carry.
+func (r *PostgresGardenRepository) HasPlanPhoto(userID string) (bool, error) {
+	var present bool
+	err := r.pool.QueryRow(context.Background(),
+		`SELECT plan_photo IS NOT NULL FROM garden_settings WHERE user_id = $1`,
+		userID).Scan(&present)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return present, nil
+}
+
+func (r *PostgresGardenRepository) DeletePlanPhoto(userID string) error {
+	// Clear the columns rather than the row: it is the user's settings slot, and
+	// other settings may join it later.
+	_, err := r.pool.Exec(context.Background(),
+		`UPDATE garden_settings SET plan_photo = NULL, plan_photo_mime = NULL, updated_at = NOW()
+		 WHERE user_id = $1`, userID)
+	return err
+}
+
 // --- Occupations
 
 func (r *PostgresGardenRepository) ListOccupations(userID string) ([]model.Occupation, error) {

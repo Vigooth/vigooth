@@ -74,6 +74,8 @@ export interface Garden {
   occupations: Occupation[];
   /** Computed server-side, so the timeline and any later consumer agree. */
   conflicts: Conflict[];
+  /** Whether a plan backdrop is stored, so the plan view can skip fetching it. */
+  has_plan_photo: boolean;
 }
 
 export interface SaveBedInput {

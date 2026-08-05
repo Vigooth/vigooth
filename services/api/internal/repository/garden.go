@@ -27,6 +27,12 @@ type GardenRepository interface {
 	SetPlantPhoto(userID, id string, data []byte, mime string) error
 	GetPlantPhoto(userID, id string) ([]byte, string, error)
 
+	// The plan backdrop: one image per user, upserted.
+	SetPlanPhoto(userID string, data []byte, mime string) error
+	GetPlanPhoto(userID string) ([]byte, string, error)
+	HasPlanPhoto(userID string) (bool, error)
+	DeletePlanPhoto(userID string) error
+
 	ListOccupations(userID string) ([]model.Occupation, error)
 	CreateOccupation(occupation *model.Occupation) error
 	UpdateOccupation(occupation *model.Occupation) error
@@ -34,10 +40,16 @@ type GardenRepository interface {
 }
 
 // InMemoryGardenRepository backs the no-DATABASE_URL development mode.
+type planPhoto struct {
+	data []byte
+	mime string
+}
+
 type InMemoryGardenRepository struct {
 	beds        map[string]*model.Bed
 	plants      map[string]*model.Plant
 	photos      map[string][]byte
+	planPhotos  map[string]planPhoto
 	occupations map[string]*model.Occupation
 	mu          sync.RWMutex
 }
@@ -47,8 +59,42 @@ func NewInMemoryGardenRepository() *InMemoryGardenRepository {
 		beds:        make(map[string]*model.Bed),
 		plants:      make(map[string]*model.Plant),
 		photos:      make(map[string][]byte),
+		planPhotos:  make(map[string]planPhoto),
 		occupations: make(map[string]*model.Occupation),
 	}
+}
+
+func (r *InMemoryGardenRepository) SetPlanPhoto(userID string, data []byte, mime string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.planPhotos[userID] = planPhoto{data: data, mime: mime}
+	return nil
+}
+
+func (r *InMemoryGardenRepository) GetPlanPhoto(userID string) ([]byte, string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	photo, ok := r.planPhotos[userID]
+	if !ok || len(photo.data) == 0 {
+		return nil, "", ErrGardenNoPhoto
+	}
+	return photo.data, photo.mime, nil
+}
+
+func (r *InMemoryGardenRepository) HasPlanPhoto(userID string) (bool, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	photo, ok := r.planPhotos[userID]
+	return ok && len(photo.data) > 0, nil
+}
+
+func (r *InMemoryGardenRepository) DeletePlanPhoto(userID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.planPhotos, userID)
+	return nil
 }
 
 func (r *InMemoryGardenRepository) ListBeds(userID string) ([]model.Bed, error) {

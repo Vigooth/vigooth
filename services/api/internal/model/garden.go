@@ -128,4 +128,7 @@ type GardenResponse struct {
 	Plants      []Plant      `json:"plants"`
 	Occupations []Occupation `json:"occupations"`
 	Conflicts   []Conflict   `json:"conflicts"`
+	// HasPlanPhoto lets the client skip the plan photo request entirely when
+	// there is nothing to fetch, without shipping the bytes in this payload.
+	HasPlanPhoto bool `json:"has_plan_photo"`
 }

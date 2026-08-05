@@ -1,31 +1,43 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CpcButton, CpcVectorImage } from '@vigooth/ui';
 import { NumberField, SelectField, TextField } from '@/components/Field';
-import { createBed, deleteBed, updateBed } from '@/lib/api/garden';
+import {
+  createBed,
+  deleteBed,
+  deletePlanPhoto,
+  updateBed,
+  uploadPlanPhoto,
+} from '@/lib/api/garden';
 import { useGarden } from '@/stores/GardenStore';
 import type { Bed, BedKind, Point } from '@/types/garden';
 import { BED_KIND_LABELS, BED_KINDS } from '@/types/garden';
+import { downscaleImage } from '@/utils/downscaleImage';
 import { normalisedPoint, polygonCentroid, polygonPath } from '../utils/geometry';
-
-const PLAN_PHOTO_KEY = 'garden:plan:photo';
 
 function bedKindLabel(kind: string): string {
   return kind in BED_KIND_LABELS ? BED_KIND_LABELS[kind as BedKind] : kind;
 }
 
 export function PlanView() {
-  const { beds, loading, error, reload, occupationsForBed, plantName, conflictsForBed, readOnly } =
-    useGarden();
+  const {
+    beds,
+    loading,
+    error,
+    reload,
+    occupationsForBed,
+    plantName,
+    conflictsForBed,
+    readOnly,
+    hasPlanPhoto,
+    planPhotoUrl,
+  } = useGarden();
 
   /**
-   * The plan photo is a single backdrop for the whole garden, not a record —
-   * there is no server-side field for it, so it lives in localStorage as a data
-   * URL. Kept deliberately out of the API: it is one image per browser, and
-   * adding a table for it was not part of this change.
+   * The backdrop is fetched as a blob URL rather than pointed at directly: the
+   * tracer reads its pixels off a canvas, and a cross-origin image response would
+   * taint it. Same reason as the plant photos.
    */
-  const [planPhoto, setPlanPhoto] = useState<string | null>(() =>
-    localStorage.getItem(PLAN_PHOTO_KEY),
-  );
+  const [planPhoto, setPlanPhoto] = useState<string | null>(null);
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Point[] | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -39,26 +51,58 @@ export function PlanView() {
     [beds],
   );
 
+  // Resolve the stored backdrop, revoking the blob URL on unmount or replacement.
+  useEffect(() => {
+    if (!hasPlanPhoto) {
+      setPlanPhoto(null);
+      return;
+    }
+
+    let revoked = false;
+    let created: string | null = null;
+
+    planPhotoUrl()
+      .then((url) => {
+        if (revoked) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        created = url;
+        setPlanPhoto(url);
+      })
+      .catch(() => setPlanPhoto(null));
+
+    return () => {
+      revoked = true;
+      if (created) URL.revokeObjectURL(created);
+    };
+  }, [hasPlanPhoto, planPhotoUrl]);
+
   const handlePickPhoto = () => {
     fileRef.current?.click();
   };
 
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      const result = reader.result;
-      if (typeof result !== 'string') return;
-      try {
-        localStorage.setItem(PLAN_PHOTO_KEY, result);
-      } catch {
-        // Over quota: still show it for this session rather than failing outright.
-        setActionError('Photo trop lourde pour être conservée entre les sessions');
-      }
-      setPlanPhoto(result);
-    });
-    reader.readAsDataURL(file);
+    try {
+      // Downscaled first, as with plant photos: an aerial shot off a phone is
+      // several megabytes, and the tracer samples it down to a small grid anyway.
+      await uploadPlanPhoto(await downscaleImage(file));
+      await reload();
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : 'Envoi de la photo impossible');
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!window.confirm('Retirer la photo du plan ?')) return;
+    try {
+      await deletePlanPhoto();
+      await reload();
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : 'Suppression impossible');
+    }
   };
 
   const handleSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -144,7 +188,12 @@ export function PlanView() {
           />
           {!readOnly && (
             <CpcButton variant="outlined" color="cyan" size="xs" onClick={handlePickPhoto}>
-              {planPhoto ? 'CHANGER LE PLAN' : 'CHARGER UNE PHOTO'}
+              {hasPlanPhoto ? 'CHANGER LE PLAN' : 'CHARGER UNE PHOTO'}
+            </CpcButton>
+          )}
+          {!readOnly && hasPlanPhoto && (
+            <CpcButton variant="text" color="red" size="xs" onClick={handleRemovePhoto}>
+              RETIRER LE PLAN
             </CpcButton>
           )}
           {readOnly ? null : draft === null ? (
@@ -196,9 +245,7 @@ export function PlanView() {
             />
           ) : (
             <div className="absolute inset-0 grid place-items-center px-4 text-center text-xs text-cpc-green-900">
-              {/* The backdrop lives in localStorage, so a visitor never has it —
-                  the bed outlines still draw over the empty frame. */}
-              {readOnly ? 'PLAN NON PARTAGE' : 'CHARGE UNE PHOTO AERIENNE DU JARDIN'}
+              {readOnly ? 'AUCUN PLAN' : 'CHARGE UNE PHOTO AERIENNE DU JARDIN'}
             </div>
           )}
 

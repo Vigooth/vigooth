@@ -64,6 +64,26 @@ export function fetchPublicPlantPhotoUrl(userId: string, id: string): Promise<st
   return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/photo`);
 }
 
+// --- Plan photo: one backdrop per garden
+
+export function uploadPlanPhoto(blob: Blob): Promise<void> {
+  return putBinary('/api/garden/plan/photo', blob);
+}
+
+export function deletePlanPhoto(): Promise<void> {
+  return requestVoid('/api/garden/plan/photo', { method: 'DELETE' });
+}
+
+/** Caller owns the returned blob URL and must revoke it. */
+export function fetchPlanPhotoUrl(): Promise<string> {
+  return fetchBlobUrl('/api/garden/plan/photo');
+}
+
+/** Same, for a visitor with no session. Caller owns and must revoke the URL. */
+export function fetchPublicPlanPhotoUrl(userId: string): Promise<string> {
+  return fetchBlobUrl(`/public/garden/${userId}/plan/photo`);
+}
+
 // --- Occupations
 
 export function createOccupation(input: SaveOccupationInput): Promise<Occupation> {

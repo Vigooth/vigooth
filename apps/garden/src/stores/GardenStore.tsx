@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
+  fetchPlanPhotoUrl,
   fetchPlantPhotoUrl,
+  fetchPublicPlanPhotoUrl,
   fetchPublicPlantPhotoUrl,
   getGarden,
   getPublicGarden,
@@ -28,6 +30,10 @@ interface GardenStore {
   readOnly: boolean;
   /** Resolves a plant photo through whichever endpoint this view is entitled to. */
   photoUrlFor: (plantId: string) => Promise<string>;
+  /** True when a plan backdrop exists, so the view can skip a doomed request. */
+  hasPlanPhoto: boolean;
+  /** Resolves the plan backdrop through whichever endpoint this view may use. */
+  planPhotoUrl: () => Promise<string>;
   /** Re-read the whole garden. Every mutation ends with this. */
   reload: () => Promise<void>;
   plantName: (plantId: string) => string;
@@ -40,7 +46,13 @@ interface GardenStore {
 
 const GardenContext = createContext<GardenStore | null>(null);
 
-const EMPTY_GARDEN: Garden = { beds: [], plants: [], occupations: [], conflicts: [] };
+const EMPTY_GARDEN: Garden = {
+  beds: [],
+  plants: [],
+  occupations: [],
+  conflicts: [],
+  has_plan_photo: false,
+};
 
 interface GardenProviderProps {
   children: React.ReactNode;
@@ -96,6 +108,9 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
         publicUserId
           ? fetchPublicPlantPhotoUrl(publicUserId, plantId)
           : fetchPlantPhotoUrl(plantId),
+      hasPlanPhoto: data.has_plan_photo,
+      planPhotoUrl: () =>
+        publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),
       reload,
       plantName: (plantId) => plantsById.get(plantId)?.name ?? 'Plante inconnue',
       bedName: (bedId) => bedsById.get(bedId)?.name ?? 'Emplacement inconnu',

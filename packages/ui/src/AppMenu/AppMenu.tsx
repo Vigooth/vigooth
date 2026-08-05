@@ -6,7 +6,7 @@ export interface AppConfig {
   description: string;
   icon: string;
   url: string;
-  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta';
+  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta' | 'blue' | 'orange';
 }
 
 interface AppMenuProps {
@@ -23,6 +23,9 @@ const colorStyles: Record<AppConfig['color'], string> = {
     'border-cpc-yellow-500 text-cpc-yellow-500 hover:bg-cpc-yellow-500 hover:text-cpc-grey-900',
   magenta:
     'border-cpc-magenta-500 text-cpc-magenta-500 hover:bg-cpc-magenta-500 hover:text-cpc-grey-900',
+  blue: 'border-cpc-blue-500 text-cpc-blue-500 hover:bg-cpc-blue-500 hover:text-cpc-grey-900',
+  orange:
+    'border-cpc-orange-500 text-cpc-orange-500 hover:bg-cpc-orange-500 hover:text-cpc-grey-900',
 };
 
 export function AppMenu({ apps, currentAppId, portalUrl }: AppMenuProps) {

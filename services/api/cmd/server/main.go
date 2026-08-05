@@ -37,6 +37,7 @@ func main() {
 	var movieRepo repository.MovieRepository
 	var wishlistRepo repository.WishlistRepository
 	var recoRepo repository.RecommendationRepository
+	var gardenRepo repository.GardenRepository
 
 	if databaseURL != "" {
 		// PostgreSQL mode
@@ -57,6 +58,7 @@ func main() {
 		movieRepo = repository.NewPostgresMovieRepository(pool)
 		wishlistRepo = repository.NewPostgresWishlistRepository(pool)
 		recoRepo = repository.NewPostgresRecommendationRepository(pool)
+		gardenRepo = repository.NewPostgresGardenRepository(pool)
 	} else {
 		// In-memory mode (development)
 		log.Println("Running in-memory mode (no DATABASE_URL set)")
@@ -65,12 +67,14 @@ func main() {
 		movieRepo = repository.NewInMemoryMovieRepository()
 		wishlistRepo = repository.NewInMemoryWishlistRepository()
 		recoRepo = repository.NewInMemoryRecommendationRepository()
+		gardenRepo = repository.NewInMemoryGardenRepository()
 	}
 
 	vaultService := service.NewVaultService(vaultRepo)
 	movieService := service.NewMovieService(movieRepo)
 	wishlistService := service.NewWishlistService(wishlistRepo)
 	authService := service.NewAuthService(userRepo, jwtSecret)
+	gardenService := service.NewGardenService(gardenRepo)
 
 	cookieDomain := os.Getenv("COOKIE_DOMAIN") // empty in dev, ".vigooth.com" in prod
 	cookieSecure := cookieDomain != ""          // HTTPS-only when domain is set (prod)
@@ -78,6 +82,7 @@ func main() {
 	vaultHandler := handler.NewVaultHandler(vaultService)
 	movieHandler := handler.NewMovieHandler(movieService, tmdbApiKey)
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
+	gardenHandler := handler.NewGardenHandler(gardenService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey, os.Getenv("TOR_SOCKS_ADDR"))
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
 		Domain: cookieDomain,
@@ -137,6 +142,10 @@ func main() {
 	r.POST("/auth/register", authLimiter, authHandler.Register)
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+	// Session probe. Registered on its own rather than under /api so every app can
+	// ask who owns the domain-wide cookie; the 401 from the middleware is the
+	// "no session" answer.
+	r.GET("/auth/me", authMiddleware.RequireAuth("user"), authHandler.Me)
 
 	// Steam auth routes
 	if steamAuthHandler != nil {
@@ -148,6 +157,9 @@ func main() {
 
 	// Public routes (no auth)
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
+	r.GET("/public/garden/:userId", gardenHandler.GetPublicGarden)
+	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
+	r.GET("/public/garden/:userId/plan/photo", gardenHandler.GetPublicPlanPhoto)
 
 	// Public proxy routes (no user data, just external API proxies)
 	pub := r.Group("/api")
@@ -193,6 +205,27 @@ func main() {
 		api.GET("/wishlist", wishlistHandler.GetWishlist)
 		api.POST("/wishlist", wishlistHandler.AddToWishlist)
 		api.DELETE("/wishlist/:tmdbId", wishlistHandler.RemoveFromWishlist)
+
+		// Garden — one read for the whole garden, writes per record.
+		api.GET("/garden", gardenHandler.GetGarden)
+
+		api.POST("/garden/beds", gardenHandler.CreateBed)
+		api.PUT("/garden/beds/:id", gardenHandler.UpdateBed)
+		api.DELETE("/garden/beds/:id", gardenHandler.DeleteBed)
+
+		api.POST("/garden/plants", gardenHandler.CreatePlant)
+		api.PUT("/garden/plants/:id", gardenHandler.UpdatePlant)
+		api.DELETE("/garden/plants/:id", gardenHandler.DeletePlant)
+		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
+		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)
+
+		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
+		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)
+		api.DELETE("/garden/plan/photo", gardenHandler.DeletePlanPhoto)
+
+		api.POST("/garden/occupations", gardenHandler.CreateOccupation)
+		api.PUT("/garden/occupations/:id", gardenHandler.UpdateOccupation)
+		api.DELETE("/garden/occupations/:id", gardenHandler.DeleteOccupation)
 
 		api.GET("/tmdb/search", proxyHandler.TmdbSearch)
 		api.GET("/tmdb/search-person", proxyHandler.TmdbSearchPerson)

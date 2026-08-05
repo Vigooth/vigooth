@@ -119,12 +119,42 @@ app-dnd.{$DOMAIN} {
 	}
 }
 
+# Garden — app-garden.vigooth.com
+app-garden.{$DOMAIN} {
+	root * /srv/garden
+	file_server
+
+	# SPA fallback
+	try_files {path} /index.html
+
+	# Cache Vite hashed assets immutably
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Security headers. Deliberately no Content-Security-Policy here: garden
+	# fetches plant photos from the API and turns them into blob: URLs so the
+	# tracer's canvas can read their pixels, so any CSP added later must allow
+	# `img-src blob: data:` and `connect-src https://api.{$DOMAIN}` — vilock's
+	# stricter policy, copied as-is, would blank every photo.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
 # API — api.vigooth.com
 api.{$DOMAIN} {
-	# Dynamic CORS — allow vilock + moovi frontends
+	# Dynamic CORS — allow the frontends that call this API cross-origin.
+	# An origin missing from this map gets no Access-Control-Allow-Origin header,
+	# and the browser then blocks every request from it with no error the app can
+	# surface. Steam is absent on purpose: its API routes are reverse-proxied
+	# under its own hostname, so they are same-origin.
 	map {header.Origin} {cors_origin} {
 		"https://app-vilock.{$DOMAIN}" "https://app-vilock.{$DOMAIN}"
 		"https://app-moovi.{$DOMAIN}" "https://app-moovi.{$DOMAIN}"
+		"https://app-garden.{$DOMAIN}" "https://app-garden.{$DOMAIN}"
 		default ""
 	}
 

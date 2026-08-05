@@ -91,6 +91,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+// Me returns the account behind the request's cookie, in the same shape as Login.
+//
+// The route is guarded, so reaching this handler already means the token was
+// valid; a client with no session gets the middleware's 401, which is exactly the
+// signal it needs to show a login form.
+func (h *AuthHandler) Me(c *gin.Context) {
+	user, err := h.authService.GetUser(c.GetString("userID"))
+	if err != nil {
+		// Valid token for an account that no longer exists — deleted since the
+		// token was issued. Treated as no session rather than a server fault.
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unknown user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
 func (h *AuthHandler) Logout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(

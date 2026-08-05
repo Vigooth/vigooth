@@ -3,7 +3,7 @@ export interface AppDefinition {
   name: string;
   description: string;
   icon: string;
-  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta';
+  color: 'green' | 'red' | 'cyan' | 'yellow' | 'magenta' | 'blue' | 'orange';
   devPort: number;
   prodPath: string;
   prodSubdomain?: string;
@@ -58,6 +58,16 @@ export const apps: AppDefinition[] = [
     devPort: 5178,
     prodPath: '/dnd',
     prodSubdomain: 'app-dnd',
+  },
+  {
+    id: 'garden',
+    name: 'GARDEN',
+    description: 'Plant records and a season timeline of what occupies each bed',
+    icon: '🌱',
+    color: 'orange',
+    devPort: 5179,
+    prodPath: '/garden',
+    prodSubdomain: 'app-garden',
   },
 ];
 

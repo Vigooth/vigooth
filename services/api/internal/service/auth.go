@@ -82,6 +82,16 @@ func (s *AuthService) Login(req model.LoginRequest) (*model.AuthResponse, error)
 	}, nil
 }
 
+// GetUser resolves the account behind an already-validated token.
+//
+// It exists so a frontend can ask "whose cookie is this?" on boot. The auth
+// cookie is scoped to the whole domain, so every app receives it — but each app's
+// localStorage is per-origin, so without this they cannot tell an active session
+// from no session and have to show a login form regardless.
+func (s *AuthService) GetUser(userID string) (*model.User, error) {
+	return s.userRepo.FindByID(userID)
+}
+
 func (s *AuthService) generateToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID,

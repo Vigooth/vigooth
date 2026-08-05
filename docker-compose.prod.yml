@@ -64,6 +64,7 @@ services:
       - frontend_moovi:/app/apps/moovi/dist
       - frontend_steam:/app/apps/steam/dist
       - frontend_dnd:/app/apps/dnd/dist
+      - frontend_garden:/app/apps/garden/dist
       - pnpm_store:/app/.pnpm-store
     command: >
       sh -c "
@@ -75,7 +76,8 @@ services:
         pnpm build:vilock &&
         pnpm build:moovi &&
         pnpm build:steam &&
-        pnpm build:dnd
+        pnpm build:dnd &&
+        pnpm build:garden
       "
     networks: []
 
@@ -96,6 +98,7 @@ services:
       - frontend_moovi:/srv/moovi:ro
       - frontend_steam:/srv/steam:ro
       - frontend_dnd:/srv/dnd:ro
+      - frontend_garden:/srv/garden:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -110,6 +113,7 @@ volumes:
   frontend_moovi:
   frontend_steam:
   frontend_dnd:
+  frontend_garden:
   pnpm_store:
   caddy_data:
   caddy_config:

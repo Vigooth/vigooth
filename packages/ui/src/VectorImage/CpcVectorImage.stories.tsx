@@ -3,9 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 import { CpcButton } from '../Button';
 import { CpcVectorImage } from './CpcVectorImage';
 
-/** Wikimedia serves permissive CORS headers, so the canvas stays untainted. */
-const SAMPLE_SRC =
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Altja_j%C3%B5gi_Lahemaal.jpg/800px-Altja_j%C3%B5gi_Lahemaal.jpg';
+/**
+ * Lorem Picsum, pinned to one photo id so the stories stay comparable run to
+ * run. It answers `access-control-allow-origin: *`, which is the part that
+ * matters: without permissive CORS the canvas is tainted, `getImageData` throws
+ * and the tracer has no luminance to work from at all.
+ *
+ * A clifftop fjord earns its place here — bright rock, dark water and pale sky
+ * give the band thresholds something to separate.
+ */
+const SAMPLE_SRC = 'https://picsum.photos/id/1015/800/600';
+const SAMPLE_ALT = 'A fjord seen from a clifftop, with a pale rock ledge in the foreground';
 
 const meta = {
   title: 'Components/CpcVectorImage',
@@ -35,7 +43,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     src: SAMPLE_SRC,
-    alt: 'A river running through Lahemaa national park',
+    alt: SAMPLE_ALT,
     className: 'h-[420px] w-[640px]',
   },
 };

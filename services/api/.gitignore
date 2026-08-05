@@ -1,2 +1,6 @@
 /server
 *.env
+# `*.env` does not match a suffixed backup such as `.env.bak.1785935302`, so one
+# of those would carry JWT_SECRET and every API key straight into a commit.
+.env.bak*
+.env.*

@@ -15,7 +15,19 @@ export class RequestError extends Error {
   }
 }
 
+/**
+ * Broadcast when the API rejects a request as unauthenticated.
+ *
+ * An event rather than a direct call into the auth store: the API layer has no
+ * business importing React state, and every caller would otherwise need to
+ * handle 401 itself and remember to do it the same way.
+ */
+export const UNAUTHORIZED_EVENT = 'garden:unauthorized';
+
 async function toError(response: Response): Promise<RequestError> {
+  if (response.status === 401) {
+    globalThis.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
   const fallback = `HTTP ${response.status}`;
   try {
     const body: ApiError = await response.json();

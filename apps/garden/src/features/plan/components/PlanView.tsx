@@ -161,6 +161,24 @@ export function PlanView() {
     }
   };
 
+  const handleSaveBed = async (bed: Bed, name: string, kind: string, areaM2: string) => {
+    const area = areaM2.trim() === '' ? null : Number(areaM2);
+    try {
+      await updateBed(bed.id, {
+        name: name.trim() || bed.name,
+        kind,
+        area_m2: area != null && Number.isFinite(area) ? area : null,
+        // Carried through untouched: the endpoint replaces the whole record, so
+        // leaving these out would erase the tracing and reorder the bed.
+        shape: bed.shape ?? [],
+        sort_order: bed.sort_order,
+      });
+      await reload();
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : 'Renommage impossible');
+    }
+  };
+
   const handleDeleteBed = async (bed: Bed) => {
     const count = occupationsForBed(bed.id).length;
     const warning = count > 0 ? ` et ${count} occupation(s)` : '';
@@ -326,6 +344,7 @@ export function PlanView() {
                 window: `${occupation.starts_on} → ${occupation.ends_on}`,
               }))}
               conflictCount={conflictsForBed(selectedBed.id).length}
+              onSave={readOnly ? undefined : handleSaveBed}
               onClearShape={readOnly ? undefined : handleClearShape}
               onDelete={readOnly ? undefined : handleDeleteBed}
             />
@@ -396,12 +415,41 @@ interface BedPanelProps {
   bed: Bed;
   occupations: { id: string; label: string; window: string }[];
   conflictCount: number;
-  /** Both omitted on a public garden, where the panel is informational only. */
+  /** All omitted on a public garden, where the panel is informational only. */
+  onSave?: (bed: Bed, name: string, kind: string, areaM2: string) => void;
   onClearShape?: (bed: Bed) => void;
   onDelete?: (bed: Bed) => void;
 }
 
-function BedPanel({ bed, occupations, conflictCount, onClearShape, onDelete }: BedPanelProps) {
+function BedPanel({
+  bed,
+  occupations,
+  conflictCount,
+  onSave,
+  onClearShape,
+  onDelete,
+}: BedPanelProps) {
+  const [name, setName] = useState(bed.name);
+  const [kind, setKind] = useState(bed.kind);
+  const [areaM2, setAreaM2] = useState(bed.area_m2?.toString() ?? '');
+
+  // Follow the selection: one panel is reused for whichever bed is picked, so its
+  // fields have to be refilled rather than keeping the previous bed's values.
+  useEffect(() => {
+    setName(bed.name);
+    setKind(bed.kind);
+    setAreaM2(bed.area_m2?.toString() ?? '');
+  }, [bed.id, bed.name, bed.kind, bed.area_m2]);
+
+  const isDirty =
+    name.trim() !== bed.name ||
+    kind !== bed.kind ||
+    areaM2.trim() !== (bed.area_m2?.toString() ?? '');
+
+  const handleSave = () => {
+    onSave?.(bed, name, kind, areaM2);
+  };
+
   const handleClear = () => {
     onClearShape?.(bed);
   };
@@ -412,13 +460,44 @@ function BedPanel({ bed, occupations, conflictCount, onClearShape, onDelete }: B
 
   return (
     <div className="flex flex-col gap-3 border-2 border-cpc-yellow-500 p-3">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm text-cpc-yellow-500">{bed.name}</span>
-        <span className="text-xs text-cpc-green-900">
-          {bedKindLabel(bed.kind)}
-          {bed.area_m2 != null && ` • ${bed.area_m2} m²`}
-        </span>
-      </div>
+      {onSave ? (
+        <div className="flex flex-col gap-3">
+          <TextField label="Nom" value={name} onChange={setName} />
+          <SelectField
+            label="Type"
+            value={kind}
+            onChange={setKind}
+            options={BED_KINDS.map((candidate) => ({
+              value: candidate,
+              label: BED_KIND_LABELS[candidate],
+            }))}
+          />
+          <NumberField
+            label="Surface (m²)"
+            value={areaM2}
+            onChange={setAreaM2}
+            min={0}
+            step={0.1}
+          />
+          <CpcButton
+            variant="filled"
+            color="yellow"
+            size="sm"
+            onClick={handleSave}
+            disabled={!isDirty || name.trim() === ''}
+          >
+            {isDirty ? 'ENREGISTRER' : 'AUCUNE MODIFICATION'}
+          </CpcButton>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-cpc-yellow-500">{bed.name}</span>
+          <span className="text-xs text-cpc-green-900">
+            {bedKindLabel(bed.kind)}
+            {bed.area_m2 != null && ` • ${bed.area_m2} m²`}
+          </span>
+        </div>
+      )}
 
       {conflictCount > 0 && (
         <span className="text-xs text-cpc-red-500">⚠ {conflictCount} conflit(s) sur ce bac</span>

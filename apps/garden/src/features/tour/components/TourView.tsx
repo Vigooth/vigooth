@@ -81,7 +81,6 @@ export function TourView() {
   const [panorama, setPanorama] = useState<string | null>(null);
   const [planPhoto, setPlanPhoto] = useState<string | null>(null);
   const [planMode, setPlanMode] = useState<PlanMode>('idle');
-  const [draftName, setDraftName] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -254,11 +253,10 @@ export function TourView() {
     setActionError(message);
   }, []);
 
-  const handleAddViewpoint = async () => {
-    const name = draftName.trim() || `Point ${viewpoints.length + 1}`;
+  const handleAddViewpoint = async (rawName: string) => {
+    const name = rawName.trim() || `Point ${viewpoints.length + 1}`;
     try {
       const created = await createViewpoint({ name, sort_order: viewpoints.length });
-      setDraftName('');
       setCurrentId(created.id);
       setPreviousId(null);
       setNotice('Point créé. Charge son panorama, puis pose-le sur le plan.');
@@ -450,7 +448,13 @@ export function TourView() {
       {loading && <p className="text-xs text-cpc-green-900">CHARGEMENT...</p>}
 
       {viewpoints.length === 0 ? (
-        <EmptyTour readOnly={readOnly} />
+        // The create panel belongs here too, not only alongside an existing tour:
+        // without it an empty garden is a dead end that explains what to do and
+        // offers no way to do it.
+        <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+          <EmptyTour readOnly={readOnly} />
+          {!readOnly && <NewViewpointPanel onCreate={handleAddViewpoint} />}
+        </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
           <div className="flex flex-col gap-2">
@@ -510,24 +514,44 @@ export function TourView() {
               />
             )}
 
-            {!readOnly && (
-              <div className="flex flex-col gap-2 border-2 border-cpc-orange-500 p-3">
-                <span className="text-xs text-cpc-orange-500">NOUVEAU POINT</span>
-                <TextField
-                  label="Nom"
-                  value={draftName}
-                  onChange={setDraftName}
-                  placeholder="Entrée du potager"
-                />
-                <CpcButton variant="filled" color="orange" size="sm" onClick={handleAddViewpoint}>
-                  AJOUTER
-                </CpcButton>
-              </div>
-            )}
+            {!readOnly && <NewViewpointPanel onCreate={handleAddViewpoint} />}
           </aside>
         </div>
       )}
     </section>
+  );
+}
+
+interface NewViewpointPanelProps {
+  onCreate: (name: string) => void;
+}
+
+/**
+ * Creating a viewpoint. Rendered both next to an existing tour and in place of
+ * one, because the first viewpoint has to be creatable from an empty garden.
+ */
+function NewViewpointPanel({ onCreate }: NewViewpointPanelProps) {
+  const [name, setName] = useState('');
+
+  const handleCreate = () => {
+    onCreate(name);
+    setName('');
+  };
+
+  return (
+    <div className="flex h-fit flex-col gap-2 border-2 border-cpc-orange-500 p-3">
+      <span className="text-xs text-cpc-orange-500">NOUVEAU POINT</span>
+      <TextField
+        label="Nom"
+        value={name}
+        onChange={setName}
+        placeholder="Entrée du potager"
+        hint="Sans nom, il sera numéroté"
+      />
+      <CpcButton variant="filled" color="orange" size="sm" onClick={handleCreate}>
+        AJOUTER
+      </CpcButton>
+    </div>
   );
 }
 

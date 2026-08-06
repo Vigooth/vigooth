@@ -477,6 +477,15 @@ export function TourView() {
               </div>
             )}
 
+            {/* Say what is missing rather than only hiding the button it gates:
+                calibration needs both a panorama and a pin, and a point that has
+                one but not the other otherwise looks simply broken. */}
+            {current && !current.has_photo && (
+              <p className="text-xs text-cpc-yellow-500">
+                Ce point n'a pas encore de panorama — CHARGER UN PANORAMA, en haut. C'est aussi ce
+                qui débloque CALIBRER L'ORIENTATION.
+              </p>
+            )}
             {current && !isPinned && (
               <p className="text-xs text-cpc-yellow-500">
                 Ce point n'est pas posé sur le plan — la visite s'affiche, mais sans les étiquettes

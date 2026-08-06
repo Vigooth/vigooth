@@ -71,11 +71,12 @@ export function PanoramaViewer({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const renderer = createEquirectRenderer(canvas);
-    if (!renderer) {
-      onError?.("WebGL n'est pas disponible sur cet appareil");
+    const result = createEquirectRenderer(canvas);
+    if ('error' in result) {
+      onError?.(result.error);
       return;
     }
+    const { renderer } = result;
     rendererRef.current = renderer;
 
     let frame = 0;

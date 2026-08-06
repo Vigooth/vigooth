@@ -83,6 +83,9 @@ function compile(gl: GL, type: number, source: string): WebGLShader | null {
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    // The log is the only way to tell a real syntax error from a lost context,
+    // which fails compilation with no diagnostic at all.
+    console.error('Panorama shader failed to compile:', gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
   }
@@ -94,17 +97,25 @@ function isPowerOfTwo(value: number): boolean {
 }
 
 /**
- * Returns null when WebGL is unavailable or the program fails to build, so the
- * caller can show a plain message instead of a blank canvas.
+ * Either a renderer or the reason there is none.
+ *
+ * A reason rather than a bare null: "no WebGL on this device" and "the shader
+ * would not build" call for very different responses, and reporting the first
+ * when the second happened sends the reader off blaming their hardware.
  */
-export function createEquirectRenderer(canvas: HTMLCanvasElement): EquirectRenderer | null {
+export type RendererResult = { renderer: EquirectRenderer } | { error: string };
+
+export function createEquirectRenderer(canvas: HTMLCanvasElement): RendererResult {
   const gl: GL | null = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
-  if (!gl) return null;
+  if (!gl) return { error: "WebGL n'est pas disponible sur cet appareil" };
+  if (gl.isContextLost()) return { error: 'Contexte WebGL perdu — recharge la page' };
 
   const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
   const program = gl.createProgram();
-  if (!vertex || !fragment || !program) return null;
+  if (!vertex || !fragment || !program) {
+    return { error: 'Le rendu du panorama n’a pas pu s’initialiser (voir la console)' };
+  }
 
   gl.attachShader(program, vertex);
   gl.attachShader(program, fragment);
@@ -114,8 +125,9 @@ export function createEquirectRenderer(canvas: HTMLCanvasElement): EquirectRende
   gl.deleteShader(vertex);
   gl.deleteShader(fragment);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error('Panorama program failed to link:', gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
-    return null;
+    return { error: 'Le rendu du panorama n’a pas pu s’initialiser (voir la console)' };
   }
 
   gl.useProgram(program);
@@ -188,13 +200,17 @@ export function createEquirectRenderer(canvas: HTMLCanvasElement): EquirectRende
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   };
 
+  // Deliberately does NOT call WEBGL_lose_context.loseContext(). A canvas hands
+  // back the same context object every time, so losing it would poison every
+  // later setup on that canvas — which StrictMode triggers on the very first
+  // mount, by running this effect, cleaning it up, and running it again. That
+  // looked exactly like a device without WebGL. Deleting the resources is enough;
+  // the context is released with the canvas.
   const dispose = () => {
     gl.deleteTexture(texture);
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
-    // Frees the drawing buffer now rather than whenever the context is collected.
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 
-  return { setPanorama, render, dispose };
+  return { renderer: { setPanorama, render, dispose } };
 }

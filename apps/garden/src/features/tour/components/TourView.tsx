@@ -20,6 +20,7 @@ import {
   wrapAngle,
 } from '../utils/panorama';
 import { prepareEquirect } from '../utils/prepareEquirect';
+import type { Placement } from '../utils/prepareEquirect';
 import { PanoramaViewer } from './PanoramaViewer';
 import type { TourMarker, ViewerApi } from './PanoramaViewer';
 
@@ -29,6 +30,25 @@ type PlanMode = 'idle' | 'placing' | 'calibrating';
 /** Today, as the YYYY-MM-DD the API stores — plain string compares then order dates. */
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Say how much of the sphere the upload covered, and how sure we are.
+ *
+ * Worth surfacing because a wrong coverage cannot be calibrated away: it scales
+ * the whole image, so every label drifts by an amount that grows with the angle.
+ * If the reading looks wrong, that is the number to doubt.
+ */
+function placementNotice(placement: Placement): string | null {
+  const span = Math.round(placement.horizontalCoverage);
+  switch (placement.basis) {
+    case 'equirect':
+      return null;
+    case 'gpano':
+      return `Panorama de ${span}° placé d'après ses métadonnées GPano — position exacte.`;
+    case 'estimated':
+      return `Couverture estimée à ${span}° d'après les proportions de l'image, faute de métadonnées. Si les étiquettes dérivent d'autant plus qu'elles sont loin du centre, c'est cette estimation qui est en cause.`;
+  }
 }
 
 /**
@@ -261,11 +281,7 @@ export function TourView() {
     try {
       const prepared = await prepareEquirect(file);
       await uploadViewpointPanorama(current.id, prepared.blob);
-      setNotice(
-        prepared.wasEquirect
-          ? null
-          : `Image en ${prepared.sourceAspect.toFixed(1)}:1 — recadrée dans un cadre 2:1. Un panorama 360° complet donne un meilleur résultat.`,
-      );
+      setNotice(placementNotice(prepared.placement));
       await reload();
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : 'Envoi du panorama impossible');

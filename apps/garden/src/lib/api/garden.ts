@@ -6,6 +6,8 @@ import type {
   SaveBedInput,
   SaveOccupationInput,
   SavePlantInput,
+  SaveViewpointInput,
+  Viewpoint,
 } from '@/types/garden';
 import { fetchBlobUrl, putBinary, request, requestVoid } from './client';
 
@@ -82,6 +84,40 @@ export function fetchPlanPhotoUrl(): Promise<string> {
 /** Same, for a visitor with no session. Caller owns and must revoke the URL. */
 export function fetchPublicPlanPhotoUrl(userId: string): Promise<string> {
   return fetchBlobUrl(`/public/garden/${userId}/plan/photo`);
+}
+
+// --- Viewpoints: the 360° tour
+
+export function createViewpoint(input: SaveViewpointInput): Promise<Viewpoint> {
+  return request<Viewpoint>('/api/garden/viewpoints', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateViewpoint(id: string, input: SaveViewpointInput): Promise<Viewpoint> {
+  return request<Viewpoint>(`/api/garden/viewpoints/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteViewpoint(id: string): Promise<void> {
+  return requestVoid(`/api/garden/viewpoints/${id}`, { method: 'DELETE' });
+}
+
+export function uploadViewpointPanorama(id: string, blob: Blob): Promise<void> {
+  return putBinary(`/api/garden/viewpoints/${id}/panorama`, blob);
+}
+
+/** Caller owns the returned blob URL and must revoke it. */
+export function fetchViewpointPanoramaUrl(id: string): Promise<string> {
+  return fetchBlobUrl(`/api/garden/viewpoints/${id}/panorama`);
+}
+
+/** Same, for a visitor with no session. Caller owns and must revoke the URL. */
+export function fetchPublicViewpointPanoramaUrl(userId: string, id: string): Promise<string> {
+  return fetchBlobUrl(`/public/garden/${userId}/viewpoints/${id}/panorama`);
 }
 
 // --- Occupations

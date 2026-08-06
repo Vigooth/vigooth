@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"math"
 	"time"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
@@ -20,6 +21,11 @@ var (
 // downscaled in the browser first, so anything approaching this ceiling is a
 // client that skipped that step rather than a legitimate garden photo.
 const MaxPhotoBytes = 4 << 20 // 4 MiB
+
+// MaxPanoramaBytes caps one tour panorama. Equirectangular frames are 2:1 and
+// cover the whole sphere, so a 4096-wide one holds roughly four times the pixels
+// of a plant photo downscaled to the same apparent sharpness.
+const MaxPanoramaBytes = 8 << 20 // 8 MiB
 
 var allowedPhotoMimes = map[string]struct{}{
 	"image/jpeg": {},
@@ -50,6 +56,10 @@ func (s *GardenService) GetGarden(userID string) (*model.GardenResponse, error) 
 	if err != nil {
 		return nil, err
 	}
+	viewpoints, err := s.gardenRepo.ListViewpoints(userID)
+	if err != nil {
+		return nil, err
+	}
 	hasPlanPhoto, err := s.gardenRepo.HasPlanPhoto(userID)
 	if err != nil {
 		return nil, err
@@ -60,6 +70,7 @@ func (s *GardenService) GetGarden(userID string) (*model.GardenResponse, error) 
 		Plants:       plants,
 		Occupations:  occupations,
 		Conflicts:    DetectConflicts(occupations),
+		Viewpoints:   viewpoints,
 		HasPlanPhoto: hasPlanPhoto,
 	}, nil
 }
@@ -252,6 +263,88 @@ func (s *GardenService) GetPlanPhoto(userID string) ([]byte, string, error) {
 
 func (s *GardenService) DeletePlanPhoto(userID string) error {
 	return s.gardenRepo.DeletePlanPhoto(userID)
+}
+
+// --- Viewpoints
+
+func (s *GardenService) CreateViewpoint(userID string, req *model.SaveViewpointRequest) (*model.Viewpoint, error) {
+	now := time.Now()
+	viewpoint := &model.Viewpoint{
+		ID:         uuid.New().String(),
+		UserID:     userID,
+		Name:       req.Name,
+		PlanX:      clampNormalised(req.PlanX),
+		PlanY:      clampNormalised(req.PlanY),
+		HeadingDeg: normaliseHeading(req.HeadingDeg),
+		SortOrder:  req.SortOrder,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	}
+	if err := s.gardenRepo.CreateViewpoint(viewpoint); err != nil {
+		return nil, err
+	}
+	return viewpoint, nil
+}
+
+func (s *GardenService) UpdateViewpoint(userID, id string, req *model.SaveViewpointRequest) (*model.Viewpoint, error) {
+	viewpoint := &model.Viewpoint{
+		ID:         id,
+		UserID:     userID,
+		Name:       req.Name,
+		PlanX:      clampNormalised(req.PlanX),
+		PlanY:      clampNormalised(req.PlanY),
+		HeadingDeg: normaliseHeading(req.HeadingDeg),
+		SortOrder:  req.SortOrder,
+		UpdatedAt:  time.Now(),
+	}
+	if err := s.gardenRepo.UpdateViewpoint(viewpoint); err != nil {
+		return nil, err
+	}
+	return viewpoint, nil
+}
+
+func (s *GardenService) DeleteViewpoint(userID, id string) error {
+	return s.gardenRepo.DeleteViewpoint(userID, id)
+}
+
+// SetViewpointPhoto takes the larger panorama ceiling: an equirectangular frame
+// is 2:1 and covers the whole sphere, so it carries far more pixels than a plant
+// portrait at the same perceived sharpness.
+func (s *GardenService) SetViewpointPhoto(userID, id string, data []byte, mime string) error {
+	if len(data) > MaxPanoramaBytes {
+		return ErrPhotoTooLarge
+	}
+	if _, ok := allowedPhotoMimes[mime]; !ok {
+		return ErrPhotoUnsupported
+	}
+	return s.gardenRepo.SetViewpointPhoto(userID, id, data, mime)
+}
+
+func (s *GardenService) GetViewpointPhoto(userID, id string) ([]byte, string, error) {
+	return s.gardenRepo.GetViewpointPhoto(userID, id)
+}
+
+// clampNormalised keeps a pin inside the plan. A nil pin stays nil: it means
+// "not placed yet", which is different from a pin at the plan's origin.
+func clampNormalised(value *float64) *float64 {
+	if value == nil {
+		return nil
+	}
+	clamped := math.Min(1, math.Max(0, *value))
+	return &clamped
+}
+
+// normaliseHeading folds any angle into 0..360, so a client that sends -90 or
+// 450 stores the same thing as one that sends 270 or 90.
+func normaliseHeading(degrees float64) float64 {
+	if math.IsNaN(degrees) || math.IsInf(degrees, 0) {
+		return 0
+	}
+	folded := math.Mod(degrees, 360)
+	if folded < 0 {
+		folded += 360
+	}
+	return folded
 }
 
 // --- Occupations

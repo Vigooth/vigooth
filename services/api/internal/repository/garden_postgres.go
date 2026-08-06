@@ -295,6 +295,115 @@ func (r *PostgresGardenRepository) DeletePlanPhoto(userID string) error {
 	return err
 }
 
+// --- Viewpoints
+
+// ListViewpoints tests for the panorama rather than selecting it: this runs on
+// every garden read, and dragging a panorama per viewpoint through the connection
+// would make the main payload pay for images it does not carry.
+func (r *PostgresGardenRepository) ListViewpoints(userID string) ([]model.Viewpoint, error) {
+	rows, err := r.pool.Query(context.Background(),
+		`SELECT id, user_id, name, plan_x, plan_y, heading_deg,
+		        photo IS NOT NULL, COALESCE(photo_mime, ''), sort_order,
+		        created_at, updated_at
+		 FROM garden_viewpoints WHERE user_id = $1 ORDER BY sort_order, name`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	viewpoints := []model.Viewpoint{}
+	for rows.Next() {
+		var viewpoint model.Viewpoint
+		if err := rows.Scan(&viewpoint.ID, &viewpoint.UserID, &viewpoint.Name,
+			&viewpoint.PlanX, &viewpoint.PlanY, &viewpoint.HeadingDeg,
+			&viewpoint.HasPhoto, &viewpoint.PhotoMime, &viewpoint.SortOrder,
+			&viewpoint.CreatedAt, &viewpoint.UpdatedAt); err != nil {
+			return nil, err
+		}
+		viewpoints = append(viewpoints, viewpoint)
+	}
+	return viewpoints, rows.Err()
+}
+
+func (r *PostgresGardenRepository) CreateViewpoint(viewpoint *model.Viewpoint) error {
+	_, err := r.pool.Exec(context.Background(),
+		`INSERT INTO garden_viewpoints (id, user_id, name, plan_x, plan_y, heading_deg,
+		                               sort_order, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		viewpoint.ID, viewpoint.UserID, viewpoint.Name, viewpoint.PlanX, viewpoint.PlanY,
+		viewpoint.HeadingDeg, viewpoint.SortOrder, viewpoint.CreatedAt, viewpoint.UpdatedAt,
+	)
+	return err
+}
+
+// UpdateViewpoint never touches the photo columns: the edit request carries a
+// name, a pin and a heading, and writing its zero values across the panorama
+// would blank a stored image out from under the tour.
+func (r *PostgresGardenRepository) UpdateViewpoint(viewpoint *model.Viewpoint) error {
+	tag, err := r.pool.Exec(context.Background(),
+		`UPDATE garden_viewpoints
+		    SET name = $3, plan_x = $4, plan_y = $5, heading_deg = $6, sort_order = $7,
+		        updated_at = $8
+		  WHERE id = $1 AND user_id = $2`,
+		viewpoint.ID, viewpoint.UserID, viewpoint.Name, viewpoint.PlanX, viewpoint.PlanY,
+		viewpoint.HeadingDeg, viewpoint.SortOrder, viewpoint.UpdatedAt,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGardenNotFound
+	}
+	return nil
+}
+
+func (r *PostgresGardenRepository) DeleteViewpoint(userID, id string) error {
+	tag, err := r.pool.Exec(context.Background(),
+		`DELETE FROM garden_viewpoints WHERE id = $1 AND user_id = $2`, id, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGardenNotFound
+	}
+	return nil
+}
+
+func (r *PostgresGardenRepository) SetViewpointPhoto(userID, id string, data []byte, mime string) error {
+	tag, err := r.pool.Exec(context.Background(),
+		`UPDATE garden_viewpoints SET photo = $3, photo_mime = $4, updated_at = NOW()
+		  WHERE id = $1 AND user_id = $2`,
+		id, userID, data, mime,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGardenNotFound
+	}
+	return nil
+}
+
+func (r *PostgresGardenRepository) GetViewpointPhoto(userID, id string) ([]byte, string, error) {
+	var data []byte
+	var mime string
+	err := r.pool.QueryRow(context.Background(),
+		`SELECT photo, COALESCE(photo_mime, '') FROM garden_viewpoints
+		  WHERE id = $1 AND user_id = $2`, id, userID).Scan(&data, &mime)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, "", ErrGardenNotFound
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	if len(data) == 0 {
+		return nil, "", ErrGardenNoPhoto
+	}
+	return data, mime, nil
+}
+
 // --- Occupations
 
 func (r *PostgresGardenRepository) ListOccupations(userID string) ([]model.Occupation, error) {

@@ -12,7 +12,7 @@ import { useGarden } from '@/stores/GardenStore';
 import type { Bed, BedKind, Point } from '@/types/garden';
 import { BED_KIND_LABELS, BED_KINDS } from '@/types/garden';
 import { downscaleImage } from '@/utils/downscaleImage';
-import { normalisedPoint, polygonCentroid, polygonPath } from '../utils/geometry';
+import { normalisedPoint, polygonCentroid, polygonPath } from '@/utils/geometry';
 
 function bedKindLabel(kind: string): string {
   return kind in BED_KIND_LABELS ? BED_KIND_LABELS[kind as BedKind] : kind;

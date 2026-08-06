@@ -294,7 +294,7 @@ export function TourView() {
   const handleStartCalibrating = () => {
     setPlanMode('calibrating');
     setNotice(
-      'Centre la vue sur un emplacement que tu reconnais, puis clique ce même emplacement sur le plan.',
+      'Amène un emplacement que tu reconnais dans le viseur rose, PUIS clique ce même emplacement sur le plan — dans cet ordre. Choisis-en un éloigné : de près, le moindre écart de visée fausse beaucoup l’angle.',
     );
   };
 
@@ -463,6 +463,7 @@ export function TourView() {
                 panoramaUrl={panorama}
                 markers={markers}
                 initialYaw={initialYaw}
+                showReticle={planMode === 'calibrating'}
                 onReady={handleViewerReady}
                 onError={handleViewerError}
               />

@@ -28,6 +28,14 @@ interface PanoramaViewerProps {
   markers: TourMarker[];
   /** Azimuth to face on arrival, so a visitor keeps their bearings. */
   initialYaw?: number;
+  /**
+   * Draw a crosshair at the centre of the frame.
+   *
+   * Calibration reads the azimuth at the exact centre, so without something to
+   * aim with the owner is guessing where that is — and every bed label inherits
+   * the error.
+   */
+  showReticle?: boolean;
   /** Handed an imperative handle — the camera lives outside React, see below. */
   onReady?: (api: ViewerApi) => void;
   onError?: (message: string) => void;
@@ -48,6 +56,7 @@ export function PanoramaViewer({
   panoramaUrl,
   markers,
   initialYaw = 0,
+  showReticle = false,
   onReady,
   onError,
 }: PanoramaViewerProps) {
@@ -202,9 +211,30 @@ export function PanoramaViewer({
     >
       <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing" />
 
+      {showReticle && <Reticle />}
+
       {markers.map((marker) => (
         <MarkerLabel key={marker.id} marker={marker} register={registerMarker} />
       ))}
+    </div>
+  );
+}
+
+/**
+ * The aiming crosshair, marking the azimuth calibration will read.
+ *
+ * Deliberately a gap in the middle rather than a solid cross: the point being
+ * aimed at has to stay visible.
+ */
+function Reticle() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
+      <div className="relative h-16 w-16">
+        <div className="absolute top-1/2 left-0 h-0.5 w-5 -translate-y-1/2 bg-cpc-magenta-500" />
+        <div className="absolute top-1/2 right-0 h-0.5 w-5 -translate-y-1/2 bg-cpc-magenta-500" />
+        <div className="absolute top-0 left-1/2 h-5 w-0.5 -translate-x-1/2 bg-cpc-magenta-500" />
+        <div className="absolute bottom-0 left-1/2 h-5 w-0.5 -translate-x-1/2 bg-cpc-magenta-500" />
+      </div>
     </div>
   );
 }

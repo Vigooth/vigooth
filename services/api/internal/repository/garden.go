@@ -33,6 +33,14 @@ type GardenRepository interface {
 	HasPlanPhoto(userID string) (bool, error)
 	DeletePlanPhoto(userID string) error
 
+	// Viewpoints of the 360° tour, with the panorama kept out of the list read.
+	ListViewpoints(userID string) ([]model.Viewpoint, error)
+	CreateViewpoint(viewpoint *model.Viewpoint) error
+	UpdateViewpoint(viewpoint *model.Viewpoint) error
+	DeleteViewpoint(userID, id string) error
+	SetViewpointPhoto(userID, id string, data []byte, mime string) error
+	GetViewpointPhoto(userID, id string) ([]byte, string, error)
+
 	ListOccupations(userID string) ([]model.Occupation, error)
 	CreateOccupation(occupation *model.Occupation) error
 	UpdateOccupation(occupation *model.Occupation) error
@@ -50,6 +58,8 @@ type InMemoryGardenRepository struct {
 	plants      map[string]*model.Plant
 	photos      map[string][]byte
 	planPhotos  map[string]planPhoto
+	viewpoints  map[string]*model.Viewpoint
+	panoramas   map[string][]byte
 	occupations map[string]*model.Occupation
 	mu          sync.RWMutex
 }
@@ -60,6 +70,8 @@ func NewInMemoryGardenRepository() *InMemoryGardenRepository {
 		plants:      make(map[string]*model.Plant),
 		photos:      make(map[string][]byte),
 		planPhotos:  make(map[string]planPhoto),
+		viewpoints:  make(map[string]*model.Viewpoint),
+		panoramas:   make(map[string][]byte),
 		occupations: make(map[string]*model.Occupation),
 	}
 }
@@ -242,6 +254,95 @@ func (r *InMemoryGardenRepository) GetPlantPhoto(userID, id string) ([]byte, str
 		return nil, "", ErrGardenNoPhoto
 	}
 	return data, plant.PhotoMime, nil
+}
+
+func (r *InMemoryGardenRepository) ListViewpoints(userID string) ([]model.Viewpoint, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	viewpoints := []model.Viewpoint{}
+	for _, viewpoint := range r.viewpoints {
+		if viewpoint.UserID == userID {
+			viewpoints = append(viewpoints, *viewpoint)
+		}
+	}
+	sort.Slice(viewpoints, func(i, j int) bool {
+		if viewpoints[i].SortOrder != viewpoints[j].SortOrder {
+			return viewpoints[i].SortOrder < viewpoints[j].SortOrder
+		}
+		return viewpoints[i].Name < viewpoints[j].Name
+	})
+	return viewpoints, nil
+}
+
+func (r *InMemoryGardenRepository) CreateViewpoint(viewpoint *model.Viewpoint) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	copied := *viewpoint
+	r.viewpoints[viewpoint.ID] = &copied
+	return nil
+}
+
+// UpdateViewpoint carries the photo flags forward: the request that edits a name
+// or a pin knows nothing about the panorama, and taking its zero values would
+// blank a stored image out from under the tour.
+func (r *InMemoryGardenRepository) UpdateViewpoint(viewpoint *model.Viewpoint) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	existing, ok := r.viewpoints[viewpoint.ID]
+	if !ok || existing.UserID != viewpoint.UserID {
+		return ErrGardenNotFound
+	}
+	copied := *viewpoint
+	copied.CreatedAt = existing.CreatedAt
+	copied.HasPhoto = existing.HasPhoto
+	copied.PhotoMime = existing.PhotoMime
+	r.viewpoints[viewpoint.ID] = &copied
+	return nil
+}
+
+func (r *InMemoryGardenRepository) DeleteViewpoint(userID, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	viewpoint, ok := r.viewpoints[id]
+	if !ok || viewpoint.UserID != userID {
+		return ErrGardenNotFound
+	}
+	delete(r.viewpoints, id)
+	delete(r.panoramas, id)
+	return nil
+}
+
+func (r *InMemoryGardenRepository) SetViewpointPhoto(userID, id string, data []byte, mime string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	viewpoint, ok := r.viewpoints[id]
+	if !ok || viewpoint.UserID != userID {
+		return ErrGardenNotFound
+	}
+	r.panoramas[id] = data
+	viewpoint.HasPhoto = true
+	viewpoint.PhotoMime = mime
+	viewpoint.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *InMemoryGardenRepository) GetViewpointPhoto(userID, id string) ([]byte, string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	viewpoint, ok := r.viewpoints[id]
+	if !ok || viewpoint.UserID != userID {
+		return nil, "", ErrGardenNotFound
+	}
+	data, ok := r.panoramas[id]
+	if !ok || len(data) == 0 {
+		return nil, "", ErrGardenNoPhoto
+	}
+	return data, viewpoint.PhotoMime, nil
 }
 
 func (r *InMemoryGardenRepository) ListOccupations(userID string) ([]model.Occupation, error) {

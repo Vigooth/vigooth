@@ -261,6 +261,83 @@ func (h *GardenHandler) DeletePlanPhoto(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "plan photo removed"})
 }
 
+// --- Viewpoints
+
+func (h *GardenHandler) CreateViewpoint(c *gin.Context) {
+	var req model.SaveViewpointRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	viewpoint, err := h.gardenService.CreateViewpoint(c.GetString("userID"), &req)
+	if err != nil {
+		respondGardenError(c, err, "failed to create viewpoint")
+		return
+	}
+	c.JSON(http.StatusCreated, viewpoint)
+}
+
+func (h *GardenHandler) UpdateViewpoint(c *gin.Context) {
+	var req model.SaveViewpointRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	viewpoint, err := h.gardenService.UpdateViewpoint(c.GetString("userID"), c.Param("id"), &req)
+	if err != nil {
+		respondGardenError(c, err, "failed to update viewpoint")
+		return
+	}
+	c.JSON(http.StatusOK, viewpoint)
+}
+
+func (h *GardenHandler) DeleteViewpoint(c *gin.Context) {
+	if err := h.gardenService.DeleteViewpoint(c.GetString("userID"), c.Param("id")); err != nil {
+		respondGardenError(c, err, "failed to delete viewpoint")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "viewpoint deleted"})
+}
+
+// UploadViewpointPanorama takes raw image bytes with the type in Content-Type,
+// as the plant and plan photo endpoints do.
+func (h *GardenHandler) UploadViewpointPanorama(c *gin.Context) {
+	body := http.MaxBytesReader(c.Writer, c.Request.Body, service.MaxPanoramaBytes+1)
+	data, err := io.ReadAll(body)
+	if err != nil {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "panorama exceeds the maximum size"})
+		return
+	}
+
+	if err := h.gardenService.SetViewpointPhoto(
+		c.GetString("userID"), c.Param("id"), data, c.ContentType(),
+	); err != nil {
+		respondGardenError(c, err, "failed to store the panorama")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "panorama stored"})
+}
+
+func (h *GardenHandler) GetViewpointPanorama(c *gin.Context) {
+	data, mime, err := h.gardenService.GetViewpointPhoto(c.GetString("userID"), c.Param("id"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load the panorama")
+		return
+	}
+	servePhoto(c, data, mime, false)
+}
+
+// GetPublicViewpointPanorama serves a panorama to a visitor. Without it a shared
+// garden would list the tour's viewpoints and show none of them.
+func (h *GardenHandler) GetPublicViewpointPanorama(c *gin.Context) {
+	data, mime, err := h.gardenService.GetViewpointPhoto(c.Param("userId"), c.Param("id"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load the panorama")
+		return
+	}
+	servePhoto(c, data, mime, true)
+}
+
 // --- Occupations
 
 func (h *GardenHandler) CreateOccupation(c *gin.Context) {

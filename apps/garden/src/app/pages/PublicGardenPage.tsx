@@ -5,14 +5,16 @@ import { getPortalUrl } from '@vigooth/config';
 import { TimelineView } from '@/features/calendar/components/TimelineView';
 import { PlanView } from '@/features/plan/components/PlanView';
 import { PlantsView } from '@/features/plants/components/PlantsView';
+import { TourView } from '@/features/tour/components/TourView';
 import { GardenProvider } from '@/stores/GardenStore';
 
-type Tab = 'plants' | 'calendar' | 'plan';
+type Tab = 'plants' | 'calendar' | 'plan' | 'tour';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'plants', label: 'PLANTES' },
   { id: 'calendar', label: 'CALENDRIER' },
   { id: 'plan', label: 'PLAN' },
+  { id: 'tour', label: 'VISITE 360' },
 ];
 
 /**
@@ -62,6 +64,7 @@ export function PublicGardenPage() {
           {tab === 'plants' && <PlantsView />}
           {tab === 'calendar' && <TimelineView />}
           {tab === 'plan' && <PlanView />}
+          {tab === 'tour' && <TourView />}
         </main>
       </div>
     </GardenProvider>

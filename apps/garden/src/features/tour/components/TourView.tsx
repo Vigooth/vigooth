@@ -10,8 +10,10 @@ import {
 import { useGarden } from '@/stores/GardenStore';
 import type { Bed, Point, Viewpoint } from '@/types/garden';
 import { polygonCentroid, polygonPath } from '@/utils/geometry';
+import type { Camera } from '../utils/panorama';
 import {
   azimuthFromViewpoint,
+  degreesToRadians,
   groundElevation,
   planBearing,
   planDistance,
@@ -248,6 +250,15 @@ export function TourView() {
   const handleViewerReady = useCallback((api: ViewerApi) => {
     viewerApiRef.current = api;
   }, []);
+
+  // Drop the handle when no panorama is mounted, or the plan's cone would keep
+  // pointing wherever the previous viewpoint was last left looking.
+  useEffect(() => {
+    if (!panorama) viewerApiRef.current = null;
+  }, [panorama]);
+
+  /** Stable, so the cone's frame loop is set up once rather than on every render. */
+  const getCamera = useCallback(() => viewerApiRef.current?.getCamera() ?? null, []);
 
   const handleViewerError = useCallback((message: string) => {
     setActionError(message);
@@ -508,6 +519,8 @@ export function TourView() {
               mode={planMode}
               onPick={handlePlanClick}
               onSelectViewpoint={handleWalkTo}
+              current={current}
+              getCamera={getCamera}
             />
 
             <ViewpointList
@@ -596,6 +609,9 @@ interface MiniPlanProps {
   mode: PlanMode;
   onPick: (position: Point | null, bed: Bed | null) => void;
   onSelectViewpoint: (id: string) => void;
+  /** The viewpoint being stood on, so its field of view can be drawn. */
+  current: Viewpoint | null;
+  getCamera: () => Camera | null;
 }
 
 /**
@@ -610,6 +626,8 @@ function MiniPlan({
   mode,
   onPick,
   onSelectViewpoint,
+  current,
+  getCamera,
 }: MiniPlanProps) {
   const surfaceRef = useRef<HTMLDivElement>(null);
 
@@ -617,6 +635,8 @@ function MiniPlan({
     const position = viewpointPosition(viewpoint);
     return position ? [{ viewpoint, position }] : [];
   });
+
+  const currentOrigin = current ? viewpointPosition(current) : null;
 
   const handleSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (mode === 'idle') return;
@@ -649,7 +669,10 @@ function MiniPlan({
           <img
             src={planPhoto}
             alt="Plan du jardin"
-            className="absolute inset-0 h-full w-full object-cover opacity-40"
+            // Stretched, not cropped, matching the plan view. Bed shapes are
+            // normalised over this box, so cropping the photo under them would
+            // slide every outline off the thing it outlines.
+            className="absolute inset-0 h-full w-full opacity-40"
           />
         ) : (
           <div className="absolute inset-0 grid place-items-center px-2 text-center text-xs text-cpc-green-900">
@@ -658,6 +681,11 @@ function MiniPlan({
         )}
 
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+          {/* Under the beds, so the cone never hides the outline it points at. */}
+          {currentOrigin && current && (
+            <ViewCone getCamera={getCamera} viewpoint={current} origin={currentOrigin} />
+          )}
+
           {beds.map((bed) => (
             <path
               key={bed.id}
@@ -689,6 +717,86 @@ function MiniPlan({
         ))}
       </div>
     </div>
+  );
+}
+
+interface ViewConeProps {
+  /** Null while no panorama is mounted, which is when there is no camera to follow. */
+  getCamera: () => Camera | null;
+  viewpoint: Viewpoint;
+  origin: Point;
+}
+
+/** Reach of the cone, in plan units — long enough to read, short enough not to cover the plan. */
+const CONE_LENGTH = 0.22;
+
+/**
+ * Where the visitor is looking, drawn on the plan.
+ *
+ * Updated from a frame loop and written straight into the polygon's points, for
+ * the same reason the markers are: the camera turns every frame and lives outside
+ * React, so routing it through state would re-render the whole sidebar sixty
+ * times a second.
+ *
+ * The cone is built from coordinates rather than a CSS rotation on purpose. This
+ * SVG maps a 0..100 box onto a 4:3 frame with `preserveAspectRatio="none"`, so the
+ * two axes are scaled differently and a rotation would come out sheared —
+ * pointing somewhere the visitor is not looking. Computing the vertices in plan
+ * space and letting them through the same scaling keeps the cone aimed at
+ * whichever bed is actually centred in the view.
+ */
+function ViewCone({ getCamera, viewpoint, origin }: ViewConeProps) {
+  const coneRef = useRef<SVGPolygonElement>(null);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const loop = () => {
+      frame = requestAnimationFrame(loop);
+      const polygon = coneRef.current;
+      const camera = getCamera();
+      if (!polygon || !camera) return;
+
+      // Back from panorama azimuth to a plan bearing: the heading is what ties
+      // the two spaces together, so undoing it points at the world again.
+      const bearing = camera.yaw + degreesToRadians(viewpoint.heading_deg);
+      // The camera's field of view is vertical; the frame is 4:3, so the spread
+      // actually seen across the width is wider than that.
+      const halfWidth = Math.atan(Math.tan(camera.fov / 2) * (4 / 3));
+
+      const point = (angle: number, length: number) =>
+        `${((origin.x + Math.cos(angle) * length) * 100).toFixed(2)},${(
+          (origin.y + Math.sin(angle) * length) *
+          100
+        ).toFixed(2)}`;
+
+      polygon.setAttribute(
+        'points',
+        [
+          `${(origin.x * 100).toFixed(2)},${(origin.y * 100).toFixed(2)}`,
+          point(bearing - halfWidth, CONE_LENGTH),
+          // Slightly further out in the middle, so the leading edge reads as an
+          // arrow rather than a flat blade.
+          point(bearing, CONE_LENGTH * 1.12),
+          point(bearing + halfWidth, CONE_LENGTH),
+        ].join(' '),
+      );
+    };
+
+    frame = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frame);
+  }, [getCamera, viewpoint.heading_deg, origin.x, origin.y]);
+
+  return (
+    <polygon
+      ref={coneRef}
+      points=""
+      fill="rgba(255,255,0,0.22)"
+      stroke="#ffff00"
+      strokeWidth={0.6}
+      vectorEffect="non-scaling-stroke"
+      className="pointer-events-none"
+    />
   );
 }
 

@@ -1,11 +1,14 @@
-import { CpcButton, CpcVectorImage } from '@vigooth/ui';
+import { CpcButton, CpcMatrixImage, CpcVectorImage } from '@vigooth/ui';
 import type { Occupation, Plant } from '@/types/garden';
 import { usePlantPhoto } from '../hooks/usePlantPhoto';
+import type { PhotoEffect } from '../types/photoEffect';
 
 interface PlantCardProps {
   plant: Plant;
   /** This plant's occupations, already resolved to bed names for display. */
   placements: { occupation: Occupation; bedName: string }[];
+  /** Treatment applied to the photo, picked once for the whole grid. */
+  effect: PhotoEffect;
   /** Omitted on a public garden, where the footer is dropped entirely. */
   onEdit?: (plant: Plant) => void;
   onDelete?: (plant: Plant) => void;
@@ -19,7 +22,22 @@ function formatWindow(startsOn: string, endsOn: string): string {
   return `${frenchDate.format(start)} → ${frenchDate.format(end)}`;
 }
 
-export function PlantCard({ plant, placements, onEdit, onDelete }: PlantCardProps) {
+/** Every treatment fits the photo whole, so no leaf ever gets cropped away. */
+function PlantPhoto({ url, alt, effect }: { url: string; alt: string; effect: PhotoEffect }) {
+  if (effect === 'matrix') {
+    return <CpcMatrixImage src={url} alt={alt} cellSize={8} fit="contain" className="h-52 w-full" />;
+  }
+
+  if (effect === 'photo') {
+    return (
+      <img src={url} alt={alt} className="h-52 w-full bg-black object-contain" loading="lazy" />
+    );
+  }
+
+  return <CpcVectorImage src={url} alt={alt} levels={5} fit="contain" className="h-52 w-full" />;
+}
+
+export function PlantCard({ plant, placements, effect, onEdit, onDelete }: PlantCardProps) {
   const photoUrl = usePlantPhoto(plant.id, plant.has_photo);
 
   const handleEdit = () => {
@@ -33,12 +51,7 @@ export function PlantCard({ plant, placements, onEdit, onDelete }: PlantCardProp
   return (
     <article className="flex flex-col gap-3 border-2 border-cpc-green-900 p-3">
       {photoUrl ? (
-        <CpcVectorImage
-          src={photoUrl}
-          alt={plant.name}
-          levels={5}
-          className="h-52 w-full"
-        />
+        <PlantPhoto url={photoUrl} alt={plant.name} effect={effect} />
       ) : (
         <div className="grid h-52 w-full place-items-center border border-cpc-green-900 text-xs text-cpc-green-900">
           PAS DE PHOTO

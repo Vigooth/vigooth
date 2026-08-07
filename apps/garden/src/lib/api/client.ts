@@ -77,6 +77,19 @@ export async function putBinary(endpoint: string, blob: Blob): Promise<void> {
   if (!response.ok) throw await toError(response);
 }
 
+/** POST raw bytes and read a JSON answer back. Same rationale as `putBinary`. */
+export async function postBinary<T>(endpoint: string, blob: Blob): Promise<T> {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type },
+    credentials: 'include',
+    body: blob,
+  });
+
+  if (!response.ok) throw await toError(response);
+  return response.json();
+}
+
 /**
  * Fetch an image and hand back a blob URL.
  *

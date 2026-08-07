@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react';
-import { CpcButton } from '@vigooth/ui';
+import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui';
 import { deletePlant } from '@/lib/api/garden';
 import { useGarden } from '@/stores/GardenStore';
 import type { Occupation, Plant } from '@/types/garden';
+import {
+  DEFAULT_PHOTO_EFFECT,
+  PHOTO_EFFECTS,
+  photoEffectLabel,
+  type PhotoEffect,
+} from '../types/photoEffect';
 import { PlantCard } from './PlantCard';
 import { PlantForm } from './PlantForm';
 
@@ -12,6 +18,7 @@ export function PlantsView() {
   const { plants, occupations, loading, error, reload, bedName, readOnly } = useGarden();
   const [editing, setEditing] = useState<Editing>({ mode: 'none' });
   const [search, setSearch] = useState('');
+  const [effect, setEffect] = useState<PhotoEffect>(DEFAULT_PHOTO_EFFECT);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -69,6 +76,10 @@ export function PlantsView() {
     setSearch(event.target.value);
   };
 
+  const handleEffectSelect = (next: PhotoEffect) => () => {
+    setEffect(next);
+  };
+
   return (
     <section className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -76,6 +87,21 @@ export function PlantsView() {
           MES PLANTES <span className="text-cpc-green-900">({plants.length})</span>
         </h1>
         <div className="flex items-center gap-2">
+          <CpcMenu
+            color="green"
+            align="start"
+            trigger={
+              <CpcButton variant="outlined" color="green" size="xs">
+                EFFET: {photoEffectLabel(effect)}
+              </CpcButton>
+            }
+          >
+            {PHOTO_EFFECTS.map(({ value, label }) => (
+              <CpcMenuItem key={value} onClick={handleEffectSelect(value)}>
+                {value === effect ? `> ${label}` : label}
+              </CpcMenuItem>
+            ))}
+          </CpcMenu>
           <input
             type="search"
             value={search}
@@ -115,6 +141,7 @@ export function PlantsView() {
             key={plant.id}
             plant={plant}
             placements={placementsByPlant.get(plant.id) ?? []}
+            effect={effect}
             onEdit={readOnly ? undefined : handleEdit}
             onDelete={readOnly ? undefined : handleDelete}
           />

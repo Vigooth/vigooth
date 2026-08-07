@@ -42,6 +42,11 @@ export interface CpcMatrixImageProps {
   /** Override the glyph pool. Only used when `shaded` is false. */
   charset?: string;
   /**
+   * How the photograph fills the box. `cover` crops it, `contain` keeps it
+   * whole and lets the glyph grid run on past its edges.
+   */
+  fit?: 'cover' | 'contain';
+  /**
    * Force the reveal state. Omit to let the component drive it from
    * hover, focus and tap.
    */
@@ -69,6 +74,7 @@ export function CpcMatrixImage({
   gamma = 0.75,
   shaded = true,
   charset = MATRIX_CHARSET,
+  fit = 'cover',
   revealed,
   className,
 }: CpcMatrixImageProps) {
@@ -104,6 +110,7 @@ export function CpcMatrixImage({
         desaturate,
         gamma,
         reducedMotion,
+        fit,
       });
     } catch {
       setStatus('error');
@@ -158,6 +165,7 @@ export function CpcMatrixImage({
     desaturate,
     gamma,
     shaded,
+    fit,
   ]);
 
   useEffect(() => {

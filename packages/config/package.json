@@ -7,6 +7,7 @@
   "exports": {
     ".": "./apps.ts",
     "./apps": "./apps.ts",
+    "./track": "./track.ts",
     "./tailwind": "./tailwind.config.cjs",
     "./tsconfig/base": "./tsconfig.base.json",
     "./tsconfig/react": "./tsconfig.react.json"

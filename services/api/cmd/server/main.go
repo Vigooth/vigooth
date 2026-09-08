@@ -39,6 +39,7 @@ func main() {
 	var wishlistRepo repository.WishlistRepository
 	var recoRepo repository.RecommendationRepository
 	var gardenRepo repository.GardenRepository
+	var visitRepo repository.VisitRepository
 
 	if databaseURL != "" {
 		// PostgreSQL mode
@@ -60,6 +61,7 @@ func main() {
 		wishlistRepo = repository.NewPostgresWishlistRepository(pool)
 		recoRepo = repository.NewPostgresRecommendationRepository(pool)
 		gardenRepo = repository.NewPostgresGardenRepository(pool)
+		visitRepo = repository.NewPostgresVisitRepository(pool)
 	} else {
 		// In-memory mode (development)
 		log.Println("Running in-memory mode (no DATABASE_URL set)")
@@ -69,13 +71,18 @@ func main() {
 		wishlistRepo = repository.NewInMemoryWishlistRepository()
 		recoRepo = repository.NewInMemoryRecommendationRepository()
 		gardenRepo = repository.NewInMemoryGardenRepository()
+		visitRepo = repository.NewInMemoryVisitRepository()
 	}
 
 	vaultService := service.NewVaultService(vaultRepo)
 	movieService := service.NewMovieService(movieRepo)
 	wishlistService := service.NewWishlistService(wishlistRepo)
-	authService := service.NewAuthService(userRepo, jwtSecret)
+	// ADMIN_EMAILS: comma-separated accounts allowed into /api/admin and shown
+	// the admin space in the portal.
+	adminEmails := strings.Split(os.Getenv("ADMIN_EMAILS"), ",")
+	authService := service.NewAuthService(userRepo, jwtSecret, adminEmails)
 	gardenService := service.NewGardenService(gardenRepo)
+	visitService := service.NewVisitService(visitRepo, service.NewGeoIPClient())
 
 	cookieDomain := os.Getenv("COOKIE_DOMAIN") // empty in dev, ".vigooth.com" in prod
 	cookieSecure := cookieDomain != ""         // HTTPS-only when domain is set (prod)
@@ -84,6 +91,7 @@ func main() {
 	movieHandler := handler.NewMovieHandler(movieService, tmdbApiKey)
 	wishlistHandler := handler.NewWishlistHandler(wishlistService)
 	gardenHandler := handler.NewGardenHandler(gardenService)
+	visitHandler := handler.NewVisitHandler(visitService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey, os.Getenv("TOR_SOCKS_ADDR"))
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
 		Domain: cookieDomain,
@@ -139,6 +147,15 @@ func main() {
 	// Router
 	r := gin.Default()
 
+	// Client IPs come out of X-Forwarded-For, which only means something when the
+	// hop that set it is ours. Default to the private ranges: in prod that is
+	// Caddy on the compose network, in dev there is no proxy at all. Without this
+	// gin trusts every hop and anyone could forge their address in the visit log.
+	trustedProxies := strings.Split(getEnv("TRUSTED_PROXIES", "127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"), ",")
+	if err := r.SetTrustedProxies(trustedProxies); err != nil {
+		log.Fatalf("Invalid TRUSTED_PROXIES: %v", err)
+	}
+
 	// CORS — allowlist from env (comma-separated), e.g.
 	// CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5177,https://vigooth.com
 	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
@@ -154,6 +171,11 @@ func main() {
 	r.POST("/auth/register", authLimiter, authHandler.Register)
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+
+	// Visit beacon, fired once per page load by every frontend. Public and
+	// unauthenticated by design; the limiter is per address, so a script cannot
+	// flood the log from one place.
+	r.POST("/track", middleware.RateLimit(60, time.Minute), visitHandler.Track)
 	// Session probe. Registered on its own rather than under /api so every app can
 	// ask who owns the domain-wide cookie; the 401 from the middleware is the
 	// "no session" answer.
@@ -200,6 +222,14 @@ func main() {
 	}
 
 	// Protected routes
+	// Admin routes: a session, and an account on the ADMIN_EMAILS list.
+	admin := r.Group("/api/admin")
+	admin.Use(authMiddleware.RequireAuth("user"), middleware.RequireAdmin(authService.IsAdmin))
+	{
+		admin.GET("/visits", visitHandler.List)
+		admin.GET("/visits/stats", visitHandler.Stats)
+	}
+
 	api := r.Group("/api")
 	api.Use(authMiddleware.RequireAuth("user"))
 	{

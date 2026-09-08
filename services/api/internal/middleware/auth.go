@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -23,47 +24,9 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 // endpoints. A token without a "typ" claim is rejected.
 func (m *AuthMiddleware) RequireAuth(allowedTypes ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := m.extractToken(c, allowedTypes)
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authentication"})
-			c.Abort()
-			return
-		}
-
-		// Parse and validate token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.ErrSignatureInvalid
-			}
-			return []byte(m.jwtSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
-			return
-		}
-
-		// Extract claims
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			c.Abort()
-			return
-		}
-
-		if len(allowedTypes) > 0 {
-			tokenType, _ := claims["typ"].(string)
-			if !contains(allowedTypes, tokenType) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "token type not allowed for this endpoint"})
-				c.Abort()
-				return
-			}
-		}
-
-		userID, ok := claims["sub"].(string)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id in token"})
+		userID, err := m.authenticate(c, allowedTypes)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
@@ -72,6 +35,56 @@ func (m *AuthMiddleware) RequireAuth(allowedTypes ...string) gin.HandlerFunc {
 		c.Set("userID", userID)
 		c.Next()
 	}
+}
+
+// OptionalAuth sets "userID" when a valid token is present and does nothing
+// otherwise. For endpoints anyone may call but that like to know who did: the
+// visit beacon uses it to attribute a hit to the signed-in account.
+func (m *AuthMiddleware) OptionalAuth(allowedTypes ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if userID, err := m.authenticate(c, allowedTypes); err == nil {
+			c.Set("userID", userID)
+		}
+		c.Next()
+	}
+}
+
+// authenticate resolves the request's token to a user ID, or says why not.
+func (m *AuthMiddleware) authenticate(c *gin.Context, allowedTypes []string) (string, error) {
+	tokenString := m.extractToken(c, allowedTypes)
+	if tokenString == "" {
+		return "", errors.New("missing authentication")
+	}
+
+	// Parse and validate token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte(m.jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	// Extract claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid token claims")
+	}
+
+	if len(allowedTypes) > 0 {
+		tokenType, _ := claims["typ"].(string)
+		if !contains(allowedTypes, tokenType) {
+			return "", errors.New("token type not allowed for this endpoint")
+		}
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok {
+		return "", errors.New("invalid user id in token")
+	}
+	return userID, nil
 }
 
 func contains(list []string, v string) bool {

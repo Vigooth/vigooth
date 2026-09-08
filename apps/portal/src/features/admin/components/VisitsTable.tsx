@@ -18,11 +18,12 @@ export function VisitsTable({ visits }: VisitsTableProps) {
     // Wide by nature: the table scrolls inside its own box rather than pushing
     // the page sideways on a phone.
     <div className="overflow-x-auto border-2 border-cpc-green-900">
-      <table className="w-full min-w-[56rem] border-collapse">
+      <table className="w-full min-w-[64rem] border-collapse">
         <thead>
           <tr className="border-b-2 border-cpc-green-900">
             <th className={headClass}>DATE</th>
             <th className={headClass}>IP</th>
+            <th className={headClass}>COMPTE</th>
             <th className={headClass}>LIEU</th>
             <th className={headClass}>FAI</th>
             <th className={headClass}>APP</th>
@@ -41,6 +42,12 @@ export function VisitsTable({ visits }: VisitsTableProps) {
                 {formatVisitDate(visit.created_at)}
               </td>
               <td className={`${cellClass} whitespace-nowrap text-cpc-cyan-500`}>{visit.ip}</td>
+              <td
+                className={`${cellClass} max-w-48 truncate text-cpc-yellow-500`}
+                title={visit.user_email}
+              >
+                {visit.user_email || '—'}
+              </td>
               <td className={`${cellClass} text-cpc-green-500`}>
                 {visit.location && (
                   <span className="mr-1">{countryFlag(visit.location.country_code)}</span>

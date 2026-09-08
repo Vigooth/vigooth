@@ -82,7 +82,7 @@ func main() {
 	adminEmails := strings.Split(os.Getenv("ADMIN_EMAILS"), ",")
 	authService := service.NewAuthService(userRepo, jwtSecret, adminEmails)
 	gardenService := service.NewGardenService(gardenRepo)
-	visitService := service.NewVisitService(visitRepo, service.NewGeoIPClient())
+	visitService := service.NewVisitService(visitRepo, userRepo, service.NewGeoIPClient())
 
 	cookieDomain := os.Getenv("COOKIE_DOMAIN") // empty in dev, ".vigooth.com" in prod
 	cookieSecure := cookieDomain != ""         // HTTPS-only when domain is set (prod)
@@ -172,10 +172,10 @@ func main() {
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
 
-	// Visit beacon, fired once per page load by every frontend. Public and
-	// unauthenticated by design; the limiter is per address, so a script cannot
-	// flood the log from one place.
-	r.POST("/track", middleware.RateLimit(60, time.Minute), visitHandler.Track)
+	// Visit beacon, fired once per page load by every frontend. Public by design,
+	// but a session cookie riding along attributes the hit to its account. The
+	// limiter is per address, so a script cannot flood the log from one place.
+	r.POST("/track", middleware.RateLimit(60, time.Minute), authMiddleware.OptionalAuth("user"), visitHandler.Track)
 	// Session probe. Registered on its own rather than under /api so every app can
 	// ask who owns the domain-wide cookie; the 401 from the middleware is the
 	// "no session" answer.

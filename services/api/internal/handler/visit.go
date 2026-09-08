@@ -30,7 +30,7 @@ func (h *VisitHandler) Track(c *gin.Context) {
 		return
 	}
 
-	if err := h.visitService.Record(req, c.ClientIP(), c.GetHeader("User-Agent")); err != nil {
+	if err := h.visitService.Record(req, c.ClientIP(), c.GetHeader("User-Agent"), c.GetString("userID")); err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
 	}

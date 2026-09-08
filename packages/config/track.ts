@@ -8,6 +8,9 @@ import { getApiUrl } from './apps';
  * API's CORS list, which is what lets every app report with one line. The
  * response is opaque and unread, which is fine: nothing here waits on it.
  * `keepalive` lets the request outlive a tab closed straight after landing.
+ * Credentials are included so the API can attribute the hit to the signed-in
+ * account: the auth cookie is same-site with the API, so it is sent even in
+ * no-cors mode, and a missing or stale cookie just means an anonymous visit.
  *
  * Never throws: a lost beacon must never take the app down with it.
  */
@@ -24,6 +27,7 @@ export function trackVisit(appId: string): void {
     void fetch(`${getApiUrl()}/track`, {
       method: 'POST',
       mode: 'no-cors',
+      credentials: 'include',
       keepalive: true,
       body: payload,
     }).catch(() => {

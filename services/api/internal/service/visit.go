@@ -18,8 +18,9 @@ const (
 )
 
 type VisitService struct {
-	repo  repository.VisitRepository
-	geoip *GeoIPClient
+	repo     repository.VisitRepository
+	userRepo repository.UserRepository
+	geoip    *GeoIPClient
 
 	// Addresses with a lookup in flight. Two beacons from a new address landing
 	// together would otherwise both miss the cache and both call the provider.
@@ -27,14 +28,17 @@ type VisitService struct {
 	inFlight map[string]struct{}
 }
 
-func NewVisitService(repo repository.VisitRepository, geoip *GeoIPClient) *VisitService {
-	return &VisitService{repo: repo, geoip: geoip, inFlight: make(map[string]struct{})}
+func NewVisitService(repo repository.VisitRepository, userRepo repository.UserRepository, geoip *GeoIPClient) *VisitService {
+	return &VisitService{repo: repo, userRepo: userRepo, geoip: geoip, inFlight: make(map[string]struct{})}
 }
 
 // Record stores the hit and, off the request path, geolocates its address the
 // first time it is seen. The beacon answers before the provider does: nothing
 // the browser is waiting on depends on where the visitor is.
-func (s *VisitService) Record(req model.TrackRequest, ip, userAgent string) error {
+//
+// userID is "" for an anonymous visit. A token for an account that no longer
+// exists is recorded as anonymous rather than refused: the hit still happened.
+func (s *VisitService) Record(req model.TrackRequest, ip, userAgent, userID string) error {
 	visit := &model.Visit{
 		ID:        uuid.New().String(),
 		IP:        ip,
@@ -42,6 +46,7 @@ func (s *VisitService) Record(req model.TrackRequest, ip, userAgent string) erro
 		Path:      req.Path,
 		Referrer:  req.Referrer,
 		UserAgent: userAgent,
+		UserEmail: s.emailOf(userID),
 		CreatedAt: time.Now(),
 	}
 	if err := s.repo.Create(visit); err != nil {
@@ -49,6 +54,17 @@ func (s *VisitService) Record(req model.TrackRequest, ip, userAgent string) erro
 	}
 	go s.ensureLocation(ip)
 	return nil
+}
+
+func (s *VisitService) emailOf(userID string) string {
+	if userID == "" {
+		return ""
+	}
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return ""
+	}
+	return user.Email
 }
 
 func (s *VisitService) ensureLocation(ip string) {

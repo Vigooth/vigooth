@@ -228,6 +228,7 @@ func main() {
 	{
 		admin.GET("/visits", visitHandler.List)
 		admin.GET("/visits/stats", visitHandler.Stats)
+		admin.GET("/users", authHandler.ListUsers)
 	}
 
 	api := r.Group("/api")

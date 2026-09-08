@@ -63,3 +63,22 @@ func (r *PostgresUserRepository) FindByID(id string) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *PostgresUserRepository) List() ([]model.User, error) {
+	rows, err := r.pool.Query(context.Background(),
+		`SELECT id, email, created_at FROM users ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []model.User{}
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, rows.Err()
+}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
@@ -17,15 +18,46 @@ var (
 )
 
 type AuthService struct {
-	userRepo  repository.UserRepository
-	jwtSecret string
+	userRepo    repository.UserRepository
+	jwtSecret   string
+	adminEmails map[string]struct{}
 }
 
-func NewAuthService(userRepo repository.UserRepository, jwtSecret string) *AuthService {
-	return &AuthService{
-		userRepo:  userRepo,
-		jwtSecret: jwtSecret,
+// NewAuthService takes the admin allowlist as emails: with no admin UI to
+// promote accounts, an env var the operator edits is the whole mechanism.
+func NewAuthService(userRepo repository.UserRepository, jwtSecret string, adminEmails []string) *AuthService {
+	admins := make(map[string]struct{}, len(adminEmails))
+	for _, e := range adminEmails {
+		e = strings.ToLower(strings.TrimSpace(e))
+		if e != "" {
+			admins[e] = struct{}{}
+		}
 	}
+	return &AuthService{
+		userRepo:    userRepo,
+		jwtSecret:   jwtSecret,
+		adminEmails: admins,
+	}
+}
+
+// IsAdmin is the check behind the admin routes, keyed by the token's subject.
+func (s *AuthService) IsAdmin(userID string) bool {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return false
+	}
+	return s.isAdminEmail(user.Email)
+}
+
+func (s *AuthService) isAdminEmail(email string) bool {
+	_, ok := s.adminEmails[strings.ToLower(email)]
+	return ok
+}
+
+// withAdminFlag stamps the computed flag before a user leaves the service.
+func (s *AuthService) withAdminFlag(user *model.User) *model.User {
+	user.IsAdmin = s.isAdminEmail(user.Email)
+	return user
 }
 
 func (s *AuthService) Register(req model.RegisterRequest) (*model.AuthResponse, error) {
@@ -57,7 +89,7 @@ func (s *AuthService) Register(req model.RegisterRequest) (*model.AuthResponse, 
 
 	return &model.AuthResponse{
 		Token: token,
-		User:  *user,
+		User:  *s.withAdminFlag(user),
 	}, nil
 }
 
@@ -78,7 +110,7 @@ func (s *AuthService) Login(req model.LoginRequest) (*model.AuthResponse, error)
 
 	return &model.AuthResponse{
 		Token: token,
-		User:  *user,
+		User:  *s.withAdminFlag(user),
 	}, nil
 }
 
@@ -89,7 +121,11 @@ func (s *AuthService) Login(req model.LoginRequest) (*model.AuthResponse, error)
 // localStorage is per-origin, so without this they cannot tell an active session
 // from no session and have to show a login form regardless.
 func (s *AuthService) GetUser(userID string) (*model.User, error) {
-	return s.userRepo.FindByID(userID)
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.withAdminFlag(user), nil
 }
 
 func (s *AuthService) generateToken(userID string) (string, error) {

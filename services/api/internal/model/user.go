@@ -7,6 +7,9 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"-"` // Hashed, never sent to client
 	CreatedAt time.Time `json:"created_at"`
+	// Not stored: set from the ADMIN_EMAILS allowlist whenever the account is
+	// read, so it is the frontend's cue to show the admin space.
+	IsAdmin bool `json:"is_admin"`
 }
 
 type RegisterRequest struct {

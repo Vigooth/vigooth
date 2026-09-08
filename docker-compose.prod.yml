@@ -41,6 +41,7 @@ services:
       TOR_SOCKS_ADDR: tor:9050
       STEAM_API_KEY: ${STEAM_API_KEY:-}
       STEAM_BASE_URL: https://app-steam.${DOMAIN}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     depends_on:
       postgres:
         condition: service_healthy

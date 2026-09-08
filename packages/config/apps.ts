@@ -125,3 +125,14 @@ export function getAppsConfig(currentAppId?: string) {
 export function getPortalUrl(): string {
   return getAppUrl('portal');
 }
+
+/**
+ * Where the Go API lives, derived the same way as the app URLs so shared code
+ * can reach it without every app threading its own env var through.
+ */
+export function getApiUrl(): string {
+  if (isDev()) return 'http://localhost:8090';
+  return `https://api.${getRootDomain()}`;
+}
+
+export { trackVisit } from './track';

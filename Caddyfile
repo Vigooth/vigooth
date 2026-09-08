@@ -150,8 +150,10 @@ api.{$DOMAIN} {
 	# An origin missing from this map gets no Access-Control-Allow-Origin header,
 	# and the browser then blocks every request from it with no error the app can
 	# surface. Steam is absent on purpose: its API routes are reverse-proxied
-	# under its own hostname, so they are same-origin.
+	# under its own hostname, so they are same-origin. The portal is here for its
+	# admin space; the visit beacon needs no entry, it is sent in no-cors mode.
 	map {header.Origin} {cors_origin} {
+		"https://{$DOMAIN}" "https://{$DOMAIN}"
 		"https://app-vilock.{$DOMAIN}" "https://app-vilock.{$DOMAIN}"
 		"https://app-moovi.{$DOMAIN}" "https://app-moovi.{$DOMAIN}"
 		"https://app-garden.{$DOMAIN}" "https://app-garden.{$DOMAIN}"

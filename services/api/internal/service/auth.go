@@ -40,6 +40,18 @@ func NewAuthService(userRepo repository.UserRepository, jwtSecret string, adminE
 	}
 }
 
+// ListUsers is the admin's account list, each stamped with its admin flag.
+func (s *AuthService) ListUsers() ([]model.User, error) {
+	users, err := s.userRepo.List()
+	if err != nil {
+		return nil, err
+	}
+	for i := range users {
+		s.withAdminFlag(&users[i])
+	}
+	return users, nil
+}
+
 // IsAdmin is the check behind the admin routes, keyed by the token's subject.
 func (s *AuthService) IsAdmin(userID string) bool {
 	user, err := s.userRepo.FindByID(userID)

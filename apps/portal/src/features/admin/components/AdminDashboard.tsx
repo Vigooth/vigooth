@@ -1,78 +1,56 @@
+import { useState } from 'react';
 import { CpcButton } from '@vigooth/ui';
-import { apps } from '@vigooth/config';
 import type { User } from '@/lib/api/auth';
-import { useVisitLog } from '../hooks/useVisitLog';
-import { StatsPanel } from './StatsPanel';
-import { VisitsTable } from './VisitsTable';
+import { UsersView } from './UsersView';
+import { VisitsView } from './VisitsView';
 
 interface AdminDashboardProps {
   user: User;
   onSignOut: () => void;
 }
 
-const selectClass =
-  'border-2 border-cpc-green-900 bg-black px-2 py-1 font-mono text-xs text-cpc-green-500 ' +
-  'outline-none focus:border-cpc-green-500';
+type Tab = 'visits' | 'users';
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'visits', label: 'VISITES' },
+  { id: 'users', label: 'UTILISATEURS' },
+];
 
 export function AdminDashboard({ user, onSignOut }: AdminDashboardProps) {
-  const { visits, stats, app, setApp, loading, error, hasMore, loadMore, refresh } = useVisitLog();
-
-  const handleAppChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setApp(event.target.value);
-  };
+  const [tab, setTab] = useState<Tab>('visits');
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-cpc-green-500 pb-3">
-        <div className="flex items-center gap-3">
-          <span className="text-cpc-yellow-500">ADMIN</span>
-          <span className="text-xs text-cpc-green-900">VISITES</span>
-        </div>
+        <span className="text-cpc-yellow-500">ADMIN</span>
         <div className="flex items-center gap-3">
           <span className="text-xs text-cpc-green-900">{user.email}</span>
-          <CpcButton variant="outlined" color="cyan" size="xs" onClick={refresh} disabled={loading}>
-            RAFRAICHIR
-          </CpcButton>
           <CpcButton variant="text" color="red" size="xs" onClick={onSignOut}>
             DECONNEXION
           </CpcButton>
         </div>
       </header>
 
-      {stats && <StatsPanel stats={stats} />}
+      <nav className="flex flex-wrap gap-2">
+        {TABS.map((candidate) => (
+          <CpcButton
+            key={candidate.id}
+            variant={tab === candidate.id ? 'filled' : 'outlined'}
+            color={tab === candidate.id ? 'green' : 'cyan'}
+            size="sm"
+            onClick={() => setTab(candidate.id)}
+          >
+            {candidate.label}
+          </CpcButton>
+        ))}
+      </nav>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs text-cpc-green-900">FILTRE</span>
-          <select className={selectClass} value={app} onChange={handleAppChange}>
-            <option value="">TOUTES LES APPS</option>
-            {apps.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {error && <p className="text-xs text-cpc-red-500">{error}</p>}
-
-        <VisitsTable visits={visits} />
-
-        <div className="flex items-center gap-3">
-          {hasMore && (
-            <CpcButton
-              variant="outlined"
-              color="green"
-              size="sm"
-              onClick={loadMore}
-              disabled={loading}
-            >
-              CHARGER PLUS
-            </CpcButton>
-          )}
-          {loading && <span className="text-xs text-cpc-green-900">CHARGEMENT...</span>}
-        </div>
-      </section>
+      <main>
+        {/* One at a time: each view owns its own fetch, and a hidden tab should
+            not keep polling nothing. */}
+        {tab === 'visits' && <VisitsView />}
+        {tab === 'users' && <UsersView />}
+      </main>
     </div>
   );
 }

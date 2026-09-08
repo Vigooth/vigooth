@@ -108,6 +108,17 @@ func (h *AuthHandler) Me(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
+// ListUsers backs the admin space's account list. Password hashes never leave
+// the model's JSON, so the full user is safe to send.
+func (h *AuthHandler) ListUsers(c *gin.Context) {
+	users, err := h.authService.ListUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list users"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
 func (h *AuthHandler) Logout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(

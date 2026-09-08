@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"sort"
 	"sync"
 
 	"github.com/Vigooth/vigooth/services/api/internal/model"
@@ -16,6 +17,9 @@ type UserRepository interface {
 	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
 	FindByID(id string) (*model.User, error)
+	// List returns every account, newest first. Admin-only by construction: the
+	// only caller sits behind the admin guard.
+	List() ([]model.User, error)
 }
 
 // InMemoryUserRepository - for development, replace with DB later
@@ -66,4 +70,16 @@ func (r *InMemoryUserRepository) FindByID(id string) (*model.User, error) {
 		return nil, ErrUserNotFound
 	}
 	return user, nil
+}
+
+func (r *InMemoryUserRepository) List() ([]model.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	users := make([]model.User, 0, len(r.users))
+	for _, u := range r.users {
+		users = append(users, *u)
+	}
+	sort.Slice(users, func(i, j int) bool { return users[i].CreatedAt.After(users[j].CreatedAt) })
+	return users, nil
 }

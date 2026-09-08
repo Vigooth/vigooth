@@ -20,9 +20,9 @@ func NewPostgresVisitRepository(pool *pgxpool.Pool) *PostgresVisitRepository {
 
 func (r *PostgresVisitRepository) Create(visit *model.Visit) error {
 	_, err := r.pool.Exec(context.Background(),
-		`INSERT INTO visits (id, ip, app, path, referrer, user_agent, created_at)
-		 VALUES ($1, $2::inet, $3, $4, $5, $6, $7)`,
-		visit.ID, visit.IP, visit.App, visit.Path, visit.Referrer, visit.UserAgent, visit.CreatedAt,
+		`INSERT INTO visits (id, ip, app, path, referrer, user_agent, user_email, created_at)
+		 VALUES ($1, $2::inet, $3, $4, $5, $6, $7, $8)`,
+		visit.ID, visit.IP, visit.App, visit.Path, visit.Referrer, visit.UserAgent, visit.UserEmail, visit.CreatedAt,
 	)
 	return err
 }
@@ -30,7 +30,7 @@ func (r *PostgresVisitRepository) Create(visit *model.Visit) error {
 func (r *PostgresVisitRepository) List(filter model.VisitFilter) ([]model.Visit, error) {
 	// `$1 = ''` folds the filter into one query: an empty app matches everything.
 	rows, err := r.pool.Query(context.Background(),
-		`SELECT v.id, host(v.ip), v.app, v.path, v.referrer, v.user_agent, v.created_at,
+		`SELECT v.id, host(v.ip), v.app, v.path, v.referrer, v.user_agent, v.user_email, v.created_at,
 		        l.resolved, l.country, l.country_code, l.region, l.city, l.lat, l.lon, l.isp, l.looked_up_at
 		 FROM visits v
 		 LEFT JOIN ip_locations l ON l.ip = v.ip
@@ -52,7 +52,7 @@ func (r *PostgresVisitRepository) List(filter model.VisitFilter) ([]model.Visit,
 		var lat, lon *float64
 		var lookedUpAt *time.Time
 		if err := rows.Scan(
-			&v.ID, &v.IP, &v.App, &v.Path, &v.Referrer, &v.UserAgent, &v.CreatedAt,
+			&v.ID, &v.IP, &v.App, &v.Path, &v.Referrer, &v.UserAgent, &v.UserEmail, &v.CreatedAt,
 			&resolved, &country, &countryCode, &region, &city, &lat, &lon, &isp, &lookedUpAt,
 		); err != nil {
 			return nil, err

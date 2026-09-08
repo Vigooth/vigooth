@@ -4,12 +4,14 @@ import "time"
 
 // Visit is one page load on one of the frontends, as reported by its beacon.
 type Visit struct {
-	ID        string    `json:"id"`
-	IP        string    `json:"ip"`
-	App       string    `json:"app"`
-	Path      string    `json:"path"`
-	Referrer  string    `json:"referrer"`
-	UserAgent string    `json:"user_agent"`
+	ID        string `json:"id"`
+	IP        string `json:"ip"`
+	App       string `json:"app"`
+	Path      string `json:"path"`
+	Referrer  string `json:"referrer"`
+	UserAgent string `json:"user_agent"`
+	// Email of the signed-in account at the time, "" for an anonymous visit.
+	UserEmail string    `json:"user_email"`
 	CreatedAt time.Time `json:"created_at"`
 	// Nil until the address has been geolocated, or when the lookup failed.
 	Location *IPLocation `json:"location,omitempty"`

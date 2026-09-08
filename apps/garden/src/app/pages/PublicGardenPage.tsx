@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { CpcButton } from '@vigooth/ui';
 import { getPortalUrl } from '@vigooth/config';
+import { AppSwitcher } from '@/components/AppSwitcher';
 import { TimelineView } from '@/features/calendar/components/TimelineView';
 import { PlanView } from '@/features/plan/components/PlanView';
 import { PlantsView } from '@/features/plants/components/PlantsView';
@@ -32,10 +33,10 @@ export function PublicGardenPage() {
 
   return (
     <GardenProvider publicUserId={userId}>
-      <div className="min-h-screen bg-black p-4 font-mono text-cpc-green-500">
+      <div className="cpc-screen min-h-screen bg-black p-4 font-mono text-cpc-green-500">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-cpc-green-500 pb-3">
-          <div className="flex items-baseline gap-3">
-            <span className="text-cpc-orange-500">🌱 GARDEN</span>
+          <div className="flex items-center gap-3">
+            <AppSwitcher />
             <span className="text-xs text-cpc-green-900">CONSULTATION — LECTURE SEULE</span>
           </div>
           <a

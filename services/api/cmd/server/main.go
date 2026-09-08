@@ -28,6 +28,7 @@ func main() {
 	tmdbApiKey := os.Getenv("TMDB_API_KEY")
 	omdbApiKey := os.Getenv("OMDB_API_KEY")
 	steamApiKey := os.Getenv("STEAM_API_KEY")
+	plantNetApiKey := os.Getenv("PLANTNET_API_KEY")
 	steamBaseURL := getEnv("STEAM_BASE_URL", "http://localhost:5177")
 	databaseURL := os.Getenv("DATABASE_URL")
 
@@ -77,7 +78,7 @@ func main() {
 	gardenService := service.NewGardenService(gardenRepo)
 
 	cookieDomain := os.Getenv("COOKIE_DOMAIN") // empty in dev, ".vigooth.com" in prod
-	cookieSecure := cookieDomain != ""          // HTTPS-only when domain is set (prod)
+	cookieSecure := cookieDomain != ""         // HTTPS-only when domain is set (prod)
 
 	vaultHandler := handler.NewVaultHandler(vaultService)
 	movieHandler := handler.NewMovieHandler(movieService, tmdbApiKey)
@@ -105,14 +106,25 @@ func main() {
 		log.Println("Steam API disabled (no STEAM_API_KEY)")
 	}
 
-	// LLM provider (optional - recommendations feature)
+	// Pl@ntNet (optional - photo identification in the garden)
+	var plantNetHandler *handler.PlantNetHandler
+	if plantNetApiKey != "" {
+		plantNetHandler = handler.NewPlantNetHandler(plantNetApiKey)
+		log.Println("Pl@ntNet identification enabled")
+	} else {
+		log.Println("Pl@ntNet identification disabled (no PLANTNET_API_KEY)")
+	}
+
+	// LLM provider (optional - movie recommendations, garden care suggestions)
 	var recoHandler *handler.RecommendationHandler
+	var plantEnrichHandler *handler.PlantEnrichHandler
 	if os.Getenv("LLM_API_KEY") != "" {
 		llmProvider, err := llm.NewProviderFromEnv()
 		if err != nil {
 			log.Printf("Warning: LLM provider init failed: %v (recommendations disabled)", err)
 		} else {
 			recoHandler = handler.NewRecommendationHandler(movieService, wishlistService, llmProvider, tmdbApiKey, recoRepo)
+			plantEnrichHandler = handler.NewPlantEnrichHandler(llmProvider)
 			log.Printf("LLM provider initialized: %s", getEnv("LLM_PROVIDER", "anthropic"))
 		}
 	}
@@ -217,6 +229,12 @@ func main() {
 		api.POST("/garden/plants", gardenHandler.CreatePlant)
 		api.PUT("/garden/plants/:id", gardenHandler.UpdatePlant)
 		api.DELETE("/garden/plants/:id", gardenHandler.DeletePlant)
+		if plantNetHandler != nil {
+			api.POST("/garden/plants/identify", plantNetHandler.Identify)
+		}
+		if plantEnrichHandler != nil {
+			api.POST("/garden/plants/enrich", plantEnrichHandler.Enrich)
+		}
 		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
 		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)
 

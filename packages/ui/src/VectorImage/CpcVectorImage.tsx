@@ -28,6 +28,11 @@ export interface CpcVectorImageProps {
   gamma?: number;
   /** Ink colour the band ramp is built from, `#rgb` or `#rrggbb`. */
   color?: string;
+  /**
+   * How the artwork fills the box. `cover` crops to the box, `contain` keeps
+   * the whole photograph visible and letterboxes it against the backdrop.
+   */
+  fit?: 'cover' | 'contain';
   /** Milliseconds for the bands to dissolve into the photograph. */
   revealDuration?: number;
   /** Force the reveal state. Omit to drive it from hover, focus and tap. */
@@ -52,6 +57,7 @@ export function CpcVectorImage({
   smoothing = 1,
   gamma = 0.9,
   color = MATRIX_GREEN,
+  fit = 'cover',
   revealDuration = 900,
   revealed,
   className,
@@ -163,7 +169,10 @@ export function CpcVectorImage({
         src={src}
         alt=""
         aria-hidden
-        className="absolute inset-0 h-full w-full object-cover"
+        className={cn(
+          'absolute inset-0 h-full w-full',
+          fit === 'contain' ? 'object-contain' : 'object-cover',
+        )}
         style={{
           opacity: isRevealed ? 1 : 0,
           transition: `opacity ${duration}ms ease-out`,
@@ -173,7 +182,7 @@ export function CpcVectorImage({
       {status === 'ready' && size.width > 0 && (
         <svg
           viewBox={`0 0 ${size.width} ${size.height}`}
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio={`xMidYMid ${fit === 'contain' ? 'meet' : 'slice'}`}
           className="absolute inset-0 h-full w-full"
           aria-hidden
         >

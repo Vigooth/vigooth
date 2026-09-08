@@ -1,8 +1,14 @@
 import { useRef, useState } from 'react';
 import { CpcButton } from '@vigooth/ui';
 import { NumberField, TextAreaField, TextField } from '@/components/Field';
-import { createPlant, updatePlant, uploadPlantPhoto } from '@/lib/api/garden';
-import type { Plant, SavePlantInput } from '@/types/garden';
+import {
+  createPlant,
+  enrichPlant,
+  identifyPlant,
+  updatePlant,
+  uploadPlantPhoto,
+} from '@/lib/api/garden';
+import type { Plant, PlantCandidate, SavePlantInput } from '@/types/garden';
 import { downscaleImage } from '@/utils/downscaleImage';
 
 interface PlantFormProps {
@@ -39,6 +45,11 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [identifying, setIdentifying] = useState(false);
+  const [candidates, setCandidates] = useState<PlantCandidate[] | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  /** Drives the "these came from a model, check them" note under the fields. */
+  const [enriched, setEnriched] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const update = <K extends keyof FormState>(key: K) => (value: FormState[K]) => {
@@ -51,6 +62,60 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPhoto(event.target.files?.[0] ?? null);
+    // Suggestions belong to the previous photo; keeping them next to a new one
+    // would invite filling the form from the wrong plant.
+    setCandidates(null);
+  };
+
+  const handleIdentify = async () => {
+    if (!photo) return;
+    setIdentifying(true);
+    setError(null);
+    try {
+      // Pl@ntNet takes JPEG or PNG only, so the picked file goes through the
+      // canvas re-encode rather than straight up — that also covers webp and
+      // whatever a phone hands us.
+      const found = await identifyPlant(await downscaleImage(photo, 1280));
+      setCandidates(found);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Identification impossible');
+    } finally {
+      setIdentifying(false);
+    }
+  };
+
+  /**
+   * Picking a candidate settles the identity, then asks the model for the care
+   * fields. Empty ones only: a value already typed is the gardener's own
+   * observation of their plot, which beats a general answer.
+   */
+  const handleApplyCandidate = (candidate: PlantCandidate) => async () => {
+    setForm((previous) => ({
+      ...previous,
+      name: candidate.name,
+      latinName: candidate.latin_name,
+      family: candidate.family,
+    }));
+    setCandidates(null);
+
+    setEnriching(true);
+    try {
+      const care = await enrichPlant(candidate.name, candidate.latin_name);
+      setForm((previous) => ({
+        ...previous,
+        sun: previous.sun || care.sun,
+        water: previous.water || care.water,
+        spacingCm: previous.spacingCm || (care.spacing_cm != null ? String(care.spacing_cm) : ''),
+        description: previous.description || care.description,
+      }));
+      setEnriched(true);
+    } catch {
+      // The identity is in and saveable; failing to guess the watering is not
+      // worth an error banner over the form.
+      setEnriched(false);
+    } finally {
+      setEnriching(false);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -110,6 +175,13 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
         <NumberField label="Espacement (cm)" value={form.spacingCm} onChange={update('spacingCm')} min={0} />
       </div>
 
+      {enriching && <p className="text-xs text-cpc-cyan-500">RECHERCHE DES CONSEILS DE CULTURE...</p>}
+      {enriched && !enriching && (
+        <p className="text-xs text-cpc-yellow-500">
+          EXPOSITION, ARROSAGE, ESPACEMENT ET DESCRIPTIF PROPOSES PAR IA — A VERIFIER
+        </p>
+      )}
+
       <TextAreaField label="Descriptif" value={form.description} onChange={update('description')} />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -117,10 +189,65 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
         <CpcButton type="button" variant="outlined" color="cyan" size="xs" onClick={handlePickPhoto}>
           {plant?.has_photo ? 'REMPLACER LA PHOTO' : 'AJOUTER UNE PHOTO'}
         </CpcButton>
+        {photo && (
+          <CpcButton
+            type="button"
+            variant="outlined"
+            color="yellow"
+            size="xs"
+            disabled={identifying}
+            onClick={handleIdentify}
+          >
+            {identifying ? 'IDENTIFICATION...' : 'IDENTIFIER'}
+          </CpcButton>
+        )}
         <span className="text-xs text-cpc-green-900">
           {photo ? photo.name : plant?.has_photo ? 'photo enregistrée' : 'aucune photo'}
         </span>
       </div>
+
+      {candidates?.length === 0 && (
+        <p className="text-xs text-cpc-green-900">AUCUNE ESPECE RECONNUE SUR CETTE PHOTO</p>
+      )}
+
+      {candidates && candidates.length > 0 && (
+        <ul className="flex flex-col gap-1 border-2 border-cpc-yellow-500 p-2">
+          <li className="text-xs text-cpc-yellow-500">PROPOSITIONS PL@NTNET</li>
+          {candidates.map((candidate) => (
+            <li key={candidate.latin_name}>
+              <button
+                type="button"
+                onClick={handleApplyCandidate(candidate)}
+                className="flex w-full flex-col gap-1 border border-transparent px-1 py-1 text-left text-xs text-cpc-green-500 hover:border-cpc-green-500"
+              >
+                <span className="flex flex-wrap items-baseline gap-x-2">
+                  <span>{candidate.name}</span>
+                  <span className="italic text-cpc-green-900">{candidate.latin_name}</span>
+                  <span className="ml-auto text-cpc-cyan-500">
+                    {Math.round(candidate.score * 100)}%
+                  </span>
+                </span>
+                {candidate.images.length > 0 && (
+                  <span className="flex gap-1">
+                    {candidate.images.map((image) => (
+                      <img
+                        key={image.thumb}
+                        src={image.thumb}
+                        // Credit is a licence condition on these, not a nicety.
+                        alt={`${candidate.name} — ${image.organ} — ${image.citation}`}
+                        title={image.citation}
+                        loading="lazy"
+                        className="h-16 w-16 border border-cpc-green-900 object-cover"
+                      />
+                    ))}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+          <li className="text-xs text-cpc-green-900">PHOTOS PL@NTNET, CC-BY-SA</li>
+        </ul>
+      )}
 
       {error && <p className="text-xs text-cpc-red-500">{error}</p>}
 

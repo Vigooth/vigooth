@@ -46,6 +46,33 @@ export interface Viewpoint {
   updated_at: string;
 }
 
+/** A community photo of a candidate species. CC-BY-SA: the citation must show. */
+export interface PlantReferenceImage {
+  thumb: string;
+  full: string;
+  organ: string;
+  citation: string;
+}
+
+/** One Pl@ntNet suggestion for a photo, ready to drop into the plant form. */
+export interface PlantCandidate {
+  /** Confidence, 0..1. */
+  score: number;
+  /** French common name when Pl@ntNet knows one, the Latin name otherwise. */
+  name: string;
+  latin_name: string;
+  family: string;
+  images: PlantReferenceImage[];
+}
+
+/** Growing advice suggested by the LLM — everything Pl@ntNet cannot answer. */
+export interface PlantCare {
+  sun: string;
+  water: string;
+  spacing_cm: number | null;
+  description: string;
+}
+
 export interface Plant {
   id: string;
   user_id: string;

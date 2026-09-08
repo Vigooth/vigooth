@@ -22,6 +22,8 @@ export interface GlyphRendererOptions {
   gamma: number;
   /** Skip glyph churn and shorten the reveal. */
   reducedMotion: boolean;
+  /** `cover` crops the photograph to the frame, `contain` fits it whole. */
+  fit: 'cover' | 'contain';
 }
 
 interface Cell {
@@ -146,8 +148,12 @@ export function createGlyphRenderer(
     const fitCtx = fitLayer.getContext('2d');
     if (!fitCtx) return;
 
-    // Cover fit: fill the frame, crop the overflow, stay centred.
-    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+    // Centred either way: cover fills the frame and crops the overflow,
+    // contain fits the whole photograph and leaves the margins empty.
+    const scale =
+      options.fit === 'contain'
+        ? Math.min(width / image.naturalWidth, height / image.naturalHeight)
+        : Math.max(width / image.naturalWidth, height / image.naturalHeight);
     const drawWidth = image.naturalWidth * scale;
     const drawHeight = image.naturalHeight * scale;
     // Drain colour once, here, rather than filtering every frame. Everything

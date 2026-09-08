@@ -46,7 +46,7 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center bg-black p-4 font-mono">
+    <div className="cpc-screen grid min-h-screen place-items-center bg-black p-4 font-mono">
       <form
         onSubmit={handleSubmit}
         className="flex w-full max-w-sm flex-col gap-4 border-2 border-cpc-green-500 p-6"

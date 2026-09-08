@@ -3,13 +3,15 @@ import type {
   Garden,
   Occupation,
   Plant,
+  PlantCandidate,
+  PlantCare,
   SaveBedInput,
   SaveOccupationInput,
   SavePlantInput,
   SaveViewpointInput,
   Viewpoint,
 } from '@/types/garden';
-import { fetchBlobUrl, putBinary, request, requestVoid } from './client';
+import { fetchBlobUrl, postBinary, putBinary, request, requestVoid } from './client';
 
 /** One read for the whole garden — the timeline needs all three lists anyway. */
 export function getGarden(): Promise<Garden> {
@@ -54,6 +56,32 @@ export function deletePlant(id: string): Promise<void> {
 
 export function uploadPlantPhoto(id: string, blob: Blob): Promise<void> {
   return putBinary(`/api/garden/plants/${id}/photo`, blob);
+}
+
+/**
+ * Ask Pl@ntNet what this photo is. The blob must be JPEG or PNG — the upstream
+ * refuses anything else, webp included, which is why callers hand it the output
+ * of `downscaleImage` rather than the picked file.
+ *
+ * An empty list means "recognised nothing", not a failure.
+ */
+export async function identifyPlant(blob: Blob): Promise<PlantCandidate[]> {
+  const { candidates } = await postBinary<{ candidates: PlantCandidate[] }>(
+    '/api/garden/plants/identify',
+    blob,
+  );
+  return candidates;
+}
+
+/**
+ * Ask the LLM for the growing advice Pl@ntNet does not carry: exposure, water,
+ * spacing and a short note. Suggestions, not facts — the form stays editable.
+ */
+export function enrichPlant(name: string, latinName: string): Promise<PlantCare> {
+  return request<PlantCare>('/api/garden/plants/enrich', {
+    method: 'POST',
+    body: JSON.stringify({ name, latin_name: latinName }),
+  });
 }
 
 /** Caller owns the returned blob URL and must revoke it. */

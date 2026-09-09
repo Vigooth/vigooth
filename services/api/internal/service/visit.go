@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net"
 	"sync"
 	"time"
 
@@ -16,6 +17,8 @@ const (
 	defaultVisitLimit = 50
 	maxVisitLimit     = 500
 )
+
+var ErrInvalidIP = errors.New("invalid ip filter")
 
 type VisitService struct {
 	repo     repository.VisitRepository
@@ -106,6 +109,10 @@ func (s *VisitService) ensureLocation(ip string) {
 }
 
 func (s *VisitService) List(filter model.VisitFilter) ([]model.Visit, error) {
+	// Postgres would reject a malformed inet with a 500-shaped error; say 400.
+	if filter.IP != "" && net.ParseIP(filter.IP) == nil {
+		return nil, ErrInvalidIP
+	}
 	if filter.Limit <= 0 {
 		filter.Limit = defaultVisitLimit
 	}
@@ -116,6 +123,19 @@ func (s *VisitService) List(filter model.VisitFilter) ([]model.Visit, error) {
 		filter.Offset = 0
 	}
 	return s.repo.List(filter)
+}
+
+func (s *VisitService) ListVisitors(limit, offset int) ([]model.Visitor, error) {
+	if limit <= 0 {
+		limit = defaultVisitLimit
+	}
+	if limit > maxVisitLimit {
+		limit = maxVisitLimit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	return s.repo.ListVisitors(limit, offset)
 }
 
 func (s *VisitService) Stats() (*model.VisitStats, error) {

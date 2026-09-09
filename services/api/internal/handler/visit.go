@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -43,14 +44,31 @@ func (h *VisitHandler) List(c *gin.Context) {
 
 	visits, err := h.visitService.List(model.VisitFilter{
 		App:    c.Query("app"),
+		IP:     c.Query("ip"),
 		Limit:  limit,
 		Offset: offset,
 	})
 	if err != nil {
+		if errors.Is(err, service.ErrInvalidIP) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list visits"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"visits": visits})
+}
+
+func (h *VisitHandler) ListVisitors(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	visitors, err := h.visitService.ListVisitors(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list visitors"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"visitors": visitors})
 }
 
 func (h *VisitHandler) Stats(c *gin.Context) {

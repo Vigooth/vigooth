@@ -38,3 +38,14 @@ export interface VisitStats {
   by_country_30d: CountBucket[];
   by_app_30d: CountBucket[];
 }
+
+/** One address with everything seen from it. */
+export interface Visitor {
+  ip: string;
+  visits: number;
+  first_seen: string;
+  last_seen: string;
+  apps: string[];
+  accounts: string[];
+  location?: IPLocation;
+}

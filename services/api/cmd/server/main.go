@@ -228,6 +228,7 @@ func main() {
 	{
 		admin.GET("/visits", visitHandler.List)
 		admin.GET("/visits/stats", visitHandler.Stats)
+		admin.GET("/visitors", visitHandler.ListVisitors)
 		admin.GET("/users", authHandler.ListUsers)
 	}
 

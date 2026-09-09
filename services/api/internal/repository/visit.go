@@ -18,6 +18,8 @@ type VisitRepository interface {
 	// one is known.
 	List(filter model.VisitFilter) ([]model.Visit, error)
 	Stats(now time.Time) (*model.VisitStats, error)
+	// ListVisitors groups visits by address, most recently seen first.
+	ListVisitors(limit, offset int) ([]model.Visitor, error)
 
 	GetLocation(ip string) (*model.IPLocation, error)
 	// SaveLocation upserts: a retried lookup overwrites the failed row.
@@ -53,6 +55,9 @@ func (r *InMemoryVisitRepository) List(filter model.VisitFilter) ([]model.Visit,
 		if filter.App != "" && v.App != filter.App {
 			continue
 		}
+		if filter.IP != "" && v.IP != filter.IP {
+			continue
+		}
 		matching = append(matching, v)
 	}
 	sort.Slice(matching, func(i, j int) bool { return matching[i].CreatedAt.After(matching[j].CreatedAt) })
@@ -72,6 +77,65 @@ func (r *InMemoryVisitRepository) List(filter model.VisitFilter) ([]model.Visit,
 		}
 	}
 	return matching, nil
+}
+
+func (r *InMemoryVisitRepository) ListVisitors(limit, offset int) ([]model.Visitor, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	byIP := make(map[string]*model.Visitor)
+	apps := make(map[string]map[string]struct{})
+	accounts := make(map[string]map[string]struct{})
+	for _, v := range r.visits {
+		visitor, ok := byIP[v.IP]
+		if !ok {
+			visitor = &model.Visitor{IP: v.IP, FirstSeen: v.CreatedAt, LastSeen: v.CreatedAt}
+			byIP[v.IP] = visitor
+			apps[v.IP] = make(map[string]struct{})
+			accounts[v.IP] = make(map[string]struct{})
+		}
+		visitor.Visits++
+		if v.CreatedAt.Before(visitor.FirstSeen) {
+			visitor.FirstSeen = v.CreatedAt
+		}
+		if v.CreatedAt.After(visitor.LastSeen) {
+			visitor.LastSeen = v.CreatedAt
+		}
+		apps[v.IP][v.App] = struct{}{}
+		if v.UserEmail != "" {
+			accounts[v.IP][v.UserEmail] = struct{}{}
+		}
+	}
+
+	visitors := make([]model.Visitor, 0, len(byIP))
+	for ip, visitor := range byIP {
+		visitor.Apps = sortedKeys(apps[ip])
+		visitor.Accounts = sortedKeys(accounts[ip])
+		if loc, ok := r.locations[ip]; ok && loc.Resolved {
+			copied := *loc
+			visitor.Location = &copied
+		}
+		visitors = append(visitors, *visitor)
+	}
+	sort.Slice(visitors, func(i, j int) bool { return visitors[i].LastSeen.After(visitors[j].LastSeen) })
+
+	if offset >= len(visitors) {
+		return []model.Visitor{}, nil
+	}
+	visitors = visitors[offset:]
+	if limit > 0 && len(visitors) > limit {
+		visitors = visitors[:limit]
+	}
+	return visitors, nil
+}
+
+func sortedKeys(set map[string]struct{}) []string {
+	keys := make([]string, 0, len(set))
+	for k := range set {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func (r *InMemoryVisitRepository) Stats(now time.Time) (*model.VisitStats, error) {

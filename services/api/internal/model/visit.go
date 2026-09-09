@@ -42,8 +42,21 @@ type TrackRequest struct {
 // VisitFilter narrows the admin listing.
 type VisitFilter struct {
 	App    string
+	IP     string
 	Limit  int
 	Offset int
+}
+
+// Visitor is one address with everything seen from it, for the grouped view.
+type Visitor struct {
+	IP        string    `json:"ip"`
+	Visits    int       `json:"visits"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+	// Distinct apps and signed-in accounts seen from this address.
+	Apps     []string    `json:"apps"`
+	Accounts []string    `json:"accounts"`
+	Location *IPLocation `json:"location,omitempty"`
 }
 
 type CountBucket struct {

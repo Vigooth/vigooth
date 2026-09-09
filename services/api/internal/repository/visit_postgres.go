@@ -35,9 +35,10 @@ func (r *PostgresVisitRepository) List(filter model.VisitFilter) ([]model.Visit,
 		 FROM visits v
 		 LEFT JOIN ip_locations l ON l.ip = v.ip
 		 WHERE ($1 = '' OR v.app = $1)
+		   AND ($2 = '' OR v.ip = $2::inet)
 		 ORDER BY v.created_at DESC
-		 LIMIT $2 OFFSET $3`,
-		filter.App, filter.Limit, filter.Offset,
+		 LIMIT $3 OFFSET $4`,
+		filter.App, filter.IP, filter.Limit, filter.Offset,
 	)
 	if err != nil {
 		return nil, err
@@ -74,6 +75,58 @@ func (r *PostgresVisitRepository) List(filter model.VisitFilter) ([]model.Visit,
 		visits = append(visits, v)
 	}
 	return visits, rows.Err()
+}
+
+func (r *PostgresVisitRepository) ListVisitors(limit, offset int) ([]model.Visitor, error) {
+	// array_remove drops the '' that anonymous visits would otherwise contribute
+	// to the accounts list.
+	rows, err := r.pool.Query(context.Background(),
+		`SELECT host(v.ip), COUNT(*), MIN(v.created_at), MAX(v.created_at),
+		        ARRAY(SELECT DISTINCT a FROM unnest(array_agg(v.app)) a ORDER BY a),
+		        ARRAY(SELECT DISTINCT e FROM unnest(array_remove(array_agg(v.user_email), '')) e ORDER BY e),
+		        l.resolved, l.country, l.country_code, l.region, l.city, l.lat, l.lon, l.isp, l.looked_up_at
+		 FROM visits v
+		 LEFT JOIN ip_locations l ON l.ip = v.ip
+		 GROUP BY v.ip, l.ip
+		 ORDER BY MAX(v.created_at) DESC
+		 LIMIT $1 OFFSET $2`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	visitors := []model.Visitor{}
+	for rows.Next() {
+		var vis model.Visitor
+		var resolved *bool
+		var country, countryCode, region, city, isp *string
+		var lat, lon *float64
+		var lookedUpAt *time.Time
+		if err := rows.Scan(
+			&vis.IP, &vis.Visits, &vis.FirstSeen, &vis.LastSeen, &vis.Apps, &vis.Accounts,
+			&resolved, &country, &countryCode, &region, &city, &lat, &lon, &isp, &lookedUpAt,
+		); err != nil {
+			return nil, err
+		}
+		if resolved != nil && *resolved {
+			vis.Location = &model.IPLocation{
+				IP:          vis.IP,
+				Country:     *country,
+				CountryCode: *countryCode,
+				Region:      *region,
+				City:        *city,
+				Lat:         lat,
+				Lon:         lon,
+				ISP:         *isp,
+				Resolved:    true,
+				LookedUpAt:  *lookedUpAt,
+			}
+		}
+		visitors = append(visitors, vis)
+	}
+	return visitors, rows.Err()
 }
 
 func (r *PostgresVisitRepository) Stats(now time.Time) (*model.VisitStats, error) {

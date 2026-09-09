@@ -4,12 +4,14 @@ import { summarizeUserAgent } from '../utils/userAgent';
 
 interface VisitsTableProps {
   visits: Visit[];
+  /** Drop the address columns, for a list that is already about one address. */
+  compact?: boolean;
 }
 
 const headClass = 'px-2 py-1 text-left text-xs font-normal text-cpc-green-900';
 const cellClass = 'px-2 py-1 align-top text-xs';
 
-export function VisitsTable({ visits }: VisitsTableProps) {
+export function VisitsTable({ visits, compact = false }: VisitsTableProps) {
   if (visits.length === 0) {
     return <p className="text-xs text-cpc-green-900">AUCUNE VISITE</p>;
   }
@@ -18,14 +20,14 @@ export function VisitsTable({ visits }: VisitsTableProps) {
     // Wide by nature: the table scrolls inside its own box rather than pushing
     // the page sideways on a phone.
     <div className="overflow-x-auto border-2 border-cpc-green-900">
-      <table className="w-full min-w-[64rem] border-collapse">
+      <table className={`w-full border-collapse ${compact ? 'min-w-[40rem]' : 'min-w-[64rem]'}`}>
         <thead>
           <tr className="border-b-2 border-cpc-green-900">
             <th className={headClass}>DATE</th>
-            <th className={headClass}>IP</th>
+            {!compact && <th className={headClass}>IP</th>}
             <th className={headClass}>COMPTE</th>
-            <th className={headClass}>LIEU</th>
-            <th className={headClass}>FAI</th>
+            {!compact && <th className={headClass}>LIEU</th>}
+            {!compact && <th className={headClass}>FAI</th>}
             <th className={headClass}>APP</th>
             <th className={headClass}>PAGE</th>
             <th className={headClass}>PROVENANCE</th>
@@ -41,7 +43,9 @@ export function VisitsTable({ visits }: VisitsTableProps) {
               <td className={`${cellClass} whitespace-nowrap text-cpc-green-500`}>
                 {formatVisitDate(visit.created_at)}
               </td>
-              <td className={`${cellClass} whitespace-nowrap text-cpc-cyan-500`}>{visit.ip}</td>
+              {!compact && (
+                <td className={`${cellClass} whitespace-nowrap text-cpc-cyan-500`}>{visit.ip}</td>
+              )}
               <td
                 className={`${cellClass} max-w-48 truncate text-cpc-yellow-500`}
                 title={visit.user_email}

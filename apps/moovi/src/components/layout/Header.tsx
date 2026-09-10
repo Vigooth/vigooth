@@ -5,6 +5,21 @@ import { useAuth } from '@/stores/auth';
 
 const otherApps = getAppsConfig('movies');
 
+interface Tab {
+  path: string;
+  label: string;
+  color: 'green' | 'yellow' | 'magenta';
+}
+
+// Search comes first: it is the landing page after login.
+const tabs: Tab[] = [
+  { path: '/search', label: 'SEARCH', color: 'green' },
+  { path: '/collection', label: 'COLLECTION', color: 'green' },
+  { path: '/wishlist', label: 'WISHLIST', color: 'yellow' },
+  { path: '/recommendations', label: 'RECO', color: 'magenta' },
+  { path: '/status', label: 'STATUS', color: 'green' },
+];
+
 export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,41 +54,20 @@ export function Header() {
         ))}
       </CpcMenu>
       <nav className="flex gap-2 overflow-x-auto min-w-0 flex-1 scrollbar-none">
-        <CpcButton
-          variant="text"
-          color={isActive('/collection') ? 'cyan' : 'green'}
-          onClick={() => navigate('/collection')}
-        >
-          COLLECTION
-        </CpcButton>
-        <CpcButton
-          variant="text"
-          color={isActive('/search') ? 'cyan' : 'green'}
-          onClick={() => navigate('/search')}
-        >
-          SEARCH
-        </CpcButton>
-        <CpcButton
-          variant="text"
-          color={isActive('/wishlist') ? 'cyan' : 'yellow'}
-          onClick={() => navigate('/wishlist')}
-        >
-          WISHLIST
-        </CpcButton>
-        <CpcButton
-          variant="text"
-          color={isActive('/recommendations') ? 'cyan' : 'magenta'}
-          onClick={() => navigate('/recommendations')}
-        >
-          RECO
-        </CpcButton>
-        <CpcButton
-          variant="text"
-          color={isActive('/status') ? 'cyan' : 'green'}
-          onClick={() => navigate('/status')}
-        >
-          STATUS
-        </CpcButton>
+        {tabs.map((tab) => {
+          const active = isActive(tab.path);
+          return (
+            <CpcButton
+              key={tab.path}
+              variant={active ? 'filled' : 'text'}
+              color={tab.color}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => navigate(tab.path)}
+            >
+              {tab.label}
+            </CpcButton>
+          );
+        })}
       </nav>
       <CpcButton variant="outlined" color="red" onClick={handleLogout}>
         LOGOUT

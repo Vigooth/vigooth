@@ -25,7 +25,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/collection" replace />;
+    return <Navigate to="/search" replace />;
   }
 
   return <>{children}</>;

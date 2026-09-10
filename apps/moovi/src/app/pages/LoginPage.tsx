@@ -45,7 +45,7 @@ export function LoginPage() {
         email: response.user.email,
       });
 
-      navigate('/collection');
+      navigate('/search');
     } catch (err) {
       setError(err instanceof Error ? err.message.toUpperCase() : 'CONNECTION ERROR');
     } finally {

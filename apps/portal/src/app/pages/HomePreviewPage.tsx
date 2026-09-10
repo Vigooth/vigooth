@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Door, CpcLayout, cn } from '@vigooth/ui';
 import { getAppUrl } from '@vigooth/config';
@@ -6,6 +6,24 @@ import { getAppUrl } from '@vigooth/config';
 export function HomePreviewPage() {
   const navigate = useNavigate();
   const [isEntering, setIsEntering] = useState(false);
+  // Bumped when the page is restored from the back-forward cache so the doors
+  // remount closed instead of staying frozen at the end of their opening swing.
+  const [doorsGeneration, setDoorsGeneration] = useState(0);
+
+  useEffect(() => {
+    // Leaving through `window.location.href` lets the browser snapshot this
+    // page into the back-forward cache. Pressing back then restores it with
+    // its React state intact: `isEntering` still true (opacity 0) and every
+    // door still open. `pageshow` with `persisted` is the only signal for that
+    // restore, so reset the entering state and remount the doors there.
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      setIsEntering(false);
+      setDoorsGeneration((generation) => generation + 1);
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
 
   const handlePortalDoorOpen = () => {
     setIsEntering(true);
@@ -212,6 +230,7 @@ export function HomePreviewPage() {
         </div>
 
         <div
+          key={doorsGeneration}
           className={cn(
             // Six doors no longer fit on one line at any sane scale, so the row
             // became a grid that reflows: two abreast on a phone, three on a

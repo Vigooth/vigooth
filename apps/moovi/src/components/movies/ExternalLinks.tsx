@@ -11,7 +11,8 @@ import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
 import { useSubtitles } from '@/hooks/useSubtitles';
 import { getSubtitleDownloadLink } from '@/lib/api/subtitles';
-import type { Subtitle } from '@/types/movie';
+import { bestSubtitleFor, matchSubtitlesToTorrents } from '@/utils/subtitleMatch';
+import type { Subtitle, YtsTorrent } from '@/types/movie';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -36,9 +37,13 @@ export function ExternalLinks({
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
   const { data: subs } = useSubtitles(mediaType === 'movie' ? imdbId : null);
 
-  const subtitlesByLanguage = groupByLanguage(subs?.subtitles ?? []);
+  const subtitles = subs?.subtitles ?? [];
+  const torrents = yts?.torrents ?? [];
+  const subtitleLanguages = [...new Set(subtitles.map((subtitle) => subtitle.language))];
+  const matchedQualityByFileId = matchSubtitlesToTorrents(subtitles, torrents);
+  const subtitlesByLanguage = groupByLanguage(subtitles, matchedQualityByFileId);
 
-  async function handleSubtitleClick(subtitle: Subtitle) {
+  async function openSubtitle(subtitle: Subtitle) {
     // Open the tab synchronously so the click gesture is preserved, then point it to the file.
     const tab = window.open('', '_blank');
     if (!subs?.downloadable) {
@@ -52,6 +57,15 @@ export function ExternalLinks({
       // Quota exhausted or login failed: fall back to the OpenSubtitles page.
       navigate(tab, subtitle.url);
     }
+  }
+
+  function handleSubtitleClick(subtitle: Subtitle) {
+    void openSubtitle(subtitle);
+  }
+
+  function handleTorrentWithSubtitleClick(torrent: YtsTorrent, subtitle: Subtitle) {
+    void openSubtitle(subtitle);
+    openMagnet(torrent);
   }
 
   return (
@@ -96,17 +110,28 @@ export function ExternalLinks({
             </>
           )}
           {yts.torrents.map((torrent) => (
-            <CpcMenuItem
-              key={`${torrent.quality}-${torrent.type}`}
-              onClick={() => {
-                window.location.href = torrent.magnet;
-              }}
-            >
-              <span>{torrent.quality}</span>
-              <span className="opacity-60 ml-1">
-                {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
-              </span>
-            </CpcMenuItem>
+            <Fragment key={`${torrent.quality}-${torrent.type}`}>
+              <CpcMenuItem onClick={() => openMagnet(torrent)}>
+                <span>{torrent.quality}</span>
+                <span className="opacity-60 ml-1">
+                  {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
+                </span>
+              </CpcMenuItem>
+              {subtitleLanguages.map((language) => {
+                const subtitle = bestSubtitleFor(subtitles, torrent, language);
+                if (!subtitle) return null;
+                return (
+                  <CpcMenuItem
+                    key={language}
+                    onClick={() => handleTorrentWithSubtitleClick(torrent, subtitle)}
+                  >
+                    <span className="pl-4 text-xs opacity-80">
+                      + sous-titres {language.toUpperCase()}
+                    </span>
+                  </CpcMenuItem>
+                );
+              })}
+            </Fragment>
           ))}
         </CpcMenu>
       )}
@@ -127,6 +152,11 @@ export function ExternalLinks({
                 {items.map((subtitle) => (
                   <CpcMenuItem key={subtitle.file_id} onClick={() => handleSubtitleClick(subtitle)}>
                     <span className="flex items-baseline gap-1">
+                      {matchedQualityByFileId.has(subtitle.file_id) && (
+                        <span className="shrink-0" title="Correspond au torrent YIFY">
+                          ★ {matchedQualityByFileId.get(subtitle.file_id)}
+                        </span>
+                      )}
                       <span className="truncate max-w-64">{subtitle.release}</span>
                       <span className="opacity-60 shrink-0">
                         {subtitle.hearing_impaired ? 'SDH — ' : ''}
@@ -144,14 +174,25 @@ export function ExternalLinks({
   );
 }
 
-function groupByLanguage(subtitles: Subtitle[]): [string, Subtitle[]][] {
+/** Groups by language, with the subtitles matching a YIFY torrent listed first. */
+function groupByLanguage(
+  subtitles: Subtitle[],
+  matched: Map<number, string>,
+): [string, Subtitle[]][] {
   const groups = new Map<string, Subtitle[]>();
   for (const subtitle of subtitles) {
     const items = groups.get(subtitle.language) ?? [];
     items.push(subtitle);
     groups.set(subtitle.language, items);
   }
+  for (const items of groups.values()) {
+    items.sort((a, b) => Number(matched.has(b.file_id)) - Number(matched.has(a.file_id)));
+  }
   return [...groups.entries()];
+}
+
+function openMagnet(torrent: YtsTorrent) {
+  window.location.href = torrent.magnet;
 }
 
 function navigate(tab: Window | null, url: string) {

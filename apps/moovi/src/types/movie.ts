@@ -206,6 +206,10 @@ export interface Subtitle {
   download_count: number;
   hearing_impaired: boolean;
   url: string;
+  /** Release tags parsed by the API, used to match a subtitle with a YTS torrent. */
+  yify: boolean;
+  quality: string;
+  source: string;
 }
 
 export interface SubtitlesResponse {

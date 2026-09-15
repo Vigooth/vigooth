@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -18,8 +19,8 @@ import (
 const (
 	openSubtitlesBaseURL   = "https://api.opensubtitles.com/api/v1"
 	openSubtitlesUserAgent = "moovi v1.0"
-	// Free accounts are capped to a handful of downloads a day, so keep the list short.
-	subtitlesPerLanguage = 5
+	// Enough to find a YIFY-tagged release without flooding the menu.
+	subtitlesPerLanguage = 8
 	defaultSubtitleLangs = "fr,en"
 )
 
@@ -147,6 +148,31 @@ type subtitleEntry struct {
 	DownloadCount   int64  `json:"download_count"`
 	HearingImpaired bool   `json:"hearing_impaired"`
 	URL             string `json:"url"`
+	// Release tags used by the client to match a subtitle with a YTS torrent.
+	Yify    bool   `json:"yify"`
+	Quality string `json:"quality"` // "2160p", "1080p", "720p", "480p" or ""
+	Source  string `json:"source"`  // "bluray", "web" or ""
+}
+
+var (
+	releaseQualityRe = regexp.MustCompile(`(?i)\b(2160p|1080p|720p|480p)\b`)
+	releaseBlurayRe  = regexp.MustCompile(`(?i)blu-?ray|bdrip|brrip|bd-?rip`)
+	releaseWebRe     = regexp.MustCompile(`(?i)\bweb(-?dl|-?rip)?\b|amzn|nf\b|dsnp|hmax`)
+	releaseYifyRe    = regexp.MustCompile(`(?i)\byify\b|\byts\b|yts\.(mx|lt|am|ag|bz)`)
+)
+
+func tagRelease(release string) (yify bool, quality, source string) {
+	yify = releaseYifyRe.MatchString(release)
+	if m := releaseQualityRe.FindStringSubmatch(release); m != nil {
+		quality = strings.ToLower(m[1])
+	}
+	switch {
+	case releaseBlurayRe.MatchString(release):
+		source = "bluray"
+	case releaseWebRe.MatchString(release):
+		source = "web"
+	}
+	return yify, quality, source
 }
 
 // Search godoc: GET /api/subtitles?imdb_id=tt0137523&languages=fr,en
@@ -210,6 +236,7 @@ func (h *SubtitlesHandler) Search(c *gin.Context) {
 			continue
 		}
 		perLanguage[lang]++
+		yify, quality, source := tagRelease(attrs.Release)
 		subtitles = append(subtitles, subtitleEntry{
 			FileID:          attrs.Files[0].FileID,
 			Language:        lang,
@@ -217,6 +244,9 @@ func (h *SubtitlesHandler) Search(c *gin.Context) {
 			DownloadCount:   attrs.DownloadCount,
 			HearingImpaired: attrs.HearingImpaired,
 			URL:             attrs.URL,
+			Yify:            yify,
+			Quality:         quality,
+			Source:          source,
 		})
 	}
 

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -273,7 +274,7 @@ func (h *SubtitlesHandler) Search(c *gin.Context) {
 }
 
 // Download godoc: GET /api/subtitles/download?file_id=123
-// Returns a short-lived direct link to the .srt file.
+// Streams the .srt file as an attachment so the browser saves it directly.
 func (h *SubtitlesHandler) Download(c *gin.Context) {
 	fileID := c.Query("file_id")
 	if fileID == "" {
@@ -327,11 +328,24 @@ func (h *SubtitlesHandler) Download(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"link":      downloadResp.Link,
-		"file_name": downloadResp.FileName,
-		"remaining": downloadResp.Remaining,
-	})
+	fileResp, err := h.client.Get(downloadResp.Link)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to fetch subtitle file: %v", err)})
+		return
+	}
+	defer fileResp.Body.Close()
+	if fileResp.StatusCode != http.StatusOK {
+		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("subtitle file returned HTTP %d", fileResp.StatusCode)})
+		return
+	}
+
+	fileName := downloadResp.FileName
+	if fileName == "" {
+		fileName = "subtitle-" + fileID + ".srt"
+	}
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%q", fileName))
+	c.Header("X-Subtitles-Remaining", strconv.Itoa(downloadResp.Remaining))
+	c.DataFromReader(http.StatusOK, fileResp.ContentLength, "application/x-subrip", fileResp.Body, nil)
 }
 
 // Ping is used by the service health check.

@@ -10,7 +10,7 @@ import {
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
 import { useSubtitles } from '@/hooks/useSubtitles';
-import { getSubtitleDownloadLink } from '@/lib/api/subtitles';
+import { downloadSubtitle } from '@/lib/api/subtitles';
 import { bestSubtitleFor, matchSubtitlesToTorrents } from '@/utils/subtitleMatch';
 import type { Subtitle, YtsTorrent } from '@/types/movie';
 
@@ -44,18 +44,15 @@ export function ExternalLinks({
   const subtitlesByLanguage = groupByLanguage(subtitles, matchedQualityByFileId);
 
   async function openSubtitle(subtitle: Subtitle) {
-    // Open the tab synchronously so the click gesture is preserved, then point it to the file.
-    const tab = window.open('', '_blank');
     if (!subs?.downloadable) {
-      navigate(tab, subtitle.url);
+      window.open(subtitle.url, '_blank');
       return;
     }
     try {
-      const { link } = await getSubtitleDownloadLink(subtitle.file_id);
-      navigate(tab, link);
+      await downloadSubtitle(subtitle.file_id, `${subtitle.release}.srt`);
     } catch {
       // Quota exhausted or login failed: fall back to the OpenSubtitles page.
-      navigate(tab, subtitle.url);
+      window.open(subtitle.url, '_blank');
     }
   }
 
@@ -193,14 +190,6 @@ function groupByLanguage(
 
 function openMagnet(torrent: YtsTorrent) {
   window.location.href = torrent.magnet;
-}
-
-function navigate(tab: Window | null, url: string) {
-  if (tab) {
-    tab.location.href = url;
-  } else {
-    window.open(url, '_blank');
-  }
 }
 
 function formatCount(count: number): string {

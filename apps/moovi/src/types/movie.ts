@@ -218,9 +218,3 @@ export interface SubtitlesResponse {
   downloadable: boolean;
   subtitles?: Subtitle[];
 }
-
-export interface SubtitleDownloadResponse {
-  link: string;
-  file_name: string;
-  remaining: number;
-}

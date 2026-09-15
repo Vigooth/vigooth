@@ -148,16 +148,20 @@ export function ExternalLinks({
               <CpcMenuGroup label={language.toUpperCase()}>
                 {items.map((subtitle) => (
                   <CpcMenuItem key={subtitle.file_id} onClick={() => handleSubtitleClick(subtitle)}>
-                    <span className="flex items-baseline gap-1">
-                      {matchedQualityByFileId.has(subtitle.file_id) && (
-                        <span className="shrink-0" title="Correspond au torrent YIFY">
-                          ★ {matchedQualityByFileId.get(subtitle.file_id)}
+                    <span className="flex flex-col gap-0.5 max-w-[min(28rem,calc(100vw-3rem))]">
+                      <span className="flex items-baseline gap-1">
+                        {matchedQualityByFileId.has(subtitle.file_id) && (
+                          <span className="shrink-0" title="Correspond au torrent YIFY">
+                            ★ {matchedQualityByFileId.get(subtitle.file_id)}
+                          </span>
+                        )}
+                        <span className="opacity-60">
+                          {subtitle.hearing_impaired ? 'SDH — ' : ''}
+                          {formatCount(subtitle.download_count)} téléchargements
                         </span>
-                      )}
-                      <span className="truncate max-w-64">{subtitle.release}</span>
-                      <span className="opacity-60 shrink-0">
-                        {subtitle.hearing_impaired ? 'SDH — ' : ''}
-                        {formatCount(subtitle.download_count)}
+                      </span>
+                      <span className="text-xs whitespace-normal break-all">
+                        {subtitle.release}
                       </span>
                     </span>
                   </CpcMenuItem>

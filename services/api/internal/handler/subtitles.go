@@ -24,8 +24,9 @@ const (
 )
 
 // SubtitlesHandler proxies OpenSubtitles (https://opensubtitles.com) for moovi.
-// Searching only needs the API key; downloading needs a logged-in user token,
-// so username/password are optional and only unlock the download endpoint.
+// Searching only needs the API key. Downloading works anonymously when the consumer
+// allows it (5/day, 100/day in dev mode); username/password are optional and switch
+// downloads to the user's own quota.
 type SubtitlesHandler struct {
 	apiKey   string
 	username string
@@ -50,8 +51,8 @@ func (h *SubtitlesHandler) configured() bool {
 	return h.apiKey != ""
 }
 
-func (h *SubtitlesHandler) canDownload() bool {
-	return h.configured() && h.username != "" && h.password != ""
+func (h *SubtitlesHandler) hasCredentials() bool {
+	return h.username != "" && h.password != ""
 }
 
 func (h *SubtitlesHandler) newRequest(method, path string, body []byte, bearer string) (*http.Request, error) {
@@ -236,7 +237,7 @@ func (h *SubtitlesHandler) Search(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"found":        len(subtitles) > 0,
 		"configured":   true,
-		"downloadable": h.canDownload(),
+		"downloadable": true,
 		"subtitles":    subtitles,
 	})
 }
@@ -249,15 +250,19 @@ func (h *SubtitlesHandler) Download(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'file_id' is required"})
 		return
 	}
-	if !h.canDownload() {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "subtitle downloads are not configured (OPENSUBTITLES_USERNAME / OPENSUBTITLES_PASSWORD)"})
+	if !h.configured() {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "subtitles are not configured (OPENSUBTITLES_API_KEY)"})
 		return
 	}
 
-	token, err := h.getToken()
-	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
-		return
+	// Anonymous downloads rely on the consumer's "allow anonymous downloads" setting.
+	token := ""
+	if h.hasCredentials() {
+		var err error
+		if token, err = h.getToken(); err != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	payload, err := json.Marshal(map[string]any{"file_id": json.Number(fileID)})

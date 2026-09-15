@@ -61,6 +61,51 @@ func formatBytes(size int64) string {
 	}
 }
 
+type apibayResult struct {
+	Name     string `json:"name"`
+	InfoHash string `json:"info_hash"`
+	Seeders  string `json:"seeders"`
+	Size     string `json:"size"`
+	Imdb     string `json:"imdb"`
+}
+
+func (h *ProxyHandler) apibaySearch(q string) ([]apibayResult, error) {
+	query := url.Values{}
+	query.Set("q", q)
+	query.Set("cat", apibayVideoCategory)
+	req, err := http.NewRequest(http.MethodGet, apibayBaseURL+"/q.php?"+query.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", tpbUserAgent)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []apibayResult
+	if err := json.Unmarshal(body, &results); err != nil {
+		return nil, fmt.Errorf("failed to parse TPB response")
+	}
+	return results, nil
+}
+
+func hasImdbMatch(results []apibayResult, imdbID string) bool {
+	for _, r := range results {
+		if strings.ToLower(r.Imdb) == imdbID {
+			return true
+		}
+	}
+	return false
+}
+
 type tpbTorrent struct {
 	Name    string `json:"name"`
 	Magnet  string `json:"magnet"`
@@ -83,39 +128,17 @@ func (h *ProxyHandler) TpbLookup(c *gin.Context) {
 		return
 	}
 
-	query := url.Values{}
-	query.Set("q", strings.TrimSpace(title+" "+year))
-	query.Set("cat", apibayVideoCategory)
-	req, err := http.NewRequest(http.MethodGet, apibayBaseURL+"/q.php?"+query.Encode(), nil)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to build request"})
-		return
-	}
-	req.Header.Set("User-Agent", tpbUserAgent)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := h.client.Do(req)
+	// Title + year first for precision; title alone as a second chance when the
+	// year is missing from release names.
+	results, err := h.apibaySearch(strings.TrimSpace(title + " " + year))
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to reach TPB API: %v", err)})
 		return
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read response"})
-		return
-	}
-
-	var results []struct {
-		Name     string `json:"name"`
-		InfoHash string `json:"info_hash"`
-		Seeders  string `json:"seeders"`
-		Size     string `json:"size"`
-		Imdb     string `json:"imdb"`
-	}
-	if err := json.Unmarshal(body, &results); err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to parse TPB response"})
-		return
+	if year != "" && !hasImdbMatch(results, imdbID) {
+		if retry, err := h.apibaySearch(title); err == nil {
+			results = retry
+		}
 	}
 
 	torrents := make([]tpbTorrent, 0, len(results))

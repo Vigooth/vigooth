@@ -20,6 +20,8 @@ interface ExternalLinksProps {
   imdbId: string | null;
   tmdbId: number;
   title: string;
+  /** Original title, used for torrent search since trackers index English release names. */
+  originalTitle?: string;
   year: number;
   allocineId?: string | null;
   mediaType?: string;
@@ -29,6 +31,7 @@ export function ExternalLinks({
   imdbId,
   tmdbId,
   title,
+  originalTitle,
   year,
   allocineId,
   mediaType = 'movie',
@@ -39,7 +42,12 @@ export function ExternalLinks({
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
   const { data: subs } = useSubtitles(mediaType === 'movie' ? imdbId : null);
   const ytsEmpty = yts !== undefined && !(yts.found && yts.torrents && yts.torrents.length > 0);
-  const { data: tpb } = useTpbTorrents(imdbId, title, year, mediaType === 'movie' && ytsEmpty);
+  const { data: tpb } = useTpbTorrents(
+    imdbId,
+    originalTitle || title,
+    year,
+    mediaType === 'movie' && ytsEmpty,
+  );
 
   const subtitles = subs?.subtitles ?? [];
   const torrents: TorrentRelease[] = yts?.torrents ?? tpb?.torrents ?? [];

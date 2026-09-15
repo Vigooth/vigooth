@@ -1,6 +1,18 @@
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui';
+import { Fragment } from 'react';
+import {
+  CpcButton,
+  CpcMenu,
+  CpcMenuItem,
+  CpcMenuSeparator,
+  CpcMenuGroup,
+  ChevronDownIcon,
+} from '@vigooth/ui';
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
+import { useSubtitles } from '@/hooks/useSubtitles';
+import { downloadSubtitle } from '@/lib/api/subtitles';
+import { bestSubtitleFor, matchSubtitlesToTorrents } from '@/utils/subtitleMatch';
+import type { Subtitle, YtsTorrent } from '@/types/movie';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -23,6 +35,35 @@ export function ExternalLinks({
     ? getAllocineFilmUrl(allocineId)
     : getAllocineSearchUrl(title, year);
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
+  const { data: subs } = useSubtitles(mediaType === 'movie' ? imdbId : null);
+
+  const subtitles = subs?.subtitles ?? [];
+  const torrents = yts?.torrents ?? [];
+  const subtitleLanguages = [...new Set(subtitles.map((subtitle) => subtitle.language))];
+  const matchedQualityByFileId = matchSubtitlesToTorrents(subtitles, torrents);
+  const subtitlesByLanguage = groupByLanguage(subtitles, matchedQualityByFileId);
+
+  async function openSubtitle(subtitle: Subtitle) {
+    if (!subs?.downloadable) {
+      window.open(subtitle.url, '_blank');
+      return;
+    }
+    try {
+      await downloadSubtitle(subtitle.file_id, `${subtitle.release}.srt`);
+    } catch {
+      // Quota exhausted or login failed: fall back to the OpenSubtitles page.
+      window.open(subtitle.url, '_blank');
+    }
+  }
+
+  function handleSubtitleClick(subtitle: Subtitle) {
+    void openSubtitle(subtitle);
+  }
+
+  function handleTorrentWithSubtitleClick(torrent: YtsTorrent, subtitle: Subtitle) {
+    void openSubtitle(subtitle);
+    openMagnet(torrent);
+  }
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -66,20 +107,91 @@ export function ExternalLinks({
             </>
           )}
           {yts.torrents.map((torrent) => (
-            <CpcMenuItem
-              key={`${torrent.quality}-${torrent.type}`}
-              onClick={() => {
-                window.location.href = torrent.magnet;
-              }}
-            >
-              <span>{torrent.quality}</span>
-              <span className="opacity-60 ml-1">
-                {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
-              </span>
-            </CpcMenuItem>
+            <Fragment key={`${torrent.quality}-${torrent.type}`}>
+              <CpcMenuItem onClick={() => openMagnet(torrent)}>
+                <span>{torrent.quality}</span>
+                <span className="opacity-60 ml-1">
+                  {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
+                </span>
+              </CpcMenuItem>
+              {subtitleLanguages.map((language) => {
+                const subtitle = bestSubtitleFor(subtitles, torrent, language);
+                if (!subtitle) return null;
+                return (
+                  <CpcMenuItem
+                    key={language}
+                    onClick={() => handleTorrentWithSubtitleClick(torrent, subtitle)}
+                  >
+                    <span className="pl-4 text-xs opacity-80">
+                      + sous-titres {language.toUpperCase()}
+                    </span>
+                  </CpcMenuItem>
+                );
+              })}
+            </Fragment>
+          ))}
+        </CpcMenu>
+      )}
+      {subtitlesByLanguage.length > 0 && (
+        <CpcMenu
+          color="magenta"
+          trigger={
+            <CpcButton variant="outlined" color="magenta">
+              SUBS
+              <ChevronDownIcon size="sm" className="cpc-chevron-flip" />
+            </CpcButton>
+          }
+        >
+          {subtitlesByLanguage.map(([language, items], index) => (
+            <Fragment key={language}>
+              {index > 0 && <CpcMenuSeparator />}
+              <CpcMenuGroup label={language.toUpperCase()}>
+                {items.map((subtitle) => (
+                  <CpcMenuItem key={subtitle.file_id} onClick={() => handleSubtitleClick(subtitle)}>
+                    <span className="flex items-baseline gap-1">
+                      {matchedQualityByFileId.has(subtitle.file_id) && (
+                        <span className="shrink-0" title="Correspond au torrent YIFY">
+                          ★ {matchedQualityByFileId.get(subtitle.file_id)}
+                        </span>
+                      )}
+                      <span className="truncate max-w-64">{subtitle.release}</span>
+                      <span className="opacity-60 shrink-0">
+                        {subtitle.hearing_impaired ? 'SDH — ' : ''}
+                        {formatCount(subtitle.download_count)}
+                      </span>
+                    </span>
+                  </CpcMenuItem>
+                ))}
+              </CpcMenuGroup>
+            </Fragment>
           ))}
         </CpcMenu>
       )}
     </div>
   );
+}
+
+/** Groups by language, with the subtitles matching a YIFY torrent listed first. */
+function groupByLanguage(
+  subtitles: Subtitle[],
+  matched: Map<number, string>,
+): [string, Subtitle[]][] {
+  const groups = new Map<string, Subtitle[]>();
+  for (const subtitle of subtitles) {
+    const items = groups.get(subtitle.language) ?? [];
+    items.push(subtitle);
+    groups.set(subtitle.language, items);
+  }
+  for (const items of groups.values()) {
+    items.sort((a, b) => Number(matched.has(b.file_id)) - Number(matched.has(a.file_id)));
+  }
+  return [...groups.entries()];
+}
+
+function openMagnet(torrent: YtsTorrent) {
+  window.location.href = torrent.magnet;
+}
+
+function formatCount(count: number): string {
+  return new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(count);
 }

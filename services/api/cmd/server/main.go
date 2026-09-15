@@ -29,6 +29,9 @@ func main() {
 	omdbApiKey := os.Getenv("OMDB_API_KEY")
 	steamApiKey := os.Getenv("STEAM_API_KEY")
 	plantNetApiKey := os.Getenv("PLANTNET_API_KEY")
+	openSubtitlesApiKey := os.Getenv("OPENSUBTITLES_API_KEY")
+	openSubtitlesUsername := os.Getenv("OPENSUBTITLES_USERNAME")
+	openSubtitlesPassword := os.Getenv("OPENSUBTITLES_PASSWORD")
 	steamBaseURL := getEnv("STEAM_BASE_URL", "http://localhost:5177")
 	databaseURL := os.Getenv("DATABASE_URL")
 
@@ -93,6 +96,8 @@ func main() {
 	gardenHandler := handler.NewGardenHandler(gardenService)
 	visitHandler := handler.NewVisitHandler(visitService)
 	proxyHandler := handler.NewProxyHandler(tmdbApiKey, omdbApiKey, os.Getenv("TOR_SOCKS_ADDR"))
+	subtitlesHandler := handler.NewSubtitlesHandler(openSubtitlesApiKey, openSubtitlesUsername, openSubtitlesPassword)
+	proxyHandler.SetSubtitlesPing(subtitlesHandler.Ping)
 	authHandler := handler.NewAuthHandler(authService, handler.CookieConfig{
 		Domain: cookieDomain,
 		Secure: cookieSecure,
@@ -288,6 +293,8 @@ func main() {
 		api.GET("/tmdb/search-person", proxyHandler.TmdbSearchPerson)
 		api.GET("/tmdb/discover/movie", proxyHandler.TmdbDiscoverByPerson)
 		api.GET("/yts", proxyHandler.YtsLookup)
+		api.GET("/subtitles", subtitlesHandler.Search)
+		api.GET("/subtitles/download", subtitlesHandler.Download)
 		api.GET("/service/status", proxyHandler.ServiceHealth)
 
 		if recoHandler != nil {

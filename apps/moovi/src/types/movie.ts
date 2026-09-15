@@ -197,3 +197,26 @@ export interface YtsResponse {
   title?: string;
   torrents?: YtsTorrent[];
 }
+
+// OpenSubtitles types
+export interface Subtitle {
+  file_id: number;
+  language: string;
+  release: string;
+  download_count: number;
+  hearing_impaired: boolean;
+  url: string;
+}
+
+export interface SubtitlesResponse {
+  found: boolean;
+  configured: boolean;
+  downloadable: boolean;
+  subtitles?: Subtitle[];
+}
+
+export interface SubtitleDownloadResponse {
+  link: string;
+  file_name: string;
+  remaining: number;
+}

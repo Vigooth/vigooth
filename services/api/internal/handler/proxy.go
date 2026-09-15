@@ -24,6 +24,12 @@ type ProxyHandler struct {
 	torSocksAddr string
 	client       *http.Client
 	torClient    *http.Client
+	// subtitlesPing is set by the subtitles handler so it shows up in ServiceHealth.
+	subtitlesPing func() error
+}
+
+func (h *ProxyHandler) SetSubtitlesPing(ping func() error) {
+	h.subtitlesPing = ping
 }
 
 func NewProxyHandler(tmdbApiKey, omdbApiKey, torSocksAddr string) *ProxyHandler {
@@ -406,9 +412,9 @@ type serviceStatus struct {
 }
 
 func (h *ProxyHandler) ServiceHealth(c *gin.Context) {
-	services := make([]serviceStatus, 5)
+	services := make([]serviceStatus, 6)
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 
 	check := func(idx int, name string, fn func() error) {
 		defer wg.Done()
@@ -489,6 +495,14 @@ func (h *ProxyHandler) ServiceHealth(c *gin.Context) {
 		}
 		resp.Body.Close()
 		return nil
+	})
+
+	// OpenSubtitles (optional)
+	go check(5, "OpenSubtitles", func() error {
+		if h.subtitlesPing == nil {
+			return fmt.Errorf("not configured (optional)")
+		}
+		return h.subtitlesPing()
 	})
 
 	wg.Wait()

@@ -1,6 +1,17 @@
-import { CpcButton, CpcMenu, CpcMenuItem, CpcMenuSeparator, ChevronDownIcon } from '@vigooth/ui';
+import { Fragment } from 'react';
+import {
+  CpcButton,
+  CpcMenu,
+  CpcMenuItem,
+  CpcMenuSeparator,
+  CpcMenuGroup,
+  ChevronDownIcon,
+} from '@vigooth/ui';
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
+import { useSubtitles } from '@/hooks/useSubtitles';
+import { getSubtitleDownloadLink } from '@/lib/api/subtitles';
+import type { Subtitle } from '@/types/movie';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -23,6 +34,25 @@ export function ExternalLinks({
     ? getAllocineFilmUrl(allocineId)
     : getAllocineSearchUrl(title, year);
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
+  const { data: subs } = useSubtitles(mediaType === 'movie' ? imdbId : null);
+
+  const subtitlesByLanguage = groupByLanguage(subs?.subtitles ?? []);
+
+  async function handleSubtitleClick(subtitle: Subtitle) {
+    // Open the tab synchronously so the click gesture is preserved, then point it to the file.
+    const tab = window.open('', '_blank');
+    if (!subs?.downloadable) {
+      navigate(tab, subtitle.url);
+      return;
+    }
+    try {
+      const { link } = await getSubtitleDownloadLink(subtitle.file_id);
+      navigate(tab, link);
+    } catch {
+      // Quota exhausted or login failed: fall back to the OpenSubtitles page.
+      navigate(tab, subtitle.url);
+    }
+  }
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -80,6 +110,58 @@ export function ExternalLinks({
           ))}
         </CpcMenu>
       )}
+      {subtitlesByLanguage.length > 0 && (
+        <CpcMenu
+          color="magenta"
+          trigger={
+            <CpcButton variant="outlined" color="magenta">
+              SUBS
+              <ChevronDownIcon size="sm" className="cpc-chevron-flip" />
+            </CpcButton>
+          }
+        >
+          {subtitlesByLanguage.map(([language, items], index) => (
+            <Fragment key={language}>
+              {index > 0 && <CpcMenuSeparator />}
+              <CpcMenuGroup label={language.toUpperCase()}>
+                {items.map((subtitle) => (
+                  <CpcMenuItem key={subtitle.file_id} onClick={() => handleSubtitleClick(subtitle)}>
+                    <span className="flex items-baseline gap-1">
+                      <span className="truncate max-w-64">{subtitle.release}</span>
+                      <span className="opacity-60 shrink-0">
+                        {subtitle.hearing_impaired ? 'SDH — ' : ''}
+                        {formatCount(subtitle.download_count)}
+                      </span>
+                    </span>
+                  </CpcMenuItem>
+                ))}
+              </CpcMenuGroup>
+            </Fragment>
+          ))}
+        </CpcMenu>
+      )}
     </div>
   );
+}
+
+function groupByLanguage(subtitles: Subtitle[]): [string, Subtitle[]][] {
+  const groups = new Map<string, Subtitle[]>();
+  for (const subtitle of subtitles) {
+    const items = groups.get(subtitle.language) ?? [];
+    items.push(subtitle);
+    groups.set(subtitle.language, items);
+  }
+  return [...groups.entries()];
+}
+
+function navigate(tab: Window | null, url: string) {
+  if (tab) {
+    tab.location.href = url;
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+function formatCount(count: number): string {
+  return new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(count);
 }

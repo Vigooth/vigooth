@@ -10,9 +10,11 @@ import {
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
 import { useSubtitles } from '@/hooks/useSubtitles';
+import { useTpbTorrents } from '@/hooks/useTpbTorrents';
 import { downloadSubtitle } from '@/lib/api/subtitles';
 import { bestSubtitleFor, matchSubtitlesToTorrents } from '@/utils/subtitleMatch';
-import type { Subtitle, YtsTorrent } from '@/types/movie';
+import type { Subtitle, TpbTorrent } from '@/types/movie';
+import type { TorrentRelease } from '@/utils/subtitleMatch';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -36,9 +38,11 @@ export function ExternalLinks({
     : getAllocineSearchUrl(title, year);
   const { data: yts } = useYtsMovie(mediaType === 'movie' ? imdbId : null);
   const { data: subs } = useSubtitles(mediaType === 'movie' ? imdbId : null);
+  const ytsEmpty = yts !== undefined && !(yts.found && yts.torrents && yts.torrents.length > 0);
+  const { data: tpb } = useTpbTorrents(imdbId, title, year, mediaType === 'movie' && ytsEmpty);
 
   const subtitles = subs?.subtitles ?? [];
-  const torrents = yts?.torrents ?? [];
+  const torrents: TorrentRelease[] = yts?.torrents ?? tpb?.torrents ?? [];
   const subtitleLanguages = [...new Set(subtitles.map((subtitle) => subtitle.language))];
   const matchedQualityByFileId = matchSubtitlesToTorrents(subtitles, torrents);
   const subtitlesByLanguage = groupByLanguage(subtitles, matchedQualityByFileId);
@@ -60,7 +64,10 @@ export function ExternalLinks({
     void openSubtitle(subtitle);
   }
 
-  function handleTorrentWithSubtitleClick(torrent: YtsTorrent, subtitle: Subtitle) {
+  function handleTorrentWithSubtitleClick(
+    torrent: TorrentRelease & { magnet: string },
+    subtitle: Subtitle,
+  ) {
     void openSubtitle(subtitle);
     openMagnet(torrent);
   }
@@ -112,6 +119,47 @@ export function ExternalLinks({
                 <span>{torrent.quality}</span>
                 <span className="opacity-60 ml-1">
                   {torrent.type !== 'web' ? torrent.type : ''} — {torrent.size}
+                </span>
+              </CpcMenuItem>
+              {subtitleLanguages.map((language) => {
+                const subtitle = bestSubtitleFor(subtitles, torrent, language);
+                if (!subtitle) return null;
+                return (
+                  <CpcMenuItem
+                    key={language}
+                    onClick={() => handleTorrentWithSubtitleClick(torrent, subtitle)}
+                  >
+                    <span className="pl-4 text-xs opacity-80">
+                      + sous-titres {language.toUpperCase()}
+                    </span>
+                  </CpcMenuItem>
+                );
+              })}
+            </Fragment>
+          ))}
+        </CpcMenu>
+      )}
+      {ytsEmpty && tpb?.found && (
+        <CpcMenu
+          color="orange"
+          trigger={
+            <CpcButton variant="outlined" color="orange">
+              TPB
+              <ChevronDownIcon size="sm" className="cpc-chevron-flip" />
+            </CpcButton>
+          }
+        >
+          {tpb.torrents.map((torrent) => (
+            <Fragment key={torrent.magnet}>
+              <CpcMenuItem onClick={() => openMagnet(torrent)}>
+                <span className="flex flex-col">
+                  <span className="flex items-baseline gap-1">
+                    <span>{torrent.quality || '?'}</span>
+                    <span className="opacity-60">
+                      {tpbTypeLabel(torrent)} — {torrent.size} — {torrent.seeders} seeds
+                    </span>
+                  </span>
+                  <span className="text-xs opacity-50 truncate max-w-72">{torrent.name}</span>
                 </span>
               </CpcMenuItem>
               {subtitleLanguages.map((language) => {
@@ -188,7 +236,14 @@ function groupByLanguage(
   return [...groups.entries()];
 }
 
-function openMagnet(torrent: YtsTorrent) {
+function tpbTypeLabel(torrent: TpbTorrent): string {
+  if (torrent.cam) return 'CAM';
+  if (torrent.type === 'bluray') return 'BluRay';
+  if (torrent.type === 'web') return 'WEB';
+  return '';
+}
+
+function openMagnet(torrent: { magnet: string }) {
   window.location.href = torrent.magnet;
 }
 

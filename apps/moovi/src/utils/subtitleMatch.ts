@@ -1,4 +1,10 @@
-import type { Subtitle, YtsTorrent } from '@/types/movie';
+import type { Subtitle } from '@/types/movie';
+
+/** The release facts shared by YTS and TPB torrents. */
+export interface TorrentRelease {
+  quality: string;
+  type: string;
+}
 
 /** Minimum score for a subtitle to be considered a match for a torrent. */
 const MATCH_THRESHOLD = 3;
@@ -7,7 +13,7 @@ const MATCH_THRESHOLD = 3;
  * Scores how well a subtitle release fits a YTS torrent.
  * YIFY tag +3, same quality +2, same source (BluRay/WEB) +1.
  */
-export function scoreSubtitle(subtitle: Subtitle, torrent: YtsTorrent): number {
+export function scoreSubtitle(subtitle: Subtitle, torrent: TorrentRelease): number {
   let score = 0;
   if (subtitle.yify) score += 3;
   if (subtitle.quality && subtitle.quality === torrent.quality.toLowerCase()) score += 2;
@@ -15,7 +21,7 @@ export function scoreSubtitle(subtitle: Subtitle, torrent: YtsTorrent): number {
   return score;
 }
 
-function torrentSource(torrent: YtsTorrent): string {
+function torrentSource(torrent: TorrentRelease): string {
   const type = torrent.type.toLowerCase();
   if (type.includes('web')) return 'web';
   if (type.includes('bluray')) return 'bluray';
@@ -25,7 +31,7 @@ function torrentSource(torrent: YtsTorrent): string {
 /** Best subtitle for a torrent in a given language, or null when nothing fits well enough. */
 export function bestSubtitleFor(
   subtitles: Subtitle[],
-  torrent: YtsTorrent,
+  torrent: TorrentRelease,
   language: string,
 ): Subtitle | null {
   let best: Subtitle | null = null;
@@ -45,7 +51,7 @@ export function bestSubtitleFor(
 /** Maps a subtitle file id to the torrent quality it best matches, across all torrents and languages. */
 export function matchSubtitlesToTorrents(
   subtitles: Subtitle[],
-  torrents: YtsTorrent[],
+  torrents: TorrentRelease[],
 ): Map<number, string> {
   const matches = new Map<number, string>();
   const languages = [...new Set(subtitles.map((subtitle) => subtitle.language))];

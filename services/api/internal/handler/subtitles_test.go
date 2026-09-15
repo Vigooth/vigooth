@@ -23,3 +23,36 @@ func TestTagRelease(t *testing.T) {
 		}
 	}
 }
+
+func TestReleaseCamRe(t *testing.T) {
+	cams := []string{
+		"The.Odyssey.2026.1080p.TELESYNC.HEVC.AAC2.0-SPLiCE",
+		"The Odyssey (2026) 1080P HQ HDTS x265 AAC2.0 MULTI HC-Sub",
+		"Movie.2026.HDCAM.x264",
+		"Movie 2026 720p TS",
+	}
+	for _, name := range cams {
+		if !releaseCamRe.MatchString(name) {
+			t.Errorf("%q should be detected as cam", name)
+		}
+	}
+	clean := []string{
+		"The Odyssey 2026 1080p AMZN WEB-DL DDP5 1 H 264-Kitsune",
+		"Fight.Club.1999.1080p.BluRay.x264.YIFY",
+		"Points.2026.1080p.WEBRip", // "ts" inside a word must not match
+	}
+	for _, name := range clean {
+		if releaseCamRe.MatchString(name) {
+			t.Errorf("%q should not be detected as cam", name)
+		}
+	}
+}
+
+func TestFormatBytes(t *testing.T) {
+	if got := formatBytes(1702618785); got != "1.59 GB" {
+		t.Errorf("got %q", got)
+	}
+	if got := formatBytes(790_580_000); got != "754 MB" {
+		t.Errorf("got %q", got)
+	}
+}

@@ -218,3 +218,19 @@ export interface SubtitlesResponse {
   downloadable: boolean;
   subtitles?: Subtitle[];
 }
+
+// The Pirate Bay fallback types (used when YTS has nothing)
+export interface TpbTorrent {
+  name: string;
+  magnet: string;
+  quality: string;
+  type: string;
+  size: string;
+  seeders: number;
+  cam: boolean;
+}
+
+export interface TpbResponse {
+  found: boolean;
+  torrents: TpbTorrent[];
+}

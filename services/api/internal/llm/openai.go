@@ -77,6 +77,8 @@ type openaiError struct {
 	} `json:"error"`
 }
 
+func (p *OpenAIProvider) Model() string { return p.model }
+
 func (p *OpenAIProvider) Chat(ctx context.Context, messages []Message, tools []Tool) (*Response, error) {
 	var apiMessages []openaiMessage
 

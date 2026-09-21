@@ -6,10 +6,10 @@ import (
 )
 
 type Message struct {
-	Role       string       `json:"role"` // "system", "user", "assistant", "tool"
-	Content    string       `json:"content"`
-	ToolCalls  []ToolCall   `json:"tool_calls,omitempty"`
-	ToolResult *ToolResult  `json:"tool_result,omitempty"`
+	Role       string      `json:"role"` // "system", "user", "assistant", "tool"
+	Content    string      `json:"content"`
+	ToolCalls  []ToolCall  `json:"tool_calls,omitempty"`
+	ToolResult *ToolResult `json:"tool_result,omitempty"`
 }
 
 type ToolCall struct {
@@ -43,4 +43,6 @@ type Response struct {
 
 type Provider interface {
 	Chat(ctx context.Context, messages []Message, tools []Tool) (*Response, error)
+	// Model returns the identifier of the model every Chat call is sent to.
+	Model() string
 }

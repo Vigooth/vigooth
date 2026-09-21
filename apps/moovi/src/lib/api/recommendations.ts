@@ -33,6 +33,14 @@ export async function getRecommendationHistory(): Promise<HistoryResponse> {
   return request<HistoryResponse>('/api/recommendations/history');
 }
 
+interface ModelResponse {
+  model: string;
+}
+
+export async function getRecommendationModel(): Promise<ModelResponse> {
+  return request<ModelResponse>('/api/recommendations/model');
+}
+
 export interface StreamOptions {
   movieIds?: string[];
   vibe?: number;

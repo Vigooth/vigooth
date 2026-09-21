@@ -301,6 +301,7 @@ func main() {
 			api.POST("/recommendations/stream", recoHandler.StreamRecommendations)
 			api.POST("/recommendations/stream-simple", recoHandler.StreamRecommendationsSimple)
 			api.GET("/recommendations/history", recoHandler.GetHistory)
+			api.GET("/recommendations/model", recoHandler.GetModel)
 		}
 	}
 

@@ -4,6 +4,7 @@ import { CpcButton, CpcLayout, cn } from '@vigooth/ui';
 import { useAuth } from '@/stores/auth';
 import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { useRecommendations } from '@/hooks/useRecommendations';
+import { useRecommendationModel } from '@/hooks/useRecommendationModel';
 import { Header } from '@/components/layout/Header';
 import { getPosterUrl } from '@/utils/tmdbImage';
 import type { Recommendation } from '@/lib/api/recommendations';
@@ -40,6 +41,7 @@ export function RecommendationsPage() {
     generateSimple,
     cancel,
   } = useRecommendations();
+  const llmModel = useRecommendationModel();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showPicker, setShowPicker] = useState(false);
@@ -291,7 +293,7 @@ export function RecommendationsPage() {
                   onClick={handleGenerateIA}
                   disabled={!data || allMovies.length === 0}
                 >
-                  GENERATE IA
+                  GENERATE IA{llmModel ? ` (${llmModel})` : ''}
                 </CpcButton>
               </div>
             </div>

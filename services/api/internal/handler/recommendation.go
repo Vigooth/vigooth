@@ -273,6 +273,13 @@ func (h *RecommendationHandler) StreamRecommendationsSimple(c *gin.Context) {
 	}
 }
 
+// GetModel tells the frontend which LLM answers the "generate IA" button, so
+// the UI can label it. The value comes straight from the provider, hence
+// reflects LLM_MODEL (or the provider default) as deployed.
+func (h *RecommendationHandler) GetModel(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"model": h.llmProvider.Model()})
+}
+
 func (h *RecommendationHandler) GetHistory(c *gin.Context) {
 	userID := c.GetString("userID")
 

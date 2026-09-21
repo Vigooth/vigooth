@@ -17,7 +17,7 @@ type AnthropicProvider struct {
 
 func NewAnthropicProvider(apiKey, model string) *AnthropicProvider {
 	if model == "" {
-		model = "claude-sonnet-4-5-20250929"
+		model = "claude-sonnet-5"
 	}
 	return &AnthropicProvider{
 		apiKey: apiKey,
@@ -71,6 +71,8 @@ type anthropicError struct {
 		Message string `json:"message"`
 	} `json:"error"`
 }
+
+func (p *AnthropicProvider) Model() string { return p.model }
 
 func (p *AnthropicProvider) Chat(ctx context.Context, messages []Message, tools []Tool) (*Response, error) {
 	var systemPrompt string

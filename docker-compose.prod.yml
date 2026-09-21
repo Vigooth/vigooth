@@ -37,6 +37,8 @@ services:
       OMDB_API_KEY: ${OMDB_API_KEY}
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
       COOKIE_DOMAIN: .${DOMAIN}
       TOR_SOCKS_ADDR: tor:9050
       STEAM_API_KEY: ${STEAM_API_KEY:-}

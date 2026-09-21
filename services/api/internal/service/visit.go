@@ -41,7 +41,14 @@ func NewVisitService(repo repository.VisitRepository, userRepo repository.UserRe
 //
 // userID is "" for an anonymous visit. A token for an account that no longer
 // exists is recorded as anonymous rather than refused: the hit still happened.
+//
+// Hits from clients that identify as automated (crawlers, scanners, headless
+// browsers) are dropped silently: the log is meant to show people, and the
+// beacon answers the same way so a bot learns nothing from being filtered.
 func (s *VisitService) Record(req model.TrackRequest, ip, userAgent, userID string) error {
+	if IsBotUserAgent(userAgent) {
+		return nil
+	}
 	visit := &model.Visit{
 		ID:        uuid.New().String(),
 		IP:        ip,

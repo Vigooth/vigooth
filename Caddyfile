@@ -4,6 +4,12 @@
 
 # Portal — vigooth.com
 {$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	root * /srv/portal
 	file_server
 
@@ -25,6 +31,12 @@
 
 # Vilock — app-vilock.vigooth.com
 app-vilock.{$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	root * /srv/vilock
 	file_server
 
@@ -49,6 +61,12 @@ app-vilock.{$DOMAIN} {
 
 # Moovi — app-moovi.vigooth.com
 app-moovi.{$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	root * /srv/moovi
 	file_server
 
@@ -70,6 +88,12 @@ app-moovi.{$DOMAIN} {
 
 # Steam — app-steam.vigooth.com
 app-steam.{$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	# Steam auth + proxied API routes go to the backend — must be before file_server
 	handle /auth/steam/* {
 		reverse_proxy api:8090
@@ -100,6 +124,12 @@ app-steam.{$DOMAIN} {
 
 # DnD — app-dnd.vigooth.com
 app-dnd.{$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	root * /srv/dnd
 	file_server
 
@@ -121,6 +151,12 @@ app-dnd.{$DOMAIN} {
 
 # Garden — app-garden.vigooth.com
 app-garden.{$DOMAIN} {
+	# Keep search engines and polite crawlers out: these are private apps.
+	respond /robots.txt <<ROBOTS
+		User-agent: *
+		Disallow: /
+		ROBOTS 200
+
 	root * /srv/garden
 	file_server
 

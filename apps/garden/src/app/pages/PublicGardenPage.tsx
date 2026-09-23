@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { CpcButton } from '@vigooth/ui';
 import { getPortalUrl } from '@vigooth/config';
@@ -9,12 +9,18 @@ import { PlantsView } from '@/features/plants/components/PlantsView';
 import { TourView } from '@/features/tour/components/TourView';
 import { GardenProvider } from '@/stores/GardenStore';
 
-type Tab = 'plants' | 'calendar' | 'plan' | 'tour';
+// three.js is a third of the bundle and only this tab needs it.
+const WalkView = lazy(() =>
+  import('@/features/walk/components/WalkView').then((module) => ({ default: module.WalkView })),
+);
+
+type Tab = 'plants' | 'calendar' | 'plan' | 'walk' | 'tour';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'plants', label: 'PLANTES' },
   { id: 'calendar', label: 'CALENDRIER' },
   { id: 'plan', label: 'PLAN' },
+  { id: 'walk', label: 'BALADE 3D' },
   { id: 'tour', label: 'VISITE 360' },
 ];
 
@@ -65,6 +71,13 @@ export function PublicGardenPage() {
           {tab === 'plants' && <PlantsView />}
           {tab === 'calendar' && <TimelineView />}
           {tab === 'plan' && <PlanView />}
+          {tab === 'walk' && (
+            <Suspense
+              fallback={<p className="text-xs text-cpc-green-900">CHARGEMENT DE LA 3D...</p>}
+            >
+              <WalkView />
+            </Suspense>
+          )}
           {tab === 'tour' && <TourView />}
         </main>
       </div>

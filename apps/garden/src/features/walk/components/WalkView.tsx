@@ -7,8 +7,10 @@ import { BED_KINDS, BED_KIND_LABELS, PHASE_KINDS, PHASE_LABELS } from '@/types/g
 import type { GardenModel } from '../utils/buildGarden';
 import { buildGarden } from '../utils/buildGarden';
 import { makeFrame } from '../utils/layout';
-import type { CustomModel, ModelLibrary } from '../utils/modelLibrary';
-import { loadCustomModel, loadModelLibrary } from '../utils/modelLibrary';
+import type { CustomModel } from '@/lib/three/customModel';
+import { loadCustomModel } from '@/lib/three/customModel';
+import type { ModelLibrary } from '../utils/modelLibrary';
+import { loadModelLibrary } from '../utils/modelLibrary';
 import type { MoveDirection, WalkApi, WalkMode } from './WalkCanvas';
 import { WalkCanvas } from './WalkCanvas';
 

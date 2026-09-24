@@ -1,3 +1,4 @@
+import { Suspense, lazy, useState } from 'react';
 import { CpcButton, CpcMatrixImage, CpcVectorImage } from '@vigooth/ui';
 import type { Occupation, Plant } from '@/types/garden';
 import { usePlantPhoto } from '../hooks/usePlantPhoto';
@@ -13,6 +14,11 @@ interface PlantCardProps {
   onEdit?: (plant: Plant) => void;
   onDelete?: (plant: Plant) => void;
 }
+
+// three.js only reaches this tab for plants that carry an uploaded model.
+const PlantModelPreview = lazy(() =>
+  import('./PlantModelPreview').then((module) => ({ default: module.PlantModelPreview })),
+);
 
 const frenchDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 
@@ -41,6 +47,11 @@ function PlantPhoto({ url, alt, effect }: { url: string; alt: string; effect: Ph
 
 export function PlantCard({ plant, placements, effect, onEdit, onDelete }: PlantCardProps) {
   const photoUrl = usePlantPhoto(plant.id, plant.has_photo);
+  // With a model, the 3D view takes the photo's slot; the photo stays a tap away.
+  const [showModel, setShowModel] = useState(plant.has_model);
+
+  const handleShowModel = () => setShowModel(true);
+  const handleShowPhoto = () => setShowModel(false);
 
   const handleEdit = () => {
     onEdit?.(plant);
@@ -52,11 +63,44 @@ export function PlantCard({ plant, placements, effect, onEdit, onDelete }: Plant
 
   return (
     <article className="flex flex-col gap-3 border-2 border-cpc-green-900 p-3">
-      {photoUrl ? (
+      {plant.has_model && showModel ? (
+        <Suspense
+          fallback={
+            <div className="grid h-52 w-full place-items-center border border-cpc-green-900 text-xs text-cpc-green-900">
+              CHARGEMENT DE LA 3D...
+            </div>
+          }
+        >
+          <PlantModelPreview plantId={plant.id} version={plant.updated_at} />
+        </Suspense>
+      ) : photoUrl ? (
         <PlantPhoto url={photoUrl} alt={plant.name} effect={effect} />
       ) : (
         <div className="grid h-52 w-full place-items-center border border-cpc-green-900 text-xs text-cpc-green-900">
           PAS DE PHOTO
+        </div>
+      )}
+
+      {plant.has_model && (plant.has_photo || !showModel) && (
+        <div className="flex gap-2">
+          <CpcButton
+            variant={showModel ? 'filled' : 'outlined'}
+            color="cyan"
+            size="xs"
+            onClick={handleShowModel}
+          >
+            3D
+          </CpcButton>
+          {plant.has_photo && (
+            <CpcButton
+              variant={showModel ? 'outlined' : 'filled'}
+              color="cyan"
+              size="xs"
+              onClick={handleShowPhoto}
+            >
+              PHOTO
+            </CpcButton>
+          )}
         </div>
       )}
 

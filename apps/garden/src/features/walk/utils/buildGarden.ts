@@ -14,7 +14,8 @@ import type { Bed, Occupation, Plant } from '@/types/garden';
 import { polygonCentroid } from '@/utils/geometry';
 import type { PlanFrame } from './layout';
 import { polygonAreaM2, scatterInPolygon, seededRandom, toWorld } from './layout';
-import type { CustomModel, ModelLibrary } from './modelLibrary';
+import type { CustomModel } from '@/lib/three/customModel';
+import type { ModelLibrary } from './modelLibrary';
 import type { GrowthStage } from './plantShapes';
 import { buildPlant, recipeFor } from './plantShapes';
 

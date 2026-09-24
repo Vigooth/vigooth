@@ -50,6 +50,8 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   /** The owner asked for the stored model to go: applied on save. */
   const [dropModel, setDropModel] = useState(false);
   const [saving, setSaving] = useState(false);
+  /** What the saving step is doing right now, when it is more than one request. */
+  const [savingStep, setSavingStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [identifying, setIdentifying] = useState(false);
   const [candidates, setCandidates] = useState<PlantCandidate[] | null>(null);
@@ -169,9 +171,15 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
       if (photo) {
         await uploadPlantPhoto(saved.id, await downscaleImage(photo));
       }
-      // Same for the 3D model: its own request, so a bad file fails alone.
+      // Same for the 3D model: its own request, so a bad file fails alone. It is
+      // first brought under the walk's triangle and texture budget, in the
+      // browser — the optimiser is a separate chunk, loaded only here.
       if (model) {
-        await uploadPlantModel(saved.id, model);
+        setSavingStep('OPTIMISATION DU MODELE 3D...');
+        const { optimizeGlb } = await import('@/lib/three/optimizeGlb');
+        const { blob } = await optimizeGlb(model);
+        setSavingStep('ENVOI DU MODELE 3D...');
+        await uploadPlantModel(saved.id, blob);
       } else if (dropModel && plant?.has_model) {
         await deletePlantModel(saved.id);
       }
@@ -181,6 +189,7 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
       setError(cause instanceof Error ? cause.message : 'Enregistrement impossible');
     } finally {
       setSaving(false);
+      setSavingStep(null);
     }
   };
 
@@ -354,7 +363,7 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
 
       <div className="flex gap-2">
         <CpcButton type="submit" variant="filled" color="green" size="sm" disabled={saving}>
-          {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER'}
+          {saving ? (savingStep ?? 'ENREGISTREMENT...') : 'ENREGISTRER'}
         </CpcButton>
         <CpcButton type="button" variant="text" color="red" size="sm" onClick={onCancel}>
           ANNULER

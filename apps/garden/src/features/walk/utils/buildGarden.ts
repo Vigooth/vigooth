@@ -14,6 +14,7 @@ import type { Bed, Occupation, Plant } from '@/types/garden';
 import { polygonCentroid } from '@/utils/geometry';
 import type { PlanFrame } from './layout';
 import { polygonAreaM2, scatterInPolygon, seededRandom, toWorld } from './layout';
+import type { ModelLibrary } from './modelLibrary';
 import type { GrowthStage } from './plantShapes';
 import { buildPlant, recipeFor } from './plantShapes';
 
@@ -138,6 +139,8 @@ interface BuildInput {
   frame: PlanFrame;
   /** YYYY-MM-DD; what is planted is judged against this. */
   today: string;
+  /** Loaded low-poly models, or null to build every plant procedurally. */
+  library: ModelLibrary | null;
 }
 
 function makeGround(frame: PlanFrame): Group {
@@ -165,7 +168,14 @@ function makeGround(frame: PlanFrame): Group {
   return ground;
 }
 
-export function buildGarden({ beds, occupations, plants, frame, today }: BuildInput): GardenModel {
+export function buildGarden({
+  beds,
+  occupations,
+  plants,
+  frame,
+  today,
+  library,
+}: BuildInput): GardenModel {
   const group = new Group();
   const anchors: BedAnchor[] = [];
   const pickables = new Map<Object3D, string>();
@@ -266,7 +276,7 @@ export function buildGarden({ beds, occupations, plants, frame, today }: BuildIn
       const spots = scatterInPolygon(plantRing, spacing, random, MAX_PLANTS_PER_BED);
 
       for (const [x, z] of spots) {
-        const specimen = buildPlant(recipe, stage, random);
+        const specimen = buildPlant(recipe, stage, random, library);
         specimen.position.set(x, soilTop, z);
         bedGroup.add(specimen);
         // Plants are clickable too: aiming at the rose rather than the soil

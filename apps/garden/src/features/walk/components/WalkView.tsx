@@ -7,6 +7,8 @@ import { BED_KINDS, BED_KIND_LABELS, PHASE_KINDS, PHASE_LABELS } from '@/types/g
 import type { GardenModel } from '../utils/buildGarden';
 import { buildGarden } from '../utils/buildGarden';
 import { makeFrame } from '../utils/layout';
+import type { ModelLibrary } from '../utils/modelLibrary';
+import { loadModelLibrary } from '../utils/modelLibrary';
 import type { MoveDirection, WalkApi, WalkMode } from './WalkCanvas';
 import { WalkCanvas } from './WalkCanvas';
 
@@ -67,6 +69,28 @@ export function WalkView() {
   const [aspect, setAspect] = useState(1);
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const apiRef = useRef<WalkApi | null>(null);
+  const [library, setLibrary] = useState<ModelLibrary | null>(null);
+  const [libraryReady, setLibraryReady] = useState(false);
+
+  // The low-poly models load once per mount. Until they arrive, or if they
+  // never do, the garden is built from procedural shapes instead — the walk
+  // is never blocked on half a megabyte of trees.
+  useEffect(() => {
+    let cancelled = false;
+    loadModelLibrary()
+      .then((loaded) => {
+        if (!cancelled) setLibrary(loaded);
+      })
+      .catch(() => {
+        // Procedural shapes it is.
+      })
+      .finally(() => {
+        if (!cancelled) setLibraryReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // The plan photo's proportions decide the plot's depth for its width. Without
   // a photo the plot is assumed square, which is the only honest guess.
@@ -109,9 +133,16 @@ export function WalkView() {
   );
 
   const model = useMemo<GardenModel | null>(() => {
-    if (shapedBeds.length === 0) return null;
-    return buildGarden({ beds: shapedBeds, occupations, plants, frame, today: today() });
-  }, [shapedBeds, occupations, plants, frame]);
+    if (shapedBeds.length === 0 || !libraryReady) return null;
+    return buildGarden({
+      beds: shapedBeds,
+      occupations,
+      plants,
+      frame,
+      today: today(),
+      library,
+    });
+  }, [shapedBeds, occupations, plants, frame, library, libraryReady]);
 
   const selectedBed = beds.find((bed) => bed.id === selectedBedId) ?? null;
   const selectedOccupations = useMemo(() => {

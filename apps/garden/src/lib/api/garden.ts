@@ -12,6 +12,7 @@ import type {
   SaveViewpointInput,
   Viewpoint,
 } from '@/types/garden';
+import type { CropRect } from '@/utils/cropImage';
 import { fetchBlobUrl, postBinary, putBinary, request, requestVoid } from './client';
 
 /** One read for the whole garden — the timeline needs all three lists anyway. */
@@ -57,6 +58,18 @@ export function deletePlant(id: string): Promise<void> {
 
 export function uploadPlantPhoto(id: string, blob: Blob): Promise<void> {
   return putBinary(`/api/garden/plants/${id}/photo`, blob);
+}
+
+/**
+ * Ask the vision model where the plant is, as a rectangle to pre-draw in the
+ * cropper. The blob should be a downscaled JPEG; the answer is normalised 0..1.
+ */
+export async function suggestCrop(blob: Blob): Promise<CropRect> {
+  const box = await postBinary<{ x0: number; y0: number; x1: number; y1: number }>(
+    '/api/garden/plants/crop-suggest',
+    blob,
+  );
+  return { from: { x: box.x0, y: box.y0 }, to: { x: box.x1, y: box.y1 } };
 }
 
 /**

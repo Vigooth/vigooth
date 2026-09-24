@@ -41,6 +41,8 @@ interface GardenStore {
   hasPlanPhoto: boolean;
   /** True when the server can generate a 3D model from a plant photo. */
   canGenerateModel: boolean;
+  /** True when a vision model can propose a crop around the plant. */
+  canSuggestCrop: boolean;
   /** Resolves the plan backdrop through whichever endpoint this view may use. */
   planPhotoUrl: () => Promise<string>;
   /** Resolves a tour panorama through whichever endpoint this view is entitled to. */
@@ -65,6 +67,7 @@ const EMPTY_GARDEN: Garden = {
   viewpoints: [],
   has_plan_photo: false,
   can_generate_model: false,
+  can_suggest_crop: false,
 };
 
 interface GardenProviderProps {
@@ -128,6 +131,7 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
           : fetchPlantModelUrl(plantId),
       hasPlanPhoto: data.has_plan_photo,
       canGenerateModel: data.can_generate_model && publicUserId === undefined,
+      canSuggestCrop: data.can_suggest_crop && publicUserId === undefined,
       planPhotoUrl: () =>
         publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),
       panoramaUrlFor: (viewpointId) =>

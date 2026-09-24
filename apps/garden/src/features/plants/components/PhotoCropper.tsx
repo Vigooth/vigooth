@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { CpcButton } from '@vigooth/ui';
+import { suggestCrop } from '@/lib/api/garden';
+import { useGarden } from '@/stores/GardenStore';
 import type { Point } from '@/types/garden';
 import type { CropRect } from '@/utils/cropImage';
 import { cropImage, cropSize } from '@/utils/cropImage';
+import { downscaleImage } from '@/utils/downscaleImage';
 import { normalisedPoint } from '@/utils/geometry';
 
 interface PhotoCropperProps {
@@ -23,11 +26,16 @@ const MIN_SIDE = 0.03;
  * what the model looks like. One drag draws the box; another drag replaces it.
  */
 export function PhotoCropper({ file, onApply, onCancel }: PhotoCropperProps) {
+  const { canSuggestCrop } = useGarden();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [rect, setRect] = useState<CropRect | null>(null);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestionNote, setSuggestionNote] = useState<string | null>(null);
+  /** Bumps to re-run the suggestion on demand. */
+  const [suggestionRun, setSuggestionRun] = useState(0);
 
   useEffect(() => {
     const objectUrl = URL.createObjectURL(file);
@@ -35,6 +43,33 @@ export function PhotoCropper({ file, onApply, onCancel }: PhotoCropperProps) {
     setRect(null);
     return () => URL.revokeObjectURL(objectUrl);
   }, [file]);
+
+  // Ask the vision model for a first box as soon as the photo is in. A drawn
+  // box replaces it; a failed suggestion just leaves the photo bare.
+  useEffect(() => {
+    if (!canSuggestCrop) return;
+    let cancelled = false;
+    setSuggesting(true);
+    setSuggestionNote(null);
+    downscaleImage(file, 1280)
+      .then(suggestCrop)
+      .then((suggested) => {
+        if (cancelled) return;
+        setRect(suggested);
+        setSuggestionNote('Cadre proposé par IA — ajuste-le en traçant, ou applique.');
+      })
+      .catch(() => {
+        if (!cancelled) setSuggestionNote('Pas de suggestion possible, trace le cadre à la main.');
+      })
+      .finally(() => {
+        if (!cancelled) setSuggesting(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [file, canSuggestCrop, suggestionRun]);
+
+  const handleSuggestAgain = () => setSuggestionRun((run) => run + 1);
 
   const pointFrom = (event: React.PointerEvent): Point | null => {
     const bounds = surfaceRef.current?.getBoundingClientRect();
@@ -128,9 +163,22 @@ export function PhotoCropper({ file, onApply, onCancel }: PhotoCropperProps) {
         >
           {busy ? 'RECADRAGE...' : 'APPLIQUER'}
         </CpcButton>
+        {canSuggestCrop && (
+          <CpcButton
+            type="button"
+            variant="outlined"
+            color="cyan"
+            size="xs"
+            disabled={suggesting}
+            onClick={handleSuggestAgain}
+          >
+            {suggesting ? 'SUGGESTION IA...' : 'SUGGESTION IA'}
+          </CpcButton>
+        )}
         <CpcButton type="button" variant="text" color="red" size="xs" onClick={onCancel}>
           GARDER LA PHOTO ENTIERE
         </CpcButton>
+        {suggestionNote && <span className="text-[10px] text-cpc-cyan-500">{suggestionNote}</span>}
         {rect && (
           <span className="text-[10px] text-cpc-green-900">
             {Math.round(cropSize(rect).width * 100)}% × {Math.round(cropSize(rect).height * 100)}%

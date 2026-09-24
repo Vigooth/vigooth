@@ -15,6 +15,14 @@ type GardenHandler struct {
 	gardenService *service.GardenService
 	// canGenerateModel mirrors whether a model-generation handler is wired.
 	canGenerateModel bool
+	// canSuggestCrop mirrors whether a vision model can propose a crop.
+	canSuggestCrop bool
+}
+
+// EnableCropSuggestion tells owners, through the garden payload, that the
+// cropper can ask for a suggested frame.
+func (h *GardenHandler) EnableCropSuggestion() {
+	h.canSuggestCrop = true
 }
 
 // EnableModelGeneration tells owners, through the garden payload, that the
@@ -60,6 +68,7 @@ func (h *GardenHandler) GetGarden(c *gin.Context) {
 		return
 	}
 	garden.CanGenerateModel = h.canGenerateModel
+	garden.CanSuggestCrop = h.canSuggestCrop
 	c.JSON(http.StatusOK, garden)
 }
 

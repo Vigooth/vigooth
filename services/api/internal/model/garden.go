@@ -180,4 +180,7 @@ type GardenResponse struct {
 	// into a 3D model. Set by the handler, not the service — it is deployment
 	// configuration, not garden data.
 	CanGenerateModel bool `json:"can_generate_model"`
+	// CanSuggestCrop: whether a vision model is configured to propose where the
+	// plant is in a photo. Deployment configuration, set by the handler.
+	CanSuggestCrop bool `json:"can_suggest_crop"`
 }

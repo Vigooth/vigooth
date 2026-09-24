@@ -144,6 +144,7 @@ func main() {
 	// LLM provider (optional - movie recommendations, garden care suggestions)
 	var recoHandler *handler.RecommendationHandler
 	var plantEnrichHandler *handler.PlantEnrichHandler
+	var plantCropHandler *handler.PlantCropHandler
 	if os.Getenv("LLM_API_KEY") != "" {
 		llmProvider, err := llm.NewProviderFromEnv()
 		if err != nil {
@@ -151,6 +152,8 @@ func main() {
 		} else {
 			recoHandler = handler.NewRecommendationHandler(movieService, wishlistService, llmProvider, tmdbApiKey, recoRepo)
 			plantEnrichHandler = handler.NewPlantEnrichHandler(llmProvider)
+			plantCropHandler = handler.NewPlantCropHandler(llmProvider)
+			gardenHandler.EnableCropSuggestion()
 			log.Printf("LLM provider initialized: %s", getEnv("LLM_PROVIDER", "anthropic"))
 		}
 	}
@@ -290,6 +293,9 @@ func main() {
 		}
 		if plantEnrichHandler != nil {
 			api.POST("/garden/plants/enrich", plantEnrichHandler.Enrich)
+		}
+		if plantCropHandler != nil {
+			api.POST("/garden/plants/crop-suggest", plantCropHandler.Suggest)
 		}
 		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
 		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)

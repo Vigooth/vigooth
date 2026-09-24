@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -34,14 +35,24 @@ func NewOpenAIProvider(apiKey, model, baseURL string) *OpenAIProvider {
 // OpenAI API types
 
 type openaiRequest struct {
-	Model    string          `json:"model"`
-	Messages []openaiMessage `json:"messages"`
-	Tools    []openaiTool    `json:"tools,omitempty"`
+	Model    string             `json:"model"`
+	Messages []openaiOutMessage `json:"messages"`
+	Tools    []openaiTool       `json:"tools,omitempty"`
 }
 
+// openaiMessage is what the API sends back: content is always a string there.
 type openaiMessage struct {
 	Role       string           `json:"role"`
 	Content    string           `json:"content,omitempty"`
+	ToolCalls  []openaiToolCall `json:"tool_calls,omitempty"`
+	ToolCallID string           `json:"tool_call_id,omitempty"`
+}
+
+// openaiOutMessage is what we send: content is a string, or a list of parts
+// when images ride along with the text.
+type openaiOutMessage struct {
+	Role       string           `json:"role"`
+	Content    any              `json:"content,omitempty"`
 	ToolCalls  []openaiToolCall `json:"tool_calls,omitempty"`
 	ToolCallID string           `json:"tool_call_id,omitempty"`
 }
@@ -80,7 +91,7 @@ type openaiError struct {
 func (p *OpenAIProvider) Model() string { return p.model }
 
 func (p *OpenAIProvider) Chat(ctx context.Context, messages []Message, tools []Tool) (*Response, error) {
-	var apiMessages []openaiMessage
+	var apiMessages []openaiOutMessage
 
 	for _, msg := range messages {
 		if msg.Role == "assistant" && len(msg.ToolCalls) > 0 {
@@ -98,7 +109,7 @@ func (p *OpenAIProvider) Chat(ctx context.Context, messages []Message, tools []T
 					},
 				})
 			}
-			apiMessages = append(apiMessages, openaiMessage{
+			apiMessages = append(apiMessages, openaiOutMessage{
 				Role:      "assistant",
 				Content:   msg.Content,
 				ToolCalls: oaiCalls,
@@ -107,7 +118,7 @@ func (p *OpenAIProvider) Chat(ctx context.Context, messages []Message, tools []T
 		}
 
 		if msg.Role == "tool" && msg.ToolResult != nil {
-			apiMessages = append(apiMessages, openaiMessage{
+			apiMessages = append(apiMessages, openaiOutMessage{
 				Role:       "tool",
 				Content:    msg.ToolResult.Content,
 				ToolCallID: msg.ToolResult.ToolCallID,
@@ -115,7 +126,24 @@ func (p *OpenAIProvider) Chat(ctx context.Context, messages []Message, tools []T
 			continue
 		}
 
-		apiMessages = append(apiMessages, openaiMessage{
+		if len(msg.Images) > 0 {
+			parts := make([]map[string]any, 0, len(msg.Images)+1)
+			for _, image := range msg.Images {
+				parts = append(parts, map[string]any{
+					"type": "image_url",
+					"image_url": map[string]string{
+						"url": "data:" + image.MimeType + ";base64," + base64.StdEncoding.EncodeToString(image.Data),
+					},
+				})
+			}
+			if msg.Content != "" {
+				parts = append(parts, map[string]any{"type": "text", "text": msg.Content})
+			}
+			apiMessages = append(apiMessages, openaiOutMessage{Role: msg.Role, Content: parts})
+			continue
+		}
+
+		apiMessages = append(apiMessages, openaiOutMessage{
 			Role:    msg.Role,
 			Content: msg.Content,
 		})

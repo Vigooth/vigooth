@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -44,11 +45,18 @@ type anthropicMessage struct {
 type anthropicContentBlock struct {
 	Type      string          `json:"type"`
 	Text      string          `json:"text,omitempty"`
+	Source    *anthropicImage `json:"source,omitempty"`
 	ID        string          `json:"id,omitempty"`
 	Name      string          `json:"name,omitempty"`
 	Input     json.RawMessage `json:"input,omitempty"`
 	ToolUseID string          `json:"tool_use_id,omitempty"`
 	Content   string          `json:"content,omitempty"`
+}
+
+type anthropicImage struct {
+	Type      string `json:"type"`
+	MediaType string `json:"media_type"`
+	Data      string `json:"data"`
 }
 
 type anthropicTool struct {
@@ -108,6 +116,25 @@ func (p *AnthropicProvider) Chat(ctx context.Context, messages []Message, tools 
 				Content:   msg.ToolResult.Content,
 			}}
 			apiMessages = append(apiMessages, anthropicMessage{Role: "user", Content: blocks})
+			continue
+		}
+
+		if len(msg.Images) > 0 {
+			blocks := make([]anthropicContentBlock, 0, len(msg.Images)+1)
+			for _, image := range msg.Images {
+				blocks = append(blocks, anthropicContentBlock{
+					Type: "image",
+					Source: &anthropicImage{
+						Type:      "base64",
+						MediaType: image.MimeType,
+						Data:      base64.StdEncoding.EncodeToString(image.Data),
+					},
+				})
+			}
+			if msg.Content != "" {
+				blocks = append(blocks, anthropicContentBlock{Type: "text", Text: msg.Content})
+			}
+			apiMessages = append(apiMessages, anthropicMessage{Role: msg.Role, Content: blocks})
 			continue
 		}
 

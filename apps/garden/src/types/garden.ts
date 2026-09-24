@@ -133,6 +133,8 @@ export interface Garden {
   has_plan_photo: boolean;
   /** Whether the server can turn a plant photo into a 3D model (Meshy key set). */
   can_generate_model: boolean;
+  /** Whether a vision model can propose where the plant is in a photo. */
+  can_suggest_crop: boolean;
 }
 
 /** Where a photo-to-3D generation stands. `error` accompanies `failed`. */

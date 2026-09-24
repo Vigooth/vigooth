@@ -12,6 +12,7 @@ import {
 } from '@/lib/api/garden';
 import type { Plant, PlantCandidate, SavePlantInput } from '@/types/garden';
 import { downscaleImage } from '@/utils/downscaleImage';
+import { PhotoCropper } from './PhotoCropper';
 
 interface PlantFormProps {
   /** Absent for a new plant. */
@@ -45,6 +46,9 @@ function initialState(plant?: Plant): FormState {
 export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   const [form, setForm] = useState<FormState>(() => initialState(plant));
   const [photo, setPhoto] = useState<File | null>(null);
+  /** The photo as picked, kept so a crop can be redone from the full frame. */
+  const [originalPhoto, setOriginalPhoto] = useState<File | null>(null);
+  const [cropping, setCropping] = useState(false);
   /** A .glb picked for the 3D walk; null keeps whatever is stored. */
   const [model, setModel] = useState<File | null>(null);
   /** The owner asked for the stored model to go: applied on save. */
@@ -81,12 +85,27 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
     setDropModel(true);
   };
 
+  const handleStartCrop = () => setCropping(true);
+
+  const handleCropApplied = (cropped: File) => {
+    setPhoto(cropped);
+    setCropping(false);
+    setCandidates(null);
+  };
+
+  const handleCropCancelled = () => setCropping(false);
+
   const handlePickPhoto = () => {
     fileRef.current?.click();
   };
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoto(event.target.files?.[0] ?? null);
+    const picked = event.target.files?.[0] ?? null;
+    setPhoto(picked);
+    setOriginalPhoto(picked);
+    // Offer the crop straight away: the 3D generators work from this photo,
+    // and a subject alone in the frame is what makes them succeed.
+    setCropping(picked !== null);
     // Suggestions belong to the previous photo; keeping them next to a new one
     // would invite filling the form from the wrong plant.
     setCandidates(null);
@@ -266,6 +285,17 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
         >
           {plant?.has_photo ? 'REMPLACER LA PHOTO' : 'AJOUTER UNE PHOTO'}
         </CpcButton>
+        {photo && !cropping && (
+          <CpcButton
+            type="button"
+            variant="outlined"
+            color="yellow"
+            size="xs"
+            onClick={handleStartCrop}
+          >
+            {photo === originalPhoto ? 'RECADRER' : 'RECADRER A NOUVEAU'}
+          </CpcButton>
+        )}
         {photo && (
           <CpcButton
             type="button"
@@ -315,6 +345,14 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
                 : 'aucun modèle (.glb) — la balade génère une forme'}
         </span>
       </div>
+
+      {cropping && originalPhoto && (
+        <PhotoCropper
+          file={originalPhoto}
+          onApply={handleCropApplied}
+          onCancel={handleCropCancelled}
+        />
+      )}
 
       {candidates?.length === 0 && (
         <p className="text-xs text-cpc-green-900">AUCUNE ESPECE RECONNUE SUR CETTE PHOTO</p>

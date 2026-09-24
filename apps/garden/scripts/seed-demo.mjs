@@ -39,11 +39,9 @@ const YEAR = new Date().getFullYear();
 let cookie = '';
 
 async function call(method, path, body) {
-  const response = await fetch(`${API}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  const options = { method, headers: { 'Content-Type': 'application/json', Cookie: cookie } };
+  if (body !== undefined) options.body = JSON.stringify(body);
+  const response = await fetch(`${API}${path}`, options);
   const setCookie = response.headers.get('set-cookie');
   if (setCookie) cookie = setCookie.split(';')[0];
   if (!response.ok) {

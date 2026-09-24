@@ -12,6 +12,7 @@ import (
 var (
 	ErrGardenNotFound = errors.New("garden record not found")
 	ErrGardenNoPhoto  = errors.New("plant has no photo")
+	ErrGardenNoModel  = errors.New("plant has no 3D model")
 )
 
 type GardenRepository interface {
@@ -26,6 +27,10 @@ type GardenRepository interface {
 	DeletePlant(userID, id string) error
 	SetPlantPhoto(userID, id string, data []byte, mime string) error
 	GetPlantPhoto(userID, id string) ([]byte, string, error)
+	// A plant's 3D model, kept out of the list read like the photo.
+	SetPlantModel(userID, id string, data []byte, mime string) error
+	GetPlantModel(userID, id string) ([]byte, string, error)
+	DeletePlantModel(userID, id string) error
 
 	// The plan backdrop: one image per user, upserted.
 	SetPlanPhoto(userID string, data []byte, mime string) error
@@ -57,6 +62,7 @@ type InMemoryGardenRepository struct {
 	beds        map[string]*model.Bed
 	plants      map[string]*model.Plant
 	photos      map[string][]byte
+	models      map[string]planPhoto
 	planPhotos  map[string]planPhoto
 	viewpoints  map[string]*model.Viewpoint
 	panoramas   map[string][]byte
@@ -69,6 +75,7 @@ func NewInMemoryGardenRepository() *InMemoryGardenRepository {
 		beds:        make(map[string]*model.Bed),
 		plants:      make(map[string]*model.Plant),
 		photos:      make(map[string][]byte),
+		models:      make(map[string]planPhoto),
 		planPhotos:  make(map[string]planPhoto),
 		viewpoints:  make(map[string]*model.Viewpoint),
 		panoramas:   make(map[string][]byte),
@@ -204,6 +211,7 @@ func (r *InMemoryGardenRepository) UpdatePlant(plant *model.Plant) error {
 	// silently drop it.
 	copied.HasPhoto = existing.HasPhoto
 	copied.PhotoMime = existing.PhotoMime
+	copied.HasModel = existing.HasModel
 	r.plants[plant.ID] = &copied
 	return nil
 }
@@ -218,6 +226,7 @@ func (r *InMemoryGardenRepository) DeletePlant(userID, id string) error {
 	}
 	delete(r.plants, id)
 	delete(r.photos, id)
+	delete(r.models, id)
 	for occID, occupation := range r.occupations {
 		if occupation.PlantID == id {
 			delete(r.occupations, occID)
@@ -254,6 +263,49 @@ func (r *InMemoryGardenRepository) GetPlantPhoto(userID, id string) ([]byte, str
 		return nil, "", ErrGardenNoPhoto
 	}
 	return data, plant.PhotoMime, nil
+}
+
+func (r *InMemoryGardenRepository) SetPlantModel(userID, id string, data []byte, mime string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	plant, ok := r.plants[id]
+	if !ok || plant.UserID != userID {
+		return ErrGardenNotFound
+	}
+	r.models[id] = planPhoto{data: data, mime: mime}
+	plant.HasModel = true
+	plant.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *InMemoryGardenRepository) GetPlantModel(userID, id string) ([]byte, string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	plant, ok := r.plants[id]
+	if !ok || plant.UserID != userID {
+		return nil, "", ErrGardenNotFound
+	}
+	stored, ok := r.models[id]
+	if !ok || len(stored.data) == 0 {
+		return nil, "", ErrGardenNoModel
+	}
+	return stored.data, stored.mime, nil
+}
+
+func (r *InMemoryGardenRepository) DeletePlantModel(userID, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	plant, ok := r.plants[id]
+	if !ok || plant.UserID != userID {
+		return ErrGardenNotFound
+	}
+	delete(r.models, id)
+	plant.HasModel = false
+	plant.UpdatedAt = time.Now()
+	return nil
 }
 
 func (r *InMemoryGardenRepository) ListViewpoints(userID string) ([]model.Viewpoint, error) {

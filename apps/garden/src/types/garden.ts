@@ -85,6 +85,8 @@ export interface Plant {
   spacing_cm?: number;
   has_photo: boolean;
   photo_mime?: string;
+  /** A glTF binary the 3D walk stands in place of the generated shape. */
+  has_model: boolean;
   created_at: string;
   updated_at: string;
 }

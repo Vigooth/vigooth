@@ -14,7 +14,7 @@ import type { Bed, Occupation, Plant } from '@/types/garden';
 import { polygonCentroid } from '@/utils/geometry';
 import type { PlanFrame } from './layout';
 import { polygonAreaM2, scatterInPolygon, seededRandom, toWorld } from './layout';
-import type { ModelLibrary } from './modelLibrary';
+import type { CustomModel, ModelLibrary } from './modelLibrary';
 import type { GrowthStage } from './plantShapes';
 import { buildPlant, recipeFor } from './plantShapes';
 
@@ -141,6 +141,8 @@ interface BuildInput {
   today: string;
   /** Loaded low-poly models, or null to build every plant procedurally. */
   library: ModelLibrary | null;
+  /** Models the owner uploaded, by plant id. These win over the recipe. */
+  customModels: Map<string, CustomModel>;
 }
 
 function makeGround(frame: PlanFrame): Group {
@@ -168,6 +170,37 @@ function makeGround(frame: PlanFrame): Group {
   return ground;
 }
 
+/**
+ * An uploaded model in place of the recipe's shape. It is sized to the
+ * recipe's adult height, so a rose bush scanned at any scale still stands a
+ * metre tall, and it grows through the stages like everything else.
+ */
+function buildCustomPlant(
+  custom: CustomModel,
+  heightM: number,
+  stage: GrowthStage,
+  random: () => number,
+): Group {
+  const plant = custom.instantiate(heightM);
+  const size = stageScaleFor(stage) * (0.9 + random() * 0.2);
+  plant.scale.multiplyScalar(size);
+  plant.rotation.y = random() * Math.PI * 2;
+  return plant;
+}
+
+function stageScaleFor(stage: GrowthStage): number {
+  switch (stage) {
+    case 'sprout':
+      return 0.25;
+    case 'young':
+      return 0.5;
+    case 'growing':
+      return 0.8;
+    default:
+      return 1;
+  }
+}
+
 export function buildGarden({
   beds,
   occupations,
@@ -175,6 +208,7 @@ export function buildGarden({
   frame,
   today,
   library,
+  customModels,
 }: BuildInput): GardenModel {
   const group = new Group();
   const anchors: BedAnchor[] = [];
@@ -275,8 +309,11 @@ export function buildGarden({
       const stage = stageToday(occupation, today);
       const spots = scatterInPolygon(plantRing, spacing, random, MAX_PLANTS_PER_BED);
 
+      const custom = customModels.get(plant.id);
       for (const [x, z] of spots) {
-        const specimen = buildPlant(recipe, stage, random, library);
+        const specimen = custom
+          ? buildCustomPlant(custom, recipe.heightM, stage, random)
+          : buildPlant(recipe, stage, random, library);
         specimen.position.set(x, soilTop, z);
         bedGroup.add(specimen);
         // Plants are clickable too: aiming at the rose rather than the soil

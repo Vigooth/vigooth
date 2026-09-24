@@ -67,8 +67,12 @@ type Plant struct {
 	SpacingCm   *int   `json:"spacing_cm,omitempty"`
 	// HasPhoto lets the client decide whether to fetch the photo endpoint at all,
 	// without ever shipping the bytes inside a list response.
-	HasPhoto  bool      `json:"has_photo"`
-	PhotoMime string    `json:"photo_mime,omitempty"`
+	HasPhoto  bool   `json:"has_photo"`
+	PhotoMime string `json:"photo_mime,omitempty"`
+	// HasModel: a glTF binary the 3D walk stands in place of the generated
+	// shape. Same contract as the photo — a flag in the list, bytes on their own
+	// endpoint.
+	HasModel  bool      `json:"has_model"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

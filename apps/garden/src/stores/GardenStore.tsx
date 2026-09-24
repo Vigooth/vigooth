@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   fetchPlanPhotoUrl,
+  fetchPlantModelUrl,
   fetchPlantPhotoUrl,
   fetchPublicPlanPhotoUrl,
+  fetchPublicPlantModelUrl,
   fetchPublicPlantPhotoUrl,
   fetchPublicViewpointPanoramaUrl,
   fetchViewpointPanoramaUrl,
@@ -33,6 +35,8 @@ interface GardenStore {
   readOnly: boolean;
   /** Resolves a plant photo through whichever endpoint this view is entitled to. */
   photoUrlFor: (plantId: string) => Promise<string>;
+  /** Resolves a plant's 3D model (.glb) the same way. */
+  modelUrlFor: (plantId: string) => Promise<string>;
   /** True when a plan backdrop exists, so the view can skip a doomed request. */
   hasPlanPhoto: boolean;
   /** Resolves the plan backdrop through whichever endpoint this view may use. */
@@ -115,6 +119,10 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
         publicUserId
           ? fetchPublicPlantPhotoUrl(publicUserId, plantId)
           : fetchPlantPhotoUrl(plantId),
+      modelUrlFor: (plantId) =>
+        publicUserId
+          ? fetchPublicPlantModelUrl(publicUserId, plantId)
+          : fetchPlantModelUrl(plantId),
       hasPlanPhoto: data.has_plan_photo,
       planPhotoUrl: () =>
         publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),

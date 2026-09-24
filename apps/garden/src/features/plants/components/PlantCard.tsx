@@ -25,7 +25,9 @@ function formatWindow(startsOn: string, endsOn: string): string {
 /** Every treatment fits the photo whole, so no leaf ever gets cropped away. */
 function PlantPhoto({ url, alt, effect }: { url: string; alt: string; effect: PhotoEffect }) {
   if (effect === 'matrix') {
-    return <CpcMatrixImage src={url} alt={alt} cellSize={8} fit="contain" className="h-52 w-full" />;
+    return (
+      <CpcMatrixImage src={url} alt={alt} cellSize={8} fit="contain" className="h-52 w-full" />
+    );
   }
 
   if (effect === 'photo') {
@@ -59,7 +61,14 @@ export function PlantCard({ plant, placements, effect, onEdit, onDelete }: Plant
       )}
 
       <header className="flex flex-col gap-0.5">
-        <h2 className="text-sm text-cpc-green-500">{plant.name.toUpperCase()}</h2>
+        <h2 className="flex items-baseline gap-2 text-sm text-cpc-green-500">
+          {plant.name.toUpperCase()}
+          {plant.has_model && (
+            <span className="border border-cpc-cyan-500 px-1 text-[10px] text-cpc-cyan-500">
+              3D
+            </span>
+          )}
+        </h2>
         {plant.latin_name && (
           <p className="text-xs italic text-cpc-green-900">{plant.latin_name}</p>
         )}

@@ -123,13 +123,13 @@ func (r *PostgresGardenRepository) DeleteBed(userID, id string) error {
 // whether a photo exists.
 const plantColumns = `id, user_id, name, COALESCE(latin_name, ''), COALESCE(family, ''),
 	COALESCE(description, ''), COALESCE(sun, ''), COALESCE(water, ''), spacing_cm,
-	photo IS NOT NULL, COALESCE(photo_mime, ''), created_at, updated_at`
+	photo IS NOT NULL, COALESCE(photo_mime, ''), model IS NOT NULL, created_at, updated_at`
 
 func scanPlant(row pgx.Row) (*model.Plant, error) {
 	var plant model.Plant
 	err := row.Scan(&plant.ID, &plant.UserID, &plant.Name, &plant.LatinName, &plant.Family,
 		&plant.Description, &plant.Sun, &plant.Water, &plant.SpacingCm,
-		&plant.HasPhoto, &plant.PhotoMime, &plant.CreatedAt, &plant.UpdatedAt)
+		&plant.HasPhoto, &plant.PhotoMime, &plant.HasModel, &plant.CreatedAt, &plant.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -231,6 +231,56 @@ func (r *PostgresGardenRepository) GetPlantPhoto(userID, id string) ([]byte, str
 		return nil, "", ErrGardenNoPhoto
 	}
 	return data, mime, nil
+}
+
+// --- Plant 3D model
+
+func (r *PostgresGardenRepository) SetPlantModel(userID, id string, data []byte, mime string) error {
+	tag, err := r.pool.Exec(context.Background(),
+		`UPDATE garden_plants SET model = $3, model_mime = $4, updated_at = NOW()
+		 WHERE id = $1 AND user_id = $2`,
+		id, userID, data, mime,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGardenNotFound
+	}
+	return nil
+}
+
+func (r *PostgresGardenRepository) GetPlantModel(userID, id string) ([]byte, string, error) {
+	var data []byte
+	var mime string
+	err := r.pool.QueryRow(context.Background(),
+		`SELECT model, COALESCE(model_mime, '') FROM garden_plants
+		 WHERE id = $1 AND user_id = $2`, id, userID).Scan(&data, &mime)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, "", ErrGardenNotFound
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	if len(data) == 0 {
+		return nil, "", ErrGardenNoModel
+	}
+	return data, mime, nil
+}
+
+func (r *PostgresGardenRepository) DeletePlantModel(userID, id string) error {
+	tag, err := r.pool.Exec(context.Background(),
+		`UPDATE garden_plants SET model = NULL, model_mime = NULL, updated_at = NOW()
+		 WHERE id = $1 AND user_id = $2`,
+		id, userID,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrGardenNotFound
+	}
+	return nil
 }
 
 // --- Plan photo

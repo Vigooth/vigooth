@@ -94,6 +94,24 @@ export function fetchPublicPlantPhotoUrl(userId: string, id: string): Promise<st
   return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/photo`);
 }
 
+// --- Plant 3D model: a .glb the walk stands instead of the generated shape
+
+export function uploadPlantModel(id: string, file: Blob): Promise<void> {
+  return putBinary(`/api/garden/plants/${id}/model`, file);
+}
+
+export function deletePlantModel(id: string): Promise<void> {
+  return requestVoid(`/api/garden/plants/${id}/model`, { method: 'DELETE' });
+}
+
+export function fetchPlantModelUrl(id: string): Promise<string> {
+  return fetchBlobUrl(`/api/garden/plants/${id}/model`);
+}
+
+export function fetchPublicPlantModelUrl(userId: string, id: string): Promise<string> {
+  return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/model`);
+}
+
 // --- Plan photo: one backdrop per garden
 
 export function uploadPlanPhoto(blob: Blob): Promise<void> {

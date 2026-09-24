@@ -15,7 +15,14 @@ var (
 	ErrDatesReversed    = errors.New("end date must not precede start date")
 	ErrPhotoTooLarge    = errors.New("photo exceeds the maximum size")
 	ErrPhotoUnsupported = errors.New("unsupported photo type")
+	ErrModelTooLarge    = errors.New("3D model exceeds the maximum size")
+	ErrModelUnsupported = errors.New("3D model must be a glTF binary (.glb)")
 )
+
+// MaxModelBytes caps one plant's 3D model. Image-to-3D services hand back
+// 2–10 MiB textured meshes; anything past this is a scan that was never
+// decimated and would stall the walk on a phone anyway.
+const MaxModelBytes = 12 << 20 // 12 MiB
 
 // MaxPhotoBytes caps what a single plant photo may occupy. Uploads are
 // downscaled in the browser first, so anything approaching this ceiling is a
@@ -243,6 +250,27 @@ func (s *GardenService) SetPlantPhoto(userID, id string, data []byte, mime strin
 
 func (s *GardenService) GetPlantPhoto(userID, id string) ([]byte, string, error) {
 	return s.gardenRepo.GetPlantPhoto(userID, id)
+}
+
+// SetPlantModel accepts a glTF binary only. Browsers rarely know the .glb
+// extension, so the Content-Type is often generic; the magic bytes are what
+// decide, and the stored mime is normalised to the real one.
+func (s *GardenService) SetPlantModel(userID, id string, data []byte) error {
+	if len(data) > MaxModelBytes {
+		return ErrModelTooLarge
+	}
+	if len(data) < 12 || string(data[:4]) != "glTF" {
+		return ErrModelUnsupported
+	}
+	return s.gardenRepo.SetPlantModel(userID, id, data, "model/gltf-binary")
+}
+
+func (s *GardenService) GetPlantModel(userID, id string) ([]byte, string, error) {
+	return s.gardenRepo.GetPlantModel(userID, id)
+}
+
+func (s *GardenService) DeletePlantModel(userID, id string) error {
+	return s.gardenRepo.DeletePlantModel(userID, id)
 }
 
 // --- Plan photo

@@ -198,6 +198,7 @@ func main() {
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
 	r.GET("/public/garden/:userId", gardenHandler.GetPublicGarden)
 	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
+	r.GET("/public/garden/:userId/plants/:id/model", gardenHandler.GetPublicPlantModel)
 	r.GET("/public/garden/:userId/plan/photo", gardenHandler.GetPublicPlanPhoto)
 	r.GET("/public/garden/:userId/viewpoints/:id/panorama", gardenHandler.GetPublicViewpointPanorama)
 
@@ -274,6 +275,9 @@ func main() {
 		}
 		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
 		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)
+		api.PUT("/garden/plants/:id/model", gardenHandler.UploadPlantModel)
+		api.GET("/garden/plants/:id/model", gardenHandler.GetPlantModel)
+		api.DELETE("/garden/plants/:id/model", gardenHandler.DeletePlantModel)
 
 		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
 		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)

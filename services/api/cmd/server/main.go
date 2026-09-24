@@ -128,6 +128,16 @@ func main() {
 		log.Println("Pl@ntNet identification disabled (no PLANTNET_API_KEY)")
 	}
 
+	// Meshy (optional - photo to 3D model in the garden)
+	var plantModelGenHandler *handler.PlantModelGenHandler
+	if key := os.Getenv("MESHY_API_KEY"); key != "" {
+		plantModelGenHandler = handler.NewPlantModelGenHandler(key, gardenService)
+		gardenHandler.EnableModelGeneration()
+		log.Println("Meshy 3D generation enabled")
+	} else {
+		log.Println("Meshy 3D generation disabled (no MESHY_API_KEY)")
+	}
+
 	// LLM provider (optional - movie recommendations, garden care suggestions)
 	var recoHandler *handler.RecommendationHandler
 	var plantEnrichHandler *handler.PlantEnrichHandler
@@ -278,6 +288,10 @@ func main() {
 		api.PUT("/garden/plants/:id/model", gardenHandler.UploadPlantModel)
 		api.GET("/garden/plants/:id/model", gardenHandler.GetPlantModel)
 		api.DELETE("/garden/plants/:id/model", gardenHandler.DeletePlantModel)
+		if plantModelGenHandler != nil {
+			api.POST("/garden/plants/:id/model/generate", plantModelGenHandler.Start)
+			api.GET("/garden/plants/:id/model/generate/:taskId", plantModelGenHandler.Check)
+		}
 
 		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
 		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)

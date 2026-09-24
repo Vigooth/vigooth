@@ -13,6 +13,14 @@ import (
 
 type GardenHandler struct {
 	gardenService *service.GardenService
+	// canGenerateModel mirrors whether a model-generation handler is wired.
+	canGenerateModel bool
+}
+
+// EnableModelGeneration tells owners, through the garden payload, that the
+// "generate 3D" button will work.
+func (h *GardenHandler) EnableModelGeneration() {
+	h.canGenerateModel = true
 }
 
 func NewGardenHandler(gardenService *service.GardenService) *GardenHandler {
@@ -51,6 +59,7 @@ func (h *GardenHandler) GetGarden(c *gin.Context) {
 		respondGardenError(c, err, "failed to load garden")
 		return
 	}
+	garden.CanGenerateModel = h.canGenerateModel
 	c.JSON(http.StatusOK, garden)
 }
 

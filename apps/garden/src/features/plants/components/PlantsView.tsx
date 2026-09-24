@@ -144,6 +144,7 @@ export function PlantsView() {
             effect={effect}
             onEdit={readOnly ? undefined : handleEdit}
             onDelete={readOnly ? undefined : handleDelete}
+            onModelGenerated={readOnly ? undefined : reload}
           />
         ))}
       </div>

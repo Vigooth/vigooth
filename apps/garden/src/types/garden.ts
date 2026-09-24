@@ -131,6 +131,15 @@ export interface Garden {
   viewpoints: Viewpoint[];
   /** Whether a plan backdrop is stored, so the plan view can skip fetching it. */
   has_plan_photo: boolean;
+  /** Whether the server can turn a plant photo into a 3D model (Meshy key set). */
+  can_generate_model: boolean;
+}
+
+/** Where a photo-to-3D generation stands. `error` accompanies `failed`. */
+export interface ModelGenerationStatus {
+  status: 'pending' | 'running' | 'succeeded' | 'failed';
+  progress: number;
+  error?: string;
 }
 
 export interface SaveBedInput {

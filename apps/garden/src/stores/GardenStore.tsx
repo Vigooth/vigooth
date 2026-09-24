@@ -39,6 +39,8 @@ interface GardenStore {
   modelUrlFor: (plantId: string) => Promise<string>;
   /** True when a plan backdrop exists, so the view can skip a doomed request. */
   hasPlanPhoto: boolean;
+  /** True when the server can generate a 3D model from a plant photo. */
+  canGenerateModel: boolean;
   /** Resolves the plan backdrop through whichever endpoint this view may use. */
   planPhotoUrl: () => Promise<string>;
   /** Resolves a tour panorama through whichever endpoint this view is entitled to. */
@@ -62,6 +64,7 @@ const EMPTY_GARDEN: Garden = {
   conflicts: [],
   viewpoints: [],
   has_plan_photo: false,
+  can_generate_model: false,
 };
 
 interface GardenProviderProps {
@@ -124,6 +127,7 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
           ? fetchPublicPlantModelUrl(publicUserId, plantId)
           : fetchPlantModelUrl(plantId),
       hasPlanPhoto: data.has_plan_photo,
+      canGenerateModel: data.can_generate_model && publicUserId === undefined,
       planPhotoUrl: () =>
         publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),
       panoramaUrlFor: (viewpointId) =>

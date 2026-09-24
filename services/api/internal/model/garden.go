@@ -176,4 +176,8 @@ type GardenResponse struct {
 	// HasPlanPhoto lets the client skip the plan photo request entirely when
 	// there is nothing to fetch, without shipping the bytes in this payload.
 	HasPlanPhoto bool `json:"has_plan_photo"`
+	// CanGenerateModel: whether the server is configured to turn a plant photo
+	// into a 3D model. Set by the handler, not the service — it is deployment
+	// configuration, not garden data.
+	CanGenerateModel bool `json:"can_generate_model"`
 }

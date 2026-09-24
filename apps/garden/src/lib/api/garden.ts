@@ -1,6 +1,7 @@
 import type {
   Bed,
   Garden,
+  ModelGenerationStatus,
   Occupation,
   Plant,
   PlantCandidate,
@@ -110,6 +111,23 @@ export function fetchPlantModelUrl(id: string): Promise<string> {
 
 export function fetchPublicPlantModelUrl(userId: string, id: string): Promise<string> {
   return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/model`);
+}
+
+// --- Photo → 3D model, generated server-side from the stored photo
+
+/** Start a generation. The task id is what to poll with. */
+export function startPlantModelGeneration(id: string): Promise<{ task_id: string }> {
+  return request<{ task_id: string }>(`/api/garden/plants/${id}/model/generate`, {
+    method: 'POST',
+  });
+}
+
+/** Where the task stands. On `succeeded` the server has already stored the model. */
+export function checkPlantModelGeneration(
+  id: string,
+  taskId: string,
+): Promise<ModelGenerationStatus> {
+  return request<ModelGenerationStatus>(`/api/garden/plants/${id}/model/generate/${taskId}`);
 }
 
 // --- Plan photo: one backdrop per garden

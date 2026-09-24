@@ -23,6 +23,8 @@ export type GrowthStage = 'sprout' | 'young' | 'growing' | 'flowering' | 'harves
 export interface PlantRecipe {
   /** Distance between two plants, in metres. Drives how many fill a bed. */
   spacingM: number;
+  /** Adult height, in metres, so the bed's label can float clear of the canopy. */
+  heightM: number;
   build: (stage: GrowthStage, random: () => number) => Group;
 }
 
@@ -146,11 +148,209 @@ function tuft(group: Group, height: number, color: number, blades: number, rando
 
 const inBloom = (stage: GrowthStage) => stage === 'flowering' || stage === 'harvest';
 
+type CanopyShape = 'round' | 'oval' | 'wide' | 'conical' | 'weeping';
+
+interface TreeLook {
+  trunkHeight: number;
+  trunkRadius: number;
+  trunkColor: number;
+  canopyRadius: number;
+  canopyColor: number;
+  shape: CanopyShape;
+  /** Colour of the dots shown while flowering, if the tree flowers visibly. */
+  bloomColor?: number;
+}
+
+const PALE_TRUNK = 0xd9d4c7;
+const RUSSET = 0xb0452b;
+const WINE = 0x6e2a3f;
+const LIME = 0x8fcf5a;
+const PINE = 0x2b5d3a;
+const WILLOW = 0x9fbf6a;
+
+/**
+ * A tree: trunk, then a canopy whose silhouette is what tells one species from
+ * the next at a glance. Colour does the rest — a liquidambar in russet or a
+ * purple maple reads instantly, which a botanically correct leaf never would
+ * at this size.
+ */
+function tree(look: TreeLook, stage: GrowthStage, random: () => number): Group {
+  const group = new Group();
+  const { trunkHeight, trunkRadius, canopyRadius: r, canopyColor, shape } = look;
+  group.add(stick(trunkRadius, trunkHeight, look.trunkColor));
+  const base = trunkHeight + r * 0.6;
+
+  switch (shape) {
+    case 'round':
+      group.add(sphere(r, canopyColor, 0, base, 0));
+      group.add(sphere(r * 0.7, canopyColor, r * 0.5, base + r * 0.4, r * 0.3));
+      group.add(sphere(r * 0.6, canopyColor, -r * 0.5, base + r * 0.3, -r * 0.3));
+      break;
+    case 'oval':
+      group.add(sphere(r, canopyColor, 0, base + r * 0.3, 0, 1.5));
+      group.add(sphere(r * 0.75, canopyColor, r * 0.35, base + r * 0.9, 0, 1.3));
+      break;
+    case 'wide':
+      group.add(sphere(r, canopyColor, 0, base, 0, 0.8));
+      group.add(sphere(r * 0.8, canopyColor, r * 0.8, base - r * 0.1, r * 0.2, 0.8));
+      group.add(sphere(r * 0.8, canopyColor, -r * 0.8, base - r * 0.05, -r * 0.3, 0.8));
+      group.add(sphere(r * 0.7, canopyColor, r * 0.1, base + r * 0.6, -r * 0.5, 0.8));
+      break;
+    case 'conical':
+      group.add(cone(r, r * 2.6, canopyColor, 0, trunkHeight - r * 0.2, 0));
+      group.add(cone(r * 0.7, r * 1.8, canopyColor, 0, trunkHeight + r * 1.2, 0));
+      break;
+    case 'weeping':
+      group.add(sphere(r, canopyColor, 0, base, 0, 0.7));
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 + random() * 0.4;
+        group.add(
+          sphere(
+            r * 0.35,
+            canopyColor,
+            Math.cos(angle) * r * 0.9,
+            base - r * 0.55,
+            Math.sin(angle) * r * 0.9,
+            1.6,
+          ),
+        );
+      }
+      break;
+  }
+
+  if (look.bloomColor !== undefined && stage === 'flowering') {
+    sprinkle(group, 16, look.bloomColor, r, r * 0.08, base, random);
+  }
+  return group;
+}
+
+const treeRecipe = (look: TreeLook): PlantRecipe => ({
+  spacingM: look.canopyRadius * 3,
+  heightM: look.trunkHeight + look.canopyRadius * 2.2,
+  build: (stage, random) => tree(look, stage, random),
+});
+
 const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
   {
-    match: /rosier|\brose\b|\brosa\b|rosaceae/,
+    match: /liquidambar|copalme/,
+    recipe: treeRecipe({
+      trunkHeight: 2.2,
+      trunkRadius: 0.14,
+      trunkColor: WOOD,
+      canopyRadius: 1.6,
+      canopyColor: RUSSET,
+      shape: 'conical',
+    }),
+  },
+  {
+    match: /catalpa/,
+    recipe: treeRecipe({
+      trunkHeight: 1.8,
+      trunkRadius: 0.16,
+      trunkColor: WOOD,
+      canopyRadius: 2,
+      canopyColor: LIME,
+      shape: 'wide',
+      bloomColor: WHITE,
+    }),
+  },
+  {
+    match: /tilleul|\btilia\b/,
+    recipe: treeRecipe({
+      trunkHeight: 2,
+      trunkRadius: 0.18,
+      trunkColor: WOOD,
+      canopyRadius: 2,
+      canopyColor: GREEN,
+      shape: 'oval',
+      bloomColor: YELLOW,
+    }),
+  },
+  {
+    match: /ch[eê]ne|quercus/,
+    recipe: treeRecipe({
+      trunkHeight: 2.2,
+      trunkRadius: 0.28,
+      trunkColor: WOOD,
+      canopyRadius: 2.6,
+      canopyColor: DARK_GREEN,
+      shape: 'wide',
+    }),
+  },
+  {
+    match: /[eé]rable|\bacer\b/,
+    recipe: treeRecipe({
+      trunkHeight: 1.6,
+      trunkRadius: 0.12,
+      trunkColor: WOOD,
+      canopyRadius: 1.6,
+      canopyColor: WINE,
+      shape: 'round',
+    }),
+  },
+  {
+    match: /bouleau|betula/,
+    recipe: treeRecipe({
+      trunkHeight: 3,
+      trunkRadius: 0.09,
+      trunkColor: PALE_TRUNK,
+      canopyRadius: 1.2,
+      canopyColor: LIGHT_GREEN,
+      shape: 'oval',
+    }),
+  },
+  {
+    match: /saule|salix/,
+    recipe: treeRecipe({
+      trunkHeight: 1.4,
+      trunkRadius: 0.2,
+      trunkColor: WOOD,
+      canopyRadius: 2.2,
+      canopyColor: WILLOW,
+      shape: 'weeping',
+    }),
+  },
+  {
+    match: /magnolia/,
+    recipe: treeRecipe({
+      trunkHeight: 1.2,
+      trunkRadius: 0.1,
+      trunkColor: WOOD,
+      canopyRadius: 1.5,
+      canopyColor: DARK_GREEN,
+      shape: 'round',
+      bloomColor: PINK,
+    }),
+  },
+  {
+    match:
+      /sapin|\bpin\b|cypr[eè]s|thuya|[eé]pic[eé]a|\bif\b|c[eè]dre|conif|pinus|abies|picea|cupressus|taxus/,
+    recipe: treeRecipe({
+      trunkHeight: 1,
+      trunkRadius: 0.12,
+      trunkColor: WOOD,
+      canopyRadius: 1.2,
+      canopyColor: PINE,
+      shape: 'conical',
+    }),
+  },
+  {
+    match:
+      /h[eê]tre|fagus|platane|platanus|marronnier|ch[aâ]taignier|castanea|fr[eê]ne|fraxinus|peuplier|populus|orme|ulmus|charme|carpinus|robinier|acacia|albizia|mimosa/,
+    recipe: treeRecipe({
+      trunkHeight: 2.4,
+      trunkRadius: 0.2,
+      trunkColor: WOOD,
+      canopyRadius: 2.2,
+      canopyColor: GREEN,
+      shape: 'round',
+    }),
+  },
+  {
+    match: /rosier|\brose\b|\brosa\b/,
     recipe: {
       spacingM: 0.9,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         blob(group, 0.4, DARK_GREEN, 3, random);
@@ -164,6 +364,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /tomat|lycopersic/,
     recipe: {
       spacingM: 0.55,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         group.add(stick(0.02, 1.6, WOOD));
@@ -180,6 +381,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /salade|laitue|lactuca|chicor|m[aâ]che|[eé]pinard|roquette|batavia/,
     recipe: {
       spacingM: 0.3,
+      heightM: 1.2,
       build: (_stage, random) => {
         const group = new Group();
         group.add(sphere(0.17, random() < 0.3 ? RED : LIGHT_GREEN, 0, 0.06, 0, 0.55));
@@ -191,6 +393,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /chou|brassica|brocoli|kale|navet/,
     recipe: {
       spacingM: 0.5,
+      heightM: 1.2,
       build: (_stage, _random) => {
         const group = new Group();
         group.add(sphere(0.28, BLUE_GREEN, 0, 0.1, 0, 0.6));
@@ -203,6 +406,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /courge|potiron|citrouille|cucurbit|concombre|melon|past[eè]que|butternut/,
     recipe: {
       spacingM: 1,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         for (let i = 0; i < 4; i++) {
@@ -221,6 +425,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /haricot|\bpois\b|f[eè]ve|fabaceae|phaseolus|pisum/,
     recipe: {
       spacingM: 0.5,
+      heightM: 1.2,
       build: (stage, _random) => {
         const group = new Group();
         for (let i = 0; i < 3; i++) {
@@ -240,6 +445,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /frais|fragaria/,
     recipe: {
       spacingM: 0.3,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         group.add(sphere(0.16, GREEN, 0, 0.05, 0, 0.6));
@@ -253,6 +459,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /lavand/,
     recipe: {
       spacingM: 0.5,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         tuft(group, 0.45, GREY_GREEN, 9, random);
@@ -266,6 +473,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
       /basilic|thym|menthe|persil|ciboulette|origan|romarin|sauge|coriandre|lamiaceae|estragon|aneth|apiaceae|aromat/,
     recipe: {
       spacingM: 0.3,
+      heightM: 1.2,
       build: (_stage, random) => {
         const group = new Group();
         blob(group, 0.14, random() < 0.5 ? GREEN : GREY_GREEN, 2, random);
@@ -278,6 +486,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
       /carott|radis|oignon|poireau|\bail\b|[eé]chalote|allium|daucus|betterave|pomme de terre|patate|tuberosum/,
     recipe: {
       spacingM: 0.2,
+      heightM: 1.2,
       build: (_stage, random) => {
         const group = new Group();
         tuft(group, 0.32, GREEN, 5, random);
@@ -290,6 +499,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
       /arbre|pommier|poirier|cerisier|prunier|figuier|abricotier|p[eê]cher|olivier|noyer|\bmalus\b|prunus|ficus|\bolea\b|citronnier|oranger/,
     recipe: {
       spacingM: 3.5,
+      heightM: 6,
       build: (stage, random) => {
         const group = new Group();
         group.add(stick(0.12, 1.8, WOOD));
@@ -306,6 +516,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /tournesol|helianthus/,
     recipe: {
       spacingM: 0.45,
+      heightM: 1.2,
       build: (stage, _random) => {
         const group = new Group();
         group.add(stick(0.02, 1.7, GREEN));
@@ -322,6 +533,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
       /fleur|dahlia|tulipe|cosmos|zinnia|[oœ]eillet|pivoine|capucine|souci|asteraceae|iris|narcisse|jonquille/,
     recipe: {
       spacingM: 0.35,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         const colours = [RED, PINK, YELLOW, PURPLE, WHITE, ORANGE];
@@ -342,6 +554,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
     match: /poivron|piment|aubergine|capsicum|melongena|physalis/,
     recipe: {
       spacingM: 0.5,
+      heightM: 1.2,
       build: (stage, random) => {
         const group = new Group();
         blob(group, 0.28, GREEN, 2, random);
@@ -355,6 +568,7 @@ const RECIPES: { match: RegExp; recipe: PlantRecipe }[] = [
 
 const FALLBACK: PlantRecipe = {
   spacingM: 0.35,
+  heightM: 1.2,
   build: (_stage, random) => {
     const group = new Group();
     tuft(group, 0.4, GREEN, 6, random);

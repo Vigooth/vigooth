@@ -273,7 +273,7 @@ export function buildGarden({ beds, occupations, plants, frame, today }: BuildIn
         // under it should still open the bed.
         specimen.traverse((child) => pickables.set(child, bed.id));
       }
-      tallest = Math.max(tallest, recipe.spacingM > 3 ? 3.5 : 1.2);
+      tallest = Math.max(tallest, recipe.heightM);
     }
 
     group.add(bedGroup);

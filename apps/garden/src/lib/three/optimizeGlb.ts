@@ -1,7 +1,7 @@
-import type { Document, Texture } from '@gltf-transform/core';
+import type { Document, Primitive, Texture } from '@gltf-transform/core';
 import { WebIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { dedup, prune, simplify, weld } from '@gltf-transform/functions';
+import { compactPrimitive, dedup, prune, simplify, weld } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
 
 /**
@@ -32,6 +32,47 @@ export interface OptimizeReport {
 export interface OptimizedGlb {
   blob: Blob;
   report: OptimizeReport;
+}
+
+/**
+ * Weld a primitive by position alone.
+ *
+ * Photogrammetry exports often give every triangle its own three vertices, each
+ * with its own normal and texture coordinate. To the simplifier every edge is
+ * then an attribute seam it must preserve, and it removes almost nothing.
+ * Merging coincident positions — keeping the first vertex's normal and UV —
+ * gives it a surface it can collapse. Some texture smearing appears where the
+ * merged vertices disagreed on UVs; for a plant seen from a few metres away in
+ * the walk that is a fair price for a file thirty times smaller. Only applied
+ * to meshes that look like such a soup (far more vertices than a welded mesh
+ * of that size would have), so properly authored models keep their seams.
+ */
+function weldByPosition(primitive: Primitive): boolean {
+  const position = primitive.getAttribute('POSITION');
+  const indices = primitive.getIndices();
+  if (!position || !indices) return false;
+  const vertexCount = position.getCount();
+  const triangleCount = indices.getCount() / 3;
+  // A welded closed surface has about half as many vertices as triangles.
+  if (vertexCount <= 1.5 * triangleCount) return false;
+
+  const array = position.getArray();
+  if (!(array instanceof Float32Array)) return false;
+  const canonical = MeshoptSimplifier.generatePositionRemap(array, 3);
+  const dense = new Uint32Array(vertexCount);
+  const denseOf = new Map<number, number>();
+  let next = 0;
+  for (let vertex = 0; vertex < vertexCount; vertex++) {
+    const root = canonical[vertex];
+    let index = denseOf.get(root);
+    if (index === undefined) {
+      index = next++;
+      denseOf.set(root, index);
+    }
+    dense[vertex] = index;
+  }
+  compactPrimitive(primitive, dense, next);
+  return true;
 }
 
 function countTriangles(document: Document): number {
@@ -114,15 +155,17 @@ export async function optimizeGlb(file: Blob): Promise<OptimizedGlb> {
 
   if (trianglesBefore > TRIANGLE_BUDGET) {
     await MeshoptSimplifier.ready;
+    await document.transform(dedup(), weld());
+    for (const mesh of document.getRoot().listMeshes()) {
+      for (const primitive of mesh.listPrimitives()) weldByPosition(primitive);
+    }
     await document.transform(
-      dedup(),
-      weld(),
       simplify({
         simplifier: MeshoptSimplifier,
         ratio: TRIANGLE_BUDGET / trianglesBefore,
         // A loose error bound: the goal is the budget, and a plant seen from
         // two metres away forgives a lot more than a hero prop would.
-        error: 0.01,
+        error: 0.02,
       }),
       prune(),
     );

@@ -91,6 +91,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+// DevLogin signs the caller in as a fixed account, no body needed. Only the
+// in-memory dev server mounts it: it exists so a frontend started with
+// `pnpm dev` lands straight in a seeded garden instead of on a login form.
+func (h *AuthHandler) DevLogin(email, password string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		resp, err := h.authService.Login(model.LoginRequest{Email: email, Password: password})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "dev login failed"})
+			return
+		}
+		h.setAuthCookie(c, resp.Token)
+		c.JSON(http.StatusOK, gin.H{"user": resp.User})
+	}
+}
+
 // Me returns the account behind the request's cookie, in the same shape as Login.
 //
 // The route is guarded, so reaching this handler already means the token was

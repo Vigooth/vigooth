@@ -154,7 +154,7 @@ func main() {
 
 	// Seed dev user + movies in-memory mode
 	if databaseURL == "" {
-		seedDevData(authService, movieService)
+		seedDevData(authService, movieService, gardenService)
 	}
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtSecret)
@@ -186,6 +186,11 @@ func main() {
 	r.POST("/auth/register", authLimiter, authHandler.Register)
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+	// In-memory mode only: a frontend in dev can sign in as the seeded user
+	// without a form. Never mounted with a database behind the API.
+	if databaseURL == "" {
+		r.POST("/auth/dev-login", authHandler.DevLogin(devUserEmail, devUserPassword))
+	}
 
 	// Visit beacon, fired once per page load by every frontend. Public by design,
 	// but a session cookie riding along attributes the hit to its account. The
@@ -330,10 +335,16 @@ func main() {
 	}
 }
 
-func seedDevData(authService *service.AuthService, movieService *service.MovieService) {
+// The in-memory dev account. Also what /auth/dev-login signs in as.
+const (
+	devUserEmail    = "t@t.com"
+	devUserPassword = "dev12345"
+)
+
+func seedDevData(authService *service.AuthService, movieService *service.MovieService, gardenService *service.GardenService) {
 	resp, err := authService.Register(model.RegisterRequest{
-		Email:    "t@t.com",
-		Password: "dev12345",
+		Email:    devUserEmail,
+		Password: devUserPassword,
 	})
 	if err != nil {
 		log.Printf("Seed: user already exists or error: %v", err)
@@ -370,6 +381,7 @@ func seedDevData(authService *service.AuthService, movieService *service.MovieSe
 	}
 
 	log.Printf("Seed: added %d movies to dev user collection", len(movies))
+	seedDevGarden(gardenService, userID)
 
 	// Second dev user for comparison testing
 	resp2, err := authService.Register(model.RegisterRequest{

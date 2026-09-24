@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/Vigooth/vigooth/services/api/internal/llm"
 	"github.com/Vigooth/vigooth/services/api/internal/middleware"
 	"github.com/Vigooth/vigooth/services/api/internal/model"
+	"github.com/Vigooth/vigooth/services/api/internal/modelgen"
 	"github.com/Vigooth/vigooth/services/api/internal/repository"
 	"github.com/Vigooth/vigooth/services/api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -128,14 +130,15 @@ func main() {
 		log.Println("Pl@ntNet identification disabled (no PLANTNET_API_KEY)")
 	}
 
-	// Meshy (optional - photo to 3D model in the garden)
+	// Photo → 3D model (optional). Meshy when a key is set; otherwise, in dev
+	// only, TripoSR run locally through the garden script if that script exists.
 	var plantModelGenHandler *handler.PlantModelGenHandler
-	if key := os.Getenv("MESHY_API_KEY"); key != "" {
-		plantModelGenHandler = handler.NewPlantModelGenHandler(key, gardenService)
+	if generator := pickModelGenerator(databaseURL == ""); generator != nil {
+		plantModelGenHandler = handler.NewPlantModelGenHandler(generator, gardenService)
 		gardenHandler.EnableModelGeneration()
-		log.Println("Meshy 3D generation enabled")
+		log.Printf("3D model generation enabled via %s", generator.Name())
 	} else {
-		log.Println("Meshy 3D generation disabled (no MESHY_API_KEY)")
+		log.Println("3D model generation disabled (no MESHY_API_KEY, no local TripoSR script)")
 	}
 
 	// LLM provider (optional - movie recommendations, garden care suggestions)
@@ -333,6 +336,31 @@ func main() {
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// pickModelGenerator chooses how plant photos become 3D models. Meshy wins
+// whenever its key is set. The local TripoSR path is only offered in dev
+// (in-memory mode): it shells out to a script on this machine, which makes no
+// sense on a server, and the script is looked up relative to the repo checkout
+// this API is run from, or at TRIPOSR_SCRIPT.
+func pickModelGenerator(dev bool) modelgen.Generator {
+	if key := os.Getenv("MESHY_API_KEY"); key != "" {
+		return modelgen.NewMeshy(key, service.MaxModelBytes+1)
+	}
+	if !dev {
+		return nil
+	}
+	script := os.Getenv("TRIPOSR_SCRIPT")
+	if script == "" {
+		script = filepath.Join("..", "..", "apps", "garden", "scripts", "photo-to-3d.sh")
+	}
+	if absolute, err := filepath.Abs(script); err == nil {
+		script = absolute
+	}
+	if _, err := os.Stat(script); err != nil {
+		return nil
+	}
+	return modelgen.NewLocal(script)
 }
 
 // The in-memory dev account. Also what /auth/dev-login signs in as.

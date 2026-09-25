@@ -24,6 +24,7 @@ export type { AppConfig } from './AppMenu';
 export { CpcDrawer } from './Drawer';
 export { CpcModal } from './Modal';
 export { CpcMenu, CpcMenuItem, CpcMenuSeparator, CpcMenuGroup, CpcSubmenu } from './Menu';
+export { CpcTooltip } from './Tooltip';
 export { CpcMatrixImage, MATRIX_CHARSET, MATRIX_RAMP, MATRIX_GREEN } from './MatrixImage';
 export type { CpcMatrixImageProps, MatrixImageStatus } from './MatrixImage';
 export { CpcVectorImage, sampleLuminance, traceBands, buildRamp } from './VectorImage';

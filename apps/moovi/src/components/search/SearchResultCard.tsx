@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcButton, StarIcon } from '@vigooth/ui';
+import { CpcButton, CpcTooltip, StarIcon } from '@vigooth/ui';
 import type { TmdbSearchResult } from '@/types/movie';
 import { getPosterUrl } from '@/utils/tmdbImage';
 import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb';
@@ -370,11 +370,12 @@ function PosterTags({ tags, className }: { tags: string[]; className: string }) 
 /** Marks a film in the collection with the user's rating, or a dash while unrated. */
 function RatingBadge({ rating, className }: { rating: number | null; className: string }) {
   return (
-    <div
-      className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
-      title={rating === null ? 'Dans ta collection, pas encore noté' : `Ta note : ${rating}/10`}
-    >
-      {rating ?? '—'}
-    </div>
+    <CpcTooltip content={`Ma note perso : ${rating ?? 'pas encore noté'}`}>
+      <div
+        className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
+      >
+        {rating ?? '—'}
+      </div>
+    </CpcTooltip>
   );
 }

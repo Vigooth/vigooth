@@ -6,12 +6,10 @@ import {
   fetchPublicPlanPhotoUrl,
   fetchPublicPlantModelUrl,
   fetchPublicPlantPhotoUrl,
-  fetchPublicViewpointPanoramaUrl,
-  fetchViewpointPanoramaUrl,
   getGarden,
   getPublicGarden,
 } from '@/lib/api/garden';
-import type { Bed, Conflict, Garden, Occupation, Plant, Viewpoint } from '@/types/garden';
+import type { Bed, Conflict, Garden, Occupation, Plant } from '@/types/garden';
 
 interface GardenStore {
   /**
@@ -24,7 +22,6 @@ interface GardenStore {
   plants: Plant[];
   occupations: Occupation[];
   conflicts: Conflict[];
-  viewpoints: Viewpoint[];
   loading: boolean;
   error: string | null;
   /**
@@ -45,8 +42,6 @@ interface GardenStore {
   canSuggestCrop: boolean;
   /** Resolves the plan backdrop through whichever endpoint this view may use. */
   planPhotoUrl: () => Promise<string>;
-  /** Resolves a tour panorama through whichever endpoint this view is entitled to. */
-  panoramaUrlFor: (viewpointId: string) => Promise<string>;
   /** Re-read the whole garden. Every mutation ends with this. */
   reload: () => Promise<void>;
   plantName: (plantId: string) => string;
@@ -64,7 +59,6 @@ const EMPTY_GARDEN: Garden = {
   plants: [],
   occupations: [],
   conflicts: [],
-  viewpoints: [],
   has_plan_photo: false,
   can_generate_model: false,
   can_suggest_crop: false,
@@ -117,7 +111,6 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
       plants: data.plants,
       occupations: data.occupations,
       conflicts: data.conflicts,
-      viewpoints: data.viewpoints,
       loading,
       error,
       readOnly: publicUserId !== undefined,
@@ -134,10 +127,6 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
       canSuggestCrop: data.can_suggest_crop && publicUserId === undefined,
       planPhotoUrl: () =>
         publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),
-      panoramaUrlFor: (viewpointId) =>
-        publicUserId
-          ? fetchPublicViewpointPanoramaUrl(publicUserId, viewpointId)
-          : fetchViewpointPanoramaUrl(viewpointId),
       reload,
       plantName: (plantId) => plantsById.get(plantId)?.name ?? 'Plante inconnue',
       bedName: (bedId) => bedsById.get(bedId)?.name ?? 'Emplacement inconnu',

@@ -6,7 +6,6 @@ import { AppSwitcher } from '@/components/AppSwitcher';
 import { TimelineView } from '@/features/calendar/components/TimelineView';
 import { PlanView } from '@/features/plan/components/PlanView';
 import { PlantsView } from '@/features/plants/components/PlantsView';
-import { TourView } from '@/features/tour/components/TourView';
 import { AuthProvider, useAuth } from '@/stores/AuthStore';
 import { GardenProvider } from '@/stores/GardenStore';
 import { LoginScreen } from './pages/LoginScreen';
@@ -17,14 +16,13 @@ const WalkView = lazy(() =>
   import('@/features/walk/components/WalkView').then((module) => ({ default: module.WalkView })),
 );
 
-type Tab = 'plants' | 'calendar' | 'plan' | 'walk' | 'tour';
+type Tab = 'plants' | 'calendar' | 'plan' | 'walk';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'plants', label: 'PLANTES' },
   { id: 'calendar', label: 'CALENDRIER' },
   { id: 'plan', label: 'PLAN' },
   { id: 'walk', label: 'BALADE 3D' },
-  { id: 'tour', label: 'VISITE 360' },
 ];
 
 export function App() {
@@ -144,7 +142,6 @@ function GardenShell() {
             <WalkView />
           </Suspense>
         )}
-        {tab === 'tour' && <TourView />}
       </main>
     </div>
   );

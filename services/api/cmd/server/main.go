@@ -221,7 +221,6 @@ func main() {
 	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
 	r.GET("/public/garden/:userId/plants/:id/model", gardenHandler.GetPublicPlantModel)
 	r.GET("/public/garden/:userId/plan/photo", gardenHandler.GetPublicPlanPhoto)
-	r.GET("/public/garden/:userId/viewpoints/:id/panorama", gardenHandler.GetPublicViewpointPanorama)
 
 	// Public proxy routes (no user data, just external API proxies)
 	pub := r.Group("/api")
@@ -310,12 +309,6 @@ func main() {
 		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
 		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)
 		api.DELETE("/garden/plan/photo", gardenHandler.DeletePlanPhoto)
-
-		api.POST("/garden/viewpoints", gardenHandler.CreateViewpoint)
-		api.PUT("/garden/viewpoints/:id", gardenHandler.UpdateViewpoint)
-		api.DELETE("/garden/viewpoints/:id", gardenHandler.DeleteViewpoint)
-		api.PUT("/garden/viewpoints/:id/panorama", gardenHandler.UploadViewpointPanorama)
-		api.GET("/garden/viewpoints/:id/panorama", gardenHandler.GetViewpointPanorama)
 
 		api.POST("/garden/occupations", gardenHandler.CreateOccupation)
 		api.PUT("/garden/occupations/:id", gardenHandler.UpdateOccupation)

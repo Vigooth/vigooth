@@ -213,11 +213,7 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-2 border-cpc-green-500 p-4">
-      <h2 className="text-sm text-cpc-yellow-500">
-        {plant ? `MODIFIER ${plant.name.toUpperCase()}` : 'NOUVELLE PLANTE'}
-      </h2>
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <TextField
           label="Nom"

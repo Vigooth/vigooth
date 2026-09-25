@@ -98,6 +98,8 @@ export interface TmdbNowPlayingResponse extends TmdbSearchResponse {
 
 /** The next screening of a film in one version. */
 export interface NextShowtime {
+  /** Paris date, "YYYY-MM-DD". */
+  date: string;
   /** Paris time, "HH:MM". */
   time: string;
   version: 'VO' | 'VF';

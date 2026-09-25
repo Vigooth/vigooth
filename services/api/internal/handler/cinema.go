@@ -25,6 +25,8 @@ const (
 	minNearbyTheaters = 5
 	maxNearbyTheaters = 15
 	nearbyCacheTTL    = time.Hour
+	// Allociné publishes about a week of showtimes ahead.
+	nearbyDays = 7
 )
 
 var parisTime = mustLoadLocation("Europe/Paris")
@@ -83,6 +85,7 @@ type showtime struct {
 
 // nextShowtime is the next screening in one version (VO or VF).
 type nextShowtime struct {
+	Date    string `json:"date"`
 	Time    string `json:"time"`
 	Version string `json:"version"`
 	Theater string `json:"theater"`
@@ -92,7 +95,7 @@ type nearbyMovie struct {
 	TmdbResult    json.RawMessage `json:"result"`
 	Theaters      []string        `json:"theaters"`
 	NextShowtimes []nextShowtime  `json:"next_showtimes"`
-	// All of today's showtimes, kept in the cache to work out the next ones.
+	// All the showtimes of the requested days, kept in the cache to work out the next ones.
 	showtimes []showtime
 }
 
@@ -107,18 +110,24 @@ type nearbyCacheEntry struct {
 }
 
 var (
-	nearbyCache   = map[int]nearbyCacheEntry{}
+	nearbyCache   = map[string]nearbyCacheEntry{}
 	nearbyCacheMu sync.Mutex
 )
 
-// NearbyMovies lists the films showing today in the cinemas around a
-// position, from Allociné, each matched to its TMDB entry. Films showing in
-// the most cinemas come first.
+// NearbyMovies lists the films showing in the cinemas around a position,
+// from Allociné, each matched to its TMDB entry. Films showing in the most
+// cinemas come first. `day` picks a date (YYYY-MM-DD) within the coming week,
+// or "week" for all of it; it defaults to today.
 func (h *ProxyHandler) NearbyMovies(c *gin.Context) {
 	lat, errLat := strconv.ParseFloat(c.Query("lat"), 64)
 	lon, errLon := strconv.ParseFloat(c.Query("lon"), 64)
 	if errLat != nil || errLon != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameters 'lat' and 'lon' are required"})
+		return
+	}
+	days, err := nearbyDaysFor(c.Query("day"), time.Now())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -138,8 +147,9 @@ func (h *ProxyHandler) NearbyMovies(c *gin.Context) {
 		return
 	}
 
+	cacheKey := fmt.Sprintf("%d|%s", city.ID, strings.Join(days, ","))
 	nearbyCacheMu.Lock()
-	cached, ok := nearbyCache[city.ID]
+	cached, ok := nearbyCache[cacheKey]
 	nearbyCacheMu.Unlock()
 	if ok && time.Now().Before(cached.expires) {
 		c.JSON(http.StatusOK, withUpcomingShowtimes(cached.response, time.Now()))
@@ -161,17 +171,38 @@ func (h *ProxyHandler) NearbyMovies(c *gin.Context) {
 		theaters = theaters[:maxNearbyTheaters]
 	}
 
-	response := nearbyResponse{City: city.Name, Movies: h.moviesShowingIn(theaters)}
+	response := nearbyResponse{City: city.Name, Movies: h.moviesShowingIn(theaters, days)}
 
 	nearbyCacheMu.Lock()
-	nearbyCache[city.ID] = nearbyCacheEntry{response: response, expires: time.Now().Add(nearbyCacheTTL)}
+	nearbyCache[cacheKey] = nearbyCacheEntry{response: response, expires: time.Now().Add(nearbyCacheTTL)}
 	nearbyCacheMu.Unlock()
 
 	c.JSON(http.StatusOK, withUpcomingShowtimes(response, time.Now()))
 }
 
+// nearbyDaysFor turns the `day` parameter into the dates to fetch.
+func nearbyDaysFor(day string, now time.Time) ([]string, error) {
+	today := now.In(parisTime)
+	week := make([]string, nearbyDays)
+	for i := range week {
+		week[i] = today.AddDate(0, 0, i).Format("2006-01-02")
+	}
+	switch day {
+	case "":
+		return week[:1], nil
+	case "week":
+		return week, nil
+	}
+	for _, d := range week {
+		if d == day {
+			return []string{d}, nil
+		}
+	}
+	return nil, fmt.Errorf("query parameter 'day' must be \"week\" or a date from %s to %s", week[0], week[len(week)-1])
+}
+
 // withUpcomingShowtimes fills each film's next showtime per version, and
-// leaves out the films with no screening left today.
+// leaves out the films with no screening left in the requested days.
 func withUpcomingShowtimes(response nearbyResponse, now time.Time) nearbyResponse {
 	movies := make([]nearbyMovie, 0, len(response.Movies))
 	for _, m := range response.Movies {
@@ -190,24 +221,26 @@ func withUpcomingShowtimes(response nearbyResponse, now time.Time) nearbyRespons
 		m.NextShowtimes = make([]nextShowtime, 0, len(next))
 		for _, s := range next {
 			m.NextShowtimes = append(m.NextShowtimes, nextShowtime{
+				Date:    s.startsAt.Format("2006-01-02"),
 				Time:    s.startsAt.Format("15:04"),
 				Version: s.version,
 				Theater: s.theater,
 			})
 		}
 		sort.Slice(m.NextShowtimes, func(i, j int) bool {
-			return m.NextShowtimes[i].Time < m.NextShowtimes[j].Time
+			a, b := m.NextShowtimes[i], m.NextShowtimes[j]
+			return a.Date+a.Time < b.Date+b.Time
 		})
 		movies = append(movies, m)
 	}
 	return nearbyResponse{City: response.City, Movies: movies}
 }
 
-// moviesShowingIn gathers today's films across the cinemas and matches them to TMDB.
-func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie {
+// moviesShowingIn gathers the films of the days across the cinemas and matches them to TMDB.
+func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater, days []string) []nearbyMovie {
 	type showing struct {
 		movie     allocineMovie
-		theaters  []string
+		theaters  map[string]bool
 		showtimes []showtime
 	}
 	var (
@@ -215,36 +248,37 @@ func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie
 		wg      sync.WaitGroup
 		byID    = map[int]*showing{}
 		order   []int
-		today   = time.Now().In(parisTime).Format("2006-01-02")
-		limiter = make(chan struct{}, 5)
+		limiter = make(chan struct{}, 8)
 	)
 	for _, theater := range theaters {
-		wg.Add(1)
-		go func(theater allocineTheater) {
-			defer wg.Done()
-			limiter <- struct{}{}
-			defer func() { <-limiter }()
+		for _, day := range days {
+			wg.Add(1)
+			go func(theater allocineTheater, day string) {
+				defer wg.Done()
+				limiter <- struct{}{}
+				defer func() { <-limiter }()
 
-			screenings, err := h.allocineShowtimes(theater.ID, today)
-			if err != nil {
-				return
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			for _, sc := range screenings {
-				s, ok := byID[sc.movie.InternalID]
-				if !ok {
-					s = &showing{movie: sc.movie}
-					byID[sc.movie.InternalID] = s
-					order = append(order, sc.movie.InternalID)
+				screenings, err := h.allocineShowtimes(theater.ID, day)
+				if err != nil {
+					return
 				}
-				s.theaters = append(s.theaters, theater.Name)
-				for _, st := range sc.showtimes {
-					st.theater = theater.Name
-					s.showtimes = append(s.showtimes, st)
+				mu.Lock()
+				defer mu.Unlock()
+				for _, sc := range screenings {
+					s, ok := byID[sc.movie.InternalID]
+					if !ok {
+						s = &showing{movie: sc.movie, theaters: map[string]bool{}}
+						byID[sc.movie.InternalID] = s
+						order = append(order, sc.movie.InternalID)
+					}
+					s.theaters[theater.Name] = true
+					for _, st := range sc.showtimes {
+						st.theater = theater.Name
+						s.showtimes = append(s.showtimes, st)
+					}
 				}
-			}
-		}(theater)
+			}(theater, day)
+		}
 	}
 	wg.Wait()
 
@@ -264,10 +298,14 @@ func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie
 			limiter <- struct{}{}
 			defer func() { <-limiter }()
 
-			sort.Strings(s.theaters)
+			theaterNames := make([]string, 0, len(s.theaters))
+			for name := range s.theaters {
+				theaterNames = append(theaterNames, name)
+			}
+			sort.Strings(theaterNames)
 			matched[i] = nearbyMovie{
 				TmdbResult: h.matchTmdbMovie(s.movie),
-				Theaters:   s.theaters,
+				Theaters:   theaterNames,
 				showtimes:  s.showtimes,
 			}
 		}(i, s)

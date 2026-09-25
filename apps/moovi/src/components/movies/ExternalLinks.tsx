@@ -13,7 +13,7 @@ import { useYtsMovie } from '@/hooks/useYtsMovie';
 import { useSubtitles } from '@/hooks/useSubtitles';
 import { downloadSubtitle } from '@/lib/api/subtitles';
 import { bestSubtitleFor, matchSubtitlesToTorrents } from '@/utils/subtitleMatch';
-import type { Subtitle, YtsTorrent } from '@/types/movie';
+import type { Subtitle, TmdbSeason, YtsTorrent } from '@/types/movie';
 
 interface ExternalLinksProps {
   imdbId: string | null;
@@ -22,8 +22,8 @@ interface ExternalLinksProps {
   /** Original-language title, which torrent names use. */
   originalTitle?: string;
   year: number;
-  /** Number of seasons of a TV show. */
-  seasons?: number;
+  /** Seasons of a TV show, with their episode counts. */
+  seasons?: TmdbSeason[];
   allocineId?: string | null;
   mediaType?: string;
 }
@@ -34,7 +34,7 @@ export function ExternalLinks({
   title,
   originalTitle,
   year,
-  seasons = 0,
+  seasons = [],
   allocineId,
   mediaType = 'movie',
 }: ExternalLinksProps) {
@@ -139,7 +139,7 @@ export function ExternalLinks({
           ))}
         </CpcMenu>
       )}
-      {mediaType === 'tv' && seasons > 0 && (
+      {mediaType === 'tv' && seasons.length > 0 && (
         <TpbMenu title={originalTitle || title} seasons={seasons} />
       )}
       {subtitlesByLanguage.length > 0 && (

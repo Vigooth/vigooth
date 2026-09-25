@@ -10,6 +10,7 @@ export {
   StarIcon,
   ListIcon,
   GridCompactIcon,
+  SpinnerIcon,
 } from './Icons';
 export type { CreateIconProps, IconConfig, VariantDef, Size, IconVariant } from './Icons';
 export { Door } from './Door';

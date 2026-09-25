@@ -10,4 +10,5 @@ export {
   StarIcon,
   ListIcon,
   GridCompactIcon,
+  SpinnerIcon,
 } from './icons';

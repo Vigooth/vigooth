@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import {
   searchMovies,
   getMovieDetails,
@@ -7,8 +7,14 @@ import {
   getTvCredits,
   searchPerson,
   discoverByPerson,
+  getNowPlaying,
 } from '@/lib/api/tmdb';
-import type { TmdbSearchResponse, TmdbTvDetail, TmdbPersonSearchResponse } from '@/types/movie';
+import type {
+  TmdbSearchResponse,
+  TmdbNowPlayingResponse,
+  TmdbTvDetail,
+  TmdbPersonSearchResponse,
+} from '@/types/movie';
 
 export function useTmdbSearch(query: string) {
   return useInfiniteQuery<TmdbSearchResponse>({
@@ -84,5 +90,31 @@ export function useTmdbDiscoverByPerson(personId: number | null) {
     },
     enabled: personId !== null,
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** Films currently in French cinemas, without re-releases of older films. */
+export function useTmdbNowPlaying(enabled: boolean) {
+  return useInfiniteQuery({
+    queryKey: ['tmdb-now-playing'],
+    queryFn: ({ pageParam }) => getNowPlaying(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page < lastPage.total_pages) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    select: (data: InfiniteData<TmdbNowPlayingResponse, number>) => ({
+      ...data,
+      pages: data.pages.map((page) => ({
+        ...page,
+        results: page.results.filter(
+          (result) => !result.release_date || result.release_date >= page.dates.minimum,
+        ),
+      })),
+    }),
+    enabled,
+    staleTime: 1000 * 60 * 30,
   });
 }

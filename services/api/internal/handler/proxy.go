@@ -147,6 +147,20 @@ func (h *ProxyHandler) TmdbDiscoverByPerson(c *gin.Context) {
 	h.proxyGet(c, url)
 }
 
+// TmdbNowPlaying lists the films currently in French cinemas.
+func (h *ProxyHandler) TmdbNowPlaying(c *gin.Context) {
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'page' must be a positive integer"})
+		return
+	}
+
+	url := fmt.Sprintf("https://api.themoviedb.org/3/movie/now_playing?api_key=%s&language=fr-FR&region=FR&page=%d",
+		h.tmdbApiKey, page)
+
+	h.proxyGet(c, url)
+}
+
 func (h *ProxyHandler) OmdbRatings(c *gin.Context) {
 	imdbId := c.Query("i")
 

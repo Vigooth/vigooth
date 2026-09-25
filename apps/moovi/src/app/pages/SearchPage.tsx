@@ -2,7 +2,13 @@ import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import { CpcButton, CpcLayout, ListIcon, GridCompactIcon } from '@vigooth/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useQueryParam } from '@/hooks/useQueryParam';
-import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from '@/hooks/useTmdbSearch';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import {
+  useTmdbSearch,
+  useTmdbSearchPerson,
+  useTmdbDiscoverByPerson,
+  useTmdbNowPlaying,
+} from '@/hooks/useTmdbSearch';
 import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { Header } from '@/components/layout/Header';
 import { SearchBar } from '@/components/search/SearchBar';
@@ -20,6 +26,7 @@ export function SearchPage() {
   const [query, setQuery] = useQueryParam('q');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const debouncedQuery = useDebounce(query, 300);
+  const isSearching = debouncedQuery.length >= 2;
 
   const {
     data: searchData,
@@ -43,6 +50,21 @@ export function SearchPage() {
     hasNextPage: hasNextDirectorPage,
     isFetchingNextPage: isFetchingNextDirectorPage,
   } = useTmdbDiscoverByPerson(director?.id ?? null);
+
+  // Recent releases fill the page until a search is typed.
+  const {
+    data: nowPlayingData,
+    isLoading: loadingNowPlaying,
+    fetchNextPage: fetchNextNowPlayingPage,
+    hasNextPage: hasNextNowPlayingPage,
+    isFetchingNextPage: isFetchingNextNowPlayingPage,
+  } = useTmdbNowPlaying(!isSearching);
+  const nowPlayingResults = nowPlayingData?.pages.flatMap((page) => page.results) ?? [];
+  const { scrollRef, sentinelRef: nowPlayingSentinelRef } = useInfiniteScroll({
+    hasNextPage: hasNextNowPlayingPage,
+    isFetchingNextPage: isFetchingNextNowPlayingPage,
+    fetchNextPage: fetchNextNowPlayingPage,
+  });
 
   const { data: collectionData } = useMoviesQuery();
 
@@ -130,12 +152,37 @@ export function SearchPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto px-3 pb-3">
-          {!debouncedQuery || debouncedQuery.length < 2 ? (
-            <div className="text-center py-12 text-cpc-green-900">
-              <div className="text-lg mb-2">SEARCH MOVIES</div>
-              <div className="text-sm">Type a movie title or director name to search TMDB</div>
-            </div>
+        <div ref={scrollRef} className="flex-1 overflow-auto px-3 pb-3">
+          {!isSearching ? (
+            loadingNowPlaying ? (
+              <div className="text-center py-12 text-cpc-cyan-500">LOADING...</div>
+            ) : nowPlayingResults.length > 0 ? (
+              <div>
+                <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
+                  SORTIES RÉCENTES
+                </div>
+                <div className={gridClasses[viewMode]}>
+                  {nowPlayingResults.map((result) => (
+                    <SearchResultCard
+                      key={`now-playing-${result.id}`}
+                      result={result}
+                      viewMode={viewMode}
+                      inCollection={collectionKeys.has(`movie:${result.id}`)}
+                    />
+                  ))}
+                </div>
+                <div ref={nowPlayingSentinelRef} className="h-8 flex items-center justify-center">
+                  {isFetchingNextNowPlayingPage && (
+                    <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-cpc-green-900">
+                <div className="text-lg mb-2">SEARCH MOVIES</div>
+                <div className="text-sm">Type a movie title or director name to search TMDB</div>
+              </div>
+            )
           ) : searching ? (
             <div className="text-center py-12 text-cpc-cyan-500">SEARCHING...</div>
           ) : (

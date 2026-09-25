@@ -91,6 +91,11 @@ export interface TmdbSearchResponse {
   total_results: number;
 }
 
+export interface TmdbNowPlayingResponse extends TmdbSearchResponse {
+  /** Release window of the films in cinemas; older dates are re-releases. */
+  dates: { minimum: string; maximum: string };
+}
+
 export interface TmdbGenre {
   id: number;
   name: string;

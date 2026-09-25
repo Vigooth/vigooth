@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseInfiniteScrollOptions {
   hasNextPage: boolean | undefined;
@@ -14,10 +14,10 @@ export function useInfiniteScroll({
   rootMargin = '200px',
 }: UseInfiniteScrollOptions) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  // A callback ref, so the observer follows the sentinel when it remounts.
+  const [sentinel, sentinelRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
     const container = scrollRef.current;
     if (!sentinel || !container) return;
 
@@ -32,7 +32,7 @@ export function useInfiniteScroll({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, rootMargin]);
+  }, [sentinel, hasNextPage, isFetchingNextPage, fetchNextPage, rootMargin]);
 
   return { scrollRef, sentinelRef };
 }

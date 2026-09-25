@@ -317,6 +317,7 @@ func main() {
 		api.GET("/tmdb/search", proxyHandler.TmdbSearch)
 		api.GET("/tmdb/search-person", proxyHandler.TmdbSearchPerson)
 		api.GET("/tmdb/discover/movie", proxyHandler.TmdbDiscoverByPerson)
+		api.GET("/tmdb/now-playing", proxyHandler.TmdbNowPlaying)
 		api.GET("/yts", proxyHandler.YtsLookup)
 		api.GET("/tpb", proxyHandler.TpbSearch)
 		api.GET("/subtitles", subtitlesHandler.Search)

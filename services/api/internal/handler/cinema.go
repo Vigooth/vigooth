@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
@@ -378,15 +379,20 @@ func (h *ProxyHandler) allocineTheaters(cityID int) ([]allocineTheater, error) {
 			continue
 		}
 		seen[m[1]] = true
-		// The name is JSON-escaped (é…) inside the HTML attribute.
-		name := m[2]
-		var unescaped string
-		if json.Unmarshal([]byte(`"`+name+`"`), &unescaped) == nil {
-			name = unescaped
-		}
-		theaters = append(theaters, allocineTheater{ID: m[1], Name: strings.TrimSpace(name)})
+		theaters = append(theaters, allocineTheater{ID: m[1], Name: theaterName(m[2])})
 	}
 	return theaters, nil
+}
+
+// theaterName decodes a name read from a data-theater attribute: JSON
+// inside HTML, so both its \u00e9 escapes and its &#039; entities.
+func theaterName(raw string) string {
+	name := raw
+	var unescaped string
+	if json.Unmarshal([]byte(`"`+name+`"`), &unescaped) == nil {
+		name = unescaped
+	}
+	return strings.TrimSpace(html.UnescapeString(name))
 }
 
 func appendNewTheaters(theaters, more []allocineTheater) []allocineTheater {

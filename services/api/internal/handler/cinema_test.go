@@ -78,3 +78,16 @@ func TestNearbyDaysFor(t *testing.T) {
 		}
 	}
 }
+
+func TestTheaterName(t *testing.T) {
+	cases := map[string]string{
+		`Cin\u00e9ma L&#039;Etoile`:   "Cinéma L'Etoile",
+		`Path\u00e9 Lyon - Bellecour`: "Pathé Lyon - Bellecour",
+		`Le Cin\u00e9ma `:             "Le Cinéma",
+	}
+	for raw, want := range cases {
+		if got := theaterName(raw); got != want {
+			t.Errorf("theaterName(%q) = %q, want %q", raw, got, want)
+		}
+	}
+}

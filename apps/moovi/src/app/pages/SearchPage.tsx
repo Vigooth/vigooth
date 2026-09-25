@@ -146,8 +146,8 @@ export function SearchPage() {
             </CpcButton>
             <CpcButton
               size="xs"
-              color={viewMode === 'compact' ? 'cyan' : 'green'}
-              onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
+              color={viewMode === 'grid' ? 'cyan' : 'green'}
+              onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
             >
               <GridCompactIcon size="sm" />
             </CpcButton>

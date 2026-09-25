@@ -11,6 +11,11 @@ import type { AddMoviePayload } from '@/types/movie';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
+// Card actions show on hover, or while focused, on devices that can hover;
+// touch screens keep them visible.
+const HOVER_ONLY =
+  '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity';
+
 interface SearchResultCardProps {
   result: TmdbSearchResult;
   inCollection: boolean;
@@ -230,6 +235,7 @@ export function SearchResultCard({
             </div>
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
+          {added && <InCollectionBadge className="top-1 right-1 text-[9px]" />}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
             <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
               {displayTitle}
@@ -238,7 +244,7 @@ export function SearchResultCard({
             <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
           </div>
         </div>
-        <div className="flex gap-1 p-1">
+        <div className={`flex gap-1 p-1 ${adding ? '' : HOVER_ONLY}`}>
           <CpcButton
             size="xs"
             fullWidth
@@ -292,6 +298,7 @@ export function SearchResultCard({
         ) : (
           <PosterTags tags={posterTags} className="top-2 left-2" />
         )}
+        {added && <InCollectionBadge className="top-2 right-2 text-[10px]" />}
       </div>
 
       <div className="p-2 flex flex-col gap-1.5 flex-1">
@@ -302,7 +309,7 @@ export function SearchResultCard({
           <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
         </div>
 
-        <div className="flex flex-col gap-1.5 mt-auto">
+        <div className={`flex flex-col gap-1.5 mt-auto ${adding ? '' : HOVER_ONLY}`}>
           <CpcButton
             size="xs"
             fullWidth
@@ -344,6 +351,16 @@ function PosterTags({ tags, className }: { tags: string[]; className: string }) 
           {tag}
         </div>
       ))}
+    </div>
+  );
+}
+
+function InCollectionBadge({ className }: { className: string }) {
+  return (
+    <div
+      className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
+    >
+      IN
     </div>
   );
 }

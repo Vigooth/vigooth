@@ -150,7 +150,9 @@ export function PublicMovieDetails({ movie }: PublicMovieDetailsProps) {
               imdbId={imdbId}
               tmdbId={tmdbIdNum}
               title={title}
+              originalTitle={originalTitle}
               year={year}
+              seasons={tvDetails?.number_of_seasons}
               allocineId={allocine?.allocine_id}
               mediaType={movie.media_type}
             />

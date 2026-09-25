@@ -8,6 +8,7 @@ import {
   ChevronDownIcon,
 } from '@vigooth/ui';
 import { getAllocineSearchUrl, getAllocineFilmUrl } from '@/utils/allocine';
+import { TpbMenu } from '@/components/movies/TpbMenu';
 import { useYtsMovie } from '@/hooks/useYtsMovie';
 import { useSubtitles } from '@/hooks/useSubtitles';
 import { downloadSubtitle } from '@/lib/api/subtitles';
@@ -18,7 +19,11 @@ interface ExternalLinksProps {
   imdbId: string | null;
   tmdbId: number;
   title: string;
+  /** Original-language title, which torrent names use. */
+  originalTitle?: string;
   year: number;
+  /** Number of seasons of a TV show. */
+  seasons?: number;
   allocineId?: string | null;
   mediaType?: string;
 }
@@ -27,7 +32,9 @@ export function ExternalLinks({
   imdbId,
   tmdbId,
   title,
+  originalTitle,
   year,
+  seasons = 0,
   allocineId,
   mediaType = 'movie',
 }: ExternalLinksProps) {
@@ -131,6 +138,9 @@ export function ExternalLinks({
             </Fragment>
           ))}
         </CpcMenu>
+      )}
+      {mediaType === 'tv' && seasons > 0 && (
+        <TpbMenu title={originalTitle || title} seasons={seasons} />
       )}
       {subtitlesByLanguage.length > 0 && (
         <CpcMenu

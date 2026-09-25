@@ -334,28 +334,11 @@ func (h *ProxyHandler) YtsLookup(c *gin.Context) {
 	}
 
 	movie := ytsResp.Data.Movies[0]
-	trackers := []string{
-		"udp://open.demonii.com:1337/announce",
-		"udp://tracker.openbittorrent.com:80",
-		"udp://tracker.coppersurfer.tk:6969",
-		"udp://glotorrents.pw:6969/announce",
-		"udp://tracker.opentrackr.org:1337/announce",
-		"udp://torrent.gresille.org:80/announce",
-		"udp://p4p.arenabg.com:1337",
-		"udp://tracker.leechers-paradise.org:6969",
-	}
-	trackerParams := ""
-	for _, tr := range trackers {
-		trackerParams += "&tr=" + url.QueryEscape(tr)
-	}
-
 	torrents := make([]gin.H, 0, len(movie.Torrents))
 	for _, t := range movie.Torrents {
-		magnet := fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s",
-			t.Hash, url.QueryEscape(movie.Title), trackerParams)
 		torrents = append(torrents, gin.H{
 			"url":     t.URL,
-			"magnet":  magnet,
+			"magnet":  magnetLink(t.Hash, movie.Title),
 			"quality": t.Quality,
 			"type":    t.Type,
 			"size":    t.Size,
@@ -368,6 +351,27 @@ func (h *ProxyHandler) YtsLookup(c *gin.Context) {
 		"title":    movie.Title,
 		"torrents": torrents,
 	})
+}
+
+var publicTrackers = []string{
+	"udp://open.demonii.com:1337/announce",
+	"udp://tracker.openbittorrent.com:80",
+	"udp://tracker.coppersurfer.tk:6969",
+	"udp://glotorrents.pw:6969/announce",
+	"udp://tracker.opentrackr.org:1337/announce",
+	"udp://torrent.gresille.org:80/announce",
+	"udp://p4p.arenabg.com:1337",
+	"udp://tracker.leechers-paradise.org:6969",
+}
+
+// magnetLink builds a magnet URI from an info hash, announcing public trackers.
+func magnetLink(hash, name string) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "magnet:?xt=urn:btih:%s&dn=%s", hash, url.QueryEscape(name))
+	for _, tr := range publicTrackers {
+		b.WriteString("&tr=" + url.QueryEscape(tr))
+	}
+	return b.String()
 }
 
 // ytsGet tries a direct request first, then falls back to Tor if blocked.

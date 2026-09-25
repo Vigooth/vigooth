@@ -247,7 +247,9 @@ export function MovieDetails({
               imdbId={imdbId}
               tmdbId={tmdbId}
               title={title}
+              originalTitle={originalTitle}
               year={year}
+              seasons={tvDetails?.number_of_seasons}
               allocineId={allocine?.allocine_id}
               mediaType={mediaType}
             />

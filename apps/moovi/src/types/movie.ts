@@ -198,6 +198,24 @@ export interface YtsResponse {
   torrents?: YtsTorrent[];
 }
 
+// The Pirate Bay types
+export interface TpbTorrent {
+  id: string;
+  name: string;
+  url: string;
+  magnet: string;
+  quality: string;
+  size: string;
+  seeders: number;
+  leechers: number;
+}
+
+export interface TpbResponse {
+  found: boolean;
+  url: string;
+  torrents?: TpbTorrent[];
+}
+
 // OpenSubtitles types
 export interface Subtitle {
   file_id: number;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcButton } from '@vigooth/ui';
+import { CpcButton, StarIcon } from '@vigooth/ui';
 import type { TmdbSearchResult } from '@/types/movie';
 import { getPosterUrl } from '@/utils/tmdbImage';
 import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb';
@@ -230,11 +230,6 @@ export function SearchResultCard({
             </div>
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
-          {added && (
-            <div className="absolute top-1 right-1 bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 text-[9px]">
-              IN
-            </div>
-          )}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
             <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
               {displayTitle}
@@ -242,6 +237,30 @@ export function SearchResultCard({
             </div>
             <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
           </div>
+        </div>
+        <div className="flex gap-1 p-1">
+          <CpcButton
+            size="xs"
+            fullWidth
+            color={added ? 'green' : adding ? 'yellow' : 'cyan'}
+            className="justify-center"
+            onClick={handleAdd}
+            disabled={added || adding}
+          >
+            {added ? 'IN' : adding ? '...' : 'ADD'}
+          </CpcButton>
+          {!added && (
+            <CpcButton
+              size="xs"
+              color="yellow"
+              variant={isWishlisted ? 'filled' : 'outlined'}
+              onClick={handleWishlist}
+              disabled={wishlistPending}
+              aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
+            >
+              <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
+            </CpcButton>
+          )}
         </div>
       </div>
     );

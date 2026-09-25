@@ -25,7 +25,8 @@ const gridClasses: Record<ViewMode, string> = {
 
 export function SearchPage() {
   const [query, setQuery] = useQueryParam('q');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  // Small thumbnails by default; the grid icon zooms in to the larger cards.
+  const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const debouncedQuery = useDebounce(query, 300);
   const isSearching = debouncedQuery.length >= 2;
 
@@ -139,14 +140,14 @@ export function SearchPage() {
             <CpcButton
               size="xs"
               color={viewMode === 'list' ? 'cyan' : 'green'}
-              onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
+              onClick={() => setViewMode(viewMode === 'list' ? 'compact' : 'list')}
             >
               <ListIcon size="sm" />
             </CpcButton>
             <CpcButton
               size="xs"
-              color={viewMode === 'compact' ? 'cyan' : 'green'}
-              onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
+              color={viewMode === 'grid' ? 'cyan' : 'green'}
+              onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
             >
               <GridCompactIcon size="sm" />
             </CpcButton>

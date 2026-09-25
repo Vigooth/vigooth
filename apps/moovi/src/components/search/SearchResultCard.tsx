@@ -23,6 +23,8 @@ const TITLE_HIDDEN = '[@media(hover:hover)]:invisible';
 interface SearchResultCardProps {
   result: TmdbSearchResult;
   inCollection: boolean;
+  /** The user's rating, out of 10, of a film in the collection. */
+  personalRating?: number | null;
   viewMode?: ViewMode;
   /** Short labels pinned to the poster's top-left corner, e.g. showtimes. */
   posterTags?: string[];
@@ -31,6 +33,7 @@ interface SearchResultCardProps {
 export function SearchResultCard({
   result,
   inCollection,
+  personalRating = null,
   viewMode = 'grid',
   posterTags = [],
 }: SearchResultCardProps) {
@@ -239,7 +242,7 @@ export function SearchResultCard({
             </div>
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
-          {added && <InCollectionBadge className="top-1 right-1 text-[9px]" />}
+          {added && <RatingBadge rating={personalRating} className="top-1 right-1 text-[9px]" />}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
             <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
               <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
@@ -306,7 +309,7 @@ export function SearchResultCard({
         ) : (
           <PosterTags tags={posterTags} className="top-2 left-2" />
         )}
-        {added && <InCollectionBadge className="top-2 right-2 text-[10px]" />}
+        {added && <RatingBadge rating={personalRating} className="top-2 right-2 text-[10px]" />}
       </div>
 
       <div className="p-2 relative">
@@ -364,12 +367,14 @@ function PosterTags({ tags, className }: { tags: string[]; className: string }) 
   );
 }
 
-function InCollectionBadge({ className }: { className: string }) {
+/** Marks a film in the collection with the user's rating, or a dash while unrated. */
+function RatingBadge({ rating, className }: { rating: number | null; className: string }) {
   return (
     <div
       className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
+      title={rating === null ? 'Dans ta collection, pas encore noté' : `Ta note : ${rating}/10`}
     >
-      IN
+      ★ {rating ?? '—'}
     </div>
   );
 }

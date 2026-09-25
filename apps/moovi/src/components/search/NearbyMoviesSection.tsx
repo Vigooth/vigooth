@@ -14,14 +14,15 @@ const PREVIEW_COUNT = 12;
 interface NearbyMoviesSectionProps {
   viewMode: ViewMode;
   gridClassName: string;
-  collectionKeys: Set<string>;
+  /** Personal rating of each film in the collection, keyed "media_type:tmdb_id". */
+  collectionRatings: Map<string, number | null>;
 }
 
 /** Films showing in the cinemas around the user, located on demand, for a day or the week. */
 export function NearbyMoviesSection({
   viewMode,
   gridClassName,
-  collectionKeys,
+  collectionRatings,
 }: NearbyMoviesSectionProps) {
   const { position, status, locate } = useGeolocation();
   const [days] = useState(() => showtimeDays());
@@ -82,7 +83,8 @@ export function NearbyMoviesSection({
               <SearchResultCard
                 result={result}
                 viewMode={viewMode}
-                inCollection={collectionKeys.has(`movie:${result.id}`)}
+                inCollection={collectionRatings.has(`movie:${result.id}`)}
+                personalRating={collectionRatings.get(`movie:${result.id}`) ?? null}
                 posterTags={next_showtimes.map(showtimeTag)}
               />
               <div className="text-cpc-green-900 text-[10px] truncate" title={theaters.join(', ')}>

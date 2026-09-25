@@ -69,8 +69,9 @@ export function SearchPage() {
 
   const { data: collectionData } = useMoviesQuery();
 
-  const collectionKeys = new Set(
-    (collectionData?.movies ?? []).map((m) => `${m.media_type}:${m.tmdb_id}`),
+  // Personal rating of each film in the collection, keyed "media_type:tmdb_id".
+  const collectionRatings = new Map(
+    (collectionData?.movies ?? []).map((m) => [`${m.media_type}:${m.tmdb_id}`, m.personal_rating]),
   );
 
   const results = (searchData?.pages.flatMap((page) => page.results) ?? []).filter(
@@ -159,7 +160,7 @@ export function SearchPage() {
               <NearbyMoviesSection
                 viewMode={viewMode}
                 gridClassName={gridClasses[viewMode]}
-                collectionKeys={collectionKeys}
+                collectionRatings={collectionRatings}
               />
               {loadingNowPlaying ? (
                 <div className="text-center py-12 text-cpc-cyan-500">LOADING...</div>
@@ -174,7 +175,8 @@ export function SearchPage() {
                         key={`now-playing-${result.id}`}
                         result={result}
                         viewMode={viewMode}
-                        inCollection={collectionKeys.has(`movie:${result.id}`)}
+                        inCollection={collectionRatings.has(`movie:${result.id}`)}
+                        personalRating={collectionRatings.get(`movie:${result.id}`) ?? null}
                       />
                     ))}
                   </div>
@@ -207,9 +209,13 @@ export function SearchPage() {
                         key={`director-${result.id}`}
                         result={result}
                         viewMode={viewMode}
-                        inCollection={collectionKeys.has(
+                        inCollection={collectionRatings.has(
                           `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
+                        personalRating={
+                          collectionRatings.get(`${result.media_type ?? 'movie'}:${result.id}`) ??
+                          null
+                        }
                       />
                     ))}
                   </div>
@@ -241,9 +247,13 @@ export function SearchPage() {
                         key={result.id}
                         result={result}
                         viewMode={viewMode}
-                        inCollection={collectionKeys.has(
+                        inCollection={collectionRatings.has(
                           `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
+                        personalRating={
+                          collectionRatings.get(`${result.media_type ?? 'movie'}:${result.id}`) ??
+                          null
+                        }
                       />
                     ))}
                   </div>

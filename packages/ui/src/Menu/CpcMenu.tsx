@@ -2,7 +2,7 @@ import { Menu } from '@base-ui/react/menu';
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { cn } from '../utils/cn';
-import { ChevronRightIcon } from '../Icons';
+import { ChevronRightIcon, SpinnerIcon } from '../Icons';
 
 type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange';
 
@@ -41,6 +41,10 @@ interface CpcMenuGroupProps {
 interface CpcSubmenuProps {
   label: ReactNode;
   children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Shows a spinner in place of the arrow while the content is being fetched. */
+  loading?: boolean;
   side?: 'top' | 'bottom' | 'left' | 'right';
   align?: 'start' | 'center' | 'end';
 }
@@ -131,16 +135,38 @@ export function CpcMenuGroup({ label, children }: CpcMenuGroupProps) {
   );
 }
 
-export function CpcSubmenu({ label, children, side = 'right', align = 'start' }: CpcSubmenuProps) {
+export function CpcSubmenu({
+  label,
+  children,
+  open,
+  onOpenChange,
+  loading = false,
+  side = 'right',
+  align = 'start',
+}: CpcSubmenuProps) {
   const color = useContext(MenuColorContext);
   const c = colorMap[color];
   const menuStyle = { '--menu-color': c.base } as React.CSSProperties;
 
+  // While loading the submenu is held closed, so Base UI never reports it
+  // closing: leaving the trigger is what cancels the pending open.
+  function handlePointerLeave() {
+    if (loading) onOpenChange?.(false);
+  }
+
   return (
-    <Menu.SubmenuRoot>
-      <Menu.SubmenuTrigger className="cpc-menu-submenu-trigger" style={menuStyle}>
+    <Menu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
+      <Menu.SubmenuTrigger
+        className="cpc-menu-submenu-trigger"
+        style={menuStyle}
+        onPointerLeave={handlePointerLeave}
+      >
         {label}
-        <ChevronRightIcon size="sm" className="ml-auto" />
+        {loading ? (
+          <SpinnerIcon size="sm" className="ml-auto animate-spin" />
+        ) : (
+          <ChevronRightIcon size="sm" className="ml-auto" />
+        )}
       </Menu.SubmenuTrigger>
       <Menu.Portal>
         <Menu.Positioner side={side} align={align} sideOffset={0}>

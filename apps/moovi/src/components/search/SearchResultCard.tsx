@@ -242,7 +242,13 @@ export function SearchResultCard({
             </div>
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
-          {added && <RatingBadge rating={personalRating} className="top-1 right-1 text-[9px]" />}
+          {added && personalRating !== null && (
+            <CpcTooltip content={`Ma note perso : ${personalRating}`} color="cyan">
+              <div className="absolute top-1 right-1 bg-black/80 border border-cpc-cyan-500 text-cpc-cyan-500 font-bold px-1 py-0.5 text-[10px]">
+                {personalRating}
+              </div>
+            </CpcTooltip>
+          )}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
             <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
               <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
@@ -309,7 +315,13 @@ export function SearchResultCard({
         ) : (
           <PosterTags tags={posterTags} className="top-2 left-2" />
         )}
-        {added && <RatingBadge rating={personalRating} className="top-2 right-2 text-[10px]" />}
+        {added && personalRating !== null && (
+          <CpcTooltip content={`Ma note perso : ${personalRating}`} color="cyan">
+            <div className="absolute top-2 right-2 bg-black bg-opacity-80 border-2 border-cpc-cyan-500 text-cpc-cyan-500 font-bold px-2 py-1 text-sm">
+              {personalRating}/10
+            </div>
+          </CpcTooltip>
+        )}
       </div>
 
       <div className="p-2 relative">
@@ -364,18 +376,5 @@ function PosterTags({ tags, className }: { tags: string[]; className: string }) 
         </div>
       ))}
     </div>
-  );
-}
-
-/** Marks a film in the collection with the user's rating, or a dash while unrated. */
-function RatingBadge({ rating, className }: { rating: number | null; className: string }) {
-  return (
-    <CpcTooltip content={`Ma note perso : ${rating ?? 'pas encore noté'}`}>
-      <div
-        className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
-      >
-        {rating ?? '—'}
-      </div>
-    </CpcTooltip>
   );
 }

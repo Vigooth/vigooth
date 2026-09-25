@@ -1,7 +1,6 @@
 import { Tooltip } from '@base-ui/react/tooltip';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
-
-type CpcColor = 'green' | 'cyan' | 'red' | 'yellow' | 'magenta' | 'blue' | 'orange';
+import type { CpcColor } from '../Button/CpcButton';
 
 const colorMap: Record<CpcColor, string> = {
   green: '#00FF00',
@@ -13,7 +12,7 @@ const colorMap: Record<CpcColor, string> = {
   orange: '#FF8000',
 };
 
-interface CpcTooltipProps {
+export interface CpcTooltipProps {
   /** The element the tooltip describes; it is rendered as the trigger. */
   children: ReactElement;
   content: ReactNode;

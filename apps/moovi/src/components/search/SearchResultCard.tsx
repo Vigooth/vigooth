@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcButton, PlusIcon, SpinnerIcon, StarIcon } from '@vigooth/ui';
+import { CpcButton, StarIcon } from '@vigooth/ui';
 import type { TmdbSearchResult } from '@/types/movie';
 import { getPosterUrl } from '@/utils/tmdbImage';
 import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb';
@@ -11,9 +11,14 @@ import type { AddMoviePayload } from '@/types/movie';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
-// Card actions overlay the poster on hover or focus; devices that cannot
-// hover keep them shown.
-const HOVER_ONLY = 'hidden group-hover:flex group-focus-within:flex [@media(hover:none)]:flex';
+// On hover or focus, the card's actions take the place of its title, which
+// only turns invisible so the card keeps its size. Devices that cannot hover
+// show both, the actions below the title.
+const ACTIONS_ON_HOVER =
+  'hidden group-hover:flex group-focus-within:flex [@media(hover:none)]:flex [@media(hover:none)]:static';
+const ACTIONS_SHOWN = 'flex [@media(hover:none)]:static';
+const TITLE_ON_HOVER = 'group-hover:invisible [@media(hover:hover)]:group-focus-within:invisible';
+const TITLE_HIDDEN = '[@media(hover:hover)]:invisible';
 
 interface SearchResultCardProps {
   result: TmdbSearchResult;
@@ -234,23 +239,41 @@ export function SearchResultCard({
             </div>
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
-          {added ? (
-            <InCollectionBadge className="top-1 right-1 text-[9px]" />
-          ) : (
-            <PosterActions
-              adding={adding}
-              isWishlisted={isWishlisted}
-              wishlistPending={wishlistPending}
-              onAdd={handleAdd}
-              onWishlist={handleWishlist}
-            />
-          )}
+          {added && <InCollectionBadge className="top-1 right-1 text-[9px]" />}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
-            <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
-              {displayTitle}
-              {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+            <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
+              <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
+                {displayTitle}
+                {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+              </div>
+              <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
             </div>
-            <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
+            {!added && (
+              <div
+                className={`absolute inset-0 px-1.5 items-center gap-1 [@media(hover:none)]:px-0 [@media(hover:none)]:mt-1 ${adding ? ACTIONS_SHOWN : ACTIONS_ON_HOVER}`}
+              >
+                <CpcButton
+                  size="xs"
+                  fullWidth
+                  color={adding ? 'yellow' : 'cyan'}
+                  className="justify-center"
+                  onClick={handleAdd}
+                  disabled={adding}
+                >
+                  {adding ? '...' : 'ADD'}
+                </CpcButton>
+                <CpcButton
+                  size="xs"
+                  color="yellow"
+                  variant={isWishlisted ? 'filled' : 'outlined'}
+                  onClick={handleWishlist}
+                  disabled={wishlistPending}
+                  aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
+                >
+                  <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
+                </CpcButton>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -283,24 +306,43 @@ export function SearchResultCard({
         ) : (
           <PosterTags tags={posterTags} className="top-2 left-2" />
         )}
-        {added ? (
-          <InCollectionBadge className="top-2 right-2 text-[10px]" />
-        ) : (
-          <PosterActions
-            adding={adding}
-            isWishlisted={isWishlisted}
-            wishlistPending={wishlistPending}
-            onAdd={handleAdd}
-            onWishlist={handleWishlist}
-          />
-        )}
+        {added && <InCollectionBadge className="top-2 right-2 text-[10px]" />}
       </div>
 
-      <div className="p-2">
-        <div className="text-cpc-cyan-500 text-sm font-bold truncate group-hover:text-cpc-yellow-500 transition-colors">
-          {displayTitle}
+      <div className="p-2 relative">
+        <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
+          <div className="text-cpc-cyan-500 text-sm font-bold truncate group-hover:text-cpc-yellow-500 transition-colors">
+            {displayTitle}
+          </div>
+          <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
         </div>
-        <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
+        {!added && (
+          <div
+            className={`absolute inset-0 px-2 items-center gap-1 [@media(hover:none)]:px-0 [@media(hover:none)]:mt-1.5 ${adding ? ACTIONS_SHOWN : ACTIONS_ON_HOVER}`}
+          >
+            <CpcButton
+              size="xs"
+              fullWidth
+              color={adding ? 'yellow' : 'cyan'}
+              className="justify-center"
+              onClick={handleAdd}
+              disabled={adding}
+            >
+              {adding ? 'ADDING...' : 'ADD'}
+            </CpcButton>
+            <CpcButton
+              size="xs"
+              fullWidth
+              color="yellow"
+              variant={isWishlisted ? 'filled' : 'outlined'}
+              className="justify-center"
+              onClick={handleWishlist}
+              disabled={wishlistPending}
+            >
+              {isWishlisted ? 'WISHLISTED' : 'WISHLIST'}
+            </CpcButton>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -328,53 +370,6 @@ function InCollectionBadge({ className }: { className: string }) {
       className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
     >
       IN
-    </div>
-  );
-}
-
-interface PosterActionsProps {
-  adding: boolean;
-  isWishlisted: boolean;
-  wishlistPending: boolean;
-  onAdd: (e: React.MouseEvent) => void;
-  onWishlist: (e: React.MouseEvent) => void;
-}
-
-/** Add and wishlist icons, stacked at the middle of the poster's right edge. */
-function PosterActions({
-  adding,
-  isWishlisted,
-  wishlistPending,
-  onAdd,
-  onWishlist,
-}: PosterActionsProps) {
-  return (
-    <div
-      className={`absolute right-1 top-1/2 -translate-y-1/2 flex-col gap-1 ${adding ? 'flex' : HOVER_ONLY}`}
-    >
-      <CpcButton
-        size="xs"
-        color={adding ? 'yellow' : 'cyan'}
-        className="bg-black/80"
-        onClick={onAdd}
-        disabled={adding}
-        aria-label="Ajouter à la collection"
-        title="Ajouter à la collection"
-      >
-        {adding ? <SpinnerIcon size="sm" className="animate-spin" /> : <PlusIcon size="sm" />}
-      </CpcButton>
-      <CpcButton
-        size="xs"
-        color="yellow"
-        variant={isWishlisted ? 'filled' : 'outlined'}
-        className={isWishlisted ? undefined : 'bg-black/80'}
-        onClick={onWishlist}
-        disabled={wishlistPending}
-        aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
-        title={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
-      >
-        <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
-      </CpcButton>
     </div>
   );
 }

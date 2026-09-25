@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/Vigooth/vigooth/services/api/internal/llm"
 	"github.com/Vigooth/vigooth/services/api/internal/middleware"
 	"github.com/Vigooth/vigooth/services/api/internal/model"
+	"github.com/Vigooth/vigooth/services/api/internal/modelgen"
 	"github.com/Vigooth/vigooth/services/api/internal/repository"
 	"github.com/Vigooth/vigooth/services/api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -128,9 +130,21 @@ func main() {
 		log.Println("Pl@ntNet identification disabled (no PLANTNET_API_KEY)")
 	}
 
+	// Photo → 3D model (optional). Meshy when a key is set; otherwise, in dev
+	// only, TripoSR run locally through the garden script if that script exists.
+	var plantModelGenHandler *handler.PlantModelGenHandler
+	if generator := pickModelGenerator(databaseURL == ""); generator != nil {
+		plantModelGenHandler = handler.NewPlantModelGenHandler(generator, gardenService)
+		gardenHandler.EnableModelGeneration()
+		log.Printf("3D model generation enabled via %s", generator.Name())
+	} else {
+		log.Println("3D model generation disabled (no MESHY_API_KEY, no local TripoSR script)")
+	}
+
 	// LLM provider (optional - movie recommendations, garden care suggestions)
 	var recoHandler *handler.RecommendationHandler
 	var plantEnrichHandler *handler.PlantEnrichHandler
+	var plantCropHandler *handler.PlantCropHandler
 	if os.Getenv("LLM_API_KEY") != "" {
 		llmProvider, err := llm.NewProviderFromEnv()
 		if err != nil {
@@ -138,13 +152,15 @@ func main() {
 		} else {
 			recoHandler = handler.NewRecommendationHandler(movieService, wishlistService, llmProvider, tmdbApiKey, recoRepo)
 			plantEnrichHandler = handler.NewPlantEnrichHandler(llmProvider)
+			plantCropHandler = handler.NewPlantCropHandler(llmProvider)
+			gardenHandler.EnableCropSuggestion()
 			log.Printf("LLM provider initialized: %s", getEnv("LLM_PROVIDER", "anthropic"))
 		}
 	}
 
 	// Seed dev user + movies in-memory mode
 	if databaseURL == "" {
-		seedDevData(authService, movieService)
+		seedDevData(authService, movieService, gardenService)
 	}
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtSecret)
@@ -176,6 +192,11 @@ func main() {
 	r.POST("/auth/register", authLimiter, authHandler.Register)
 	r.POST("/auth/login", authLimiter, authHandler.Login)
 	r.POST("/auth/logout", authHandler.Logout)
+	// In-memory mode only: a frontend in dev can sign in as the seeded user
+	// without a form. Never mounted with a database behind the API.
+	if databaseURL == "" {
+		r.POST("/auth/dev-login", authHandler.DevLogin(devUserEmail, devUserPassword))
+	}
 
 	// Visit beacon, fired once per page load by every frontend. Public by design,
 	// but a session cookie riding along attributes the hit to its account. The
@@ -198,8 +219,8 @@ func main() {
 	r.GET("/public/collection/:userId", movieHandler.GetPublicCollection)
 	r.GET("/public/garden/:userId", gardenHandler.GetPublicGarden)
 	r.GET("/public/garden/:userId/plants/:id/photo", gardenHandler.GetPublicPlantPhoto)
+	r.GET("/public/garden/:userId/plants/:id/model", gardenHandler.GetPublicPlantModel)
 	r.GET("/public/garden/:userId/plan/photo", gardenHandler.GetPublicPlanPhoto)
-	r.GET("/public/garden/:userId/viewpoints/:id/panorama", gardenHandler.GetPublicViewpointPanorama)
 
 	// Public proxy routes (no user data, just external API proxies)
 	pub := r.Group("/api")
@@ -272,18 +293,22 @@ func main() {
 		if plantEnrichHandler != nil {
 			api.POST("/garden/plants/enrich", plantEnrichHandler.Enrich)
 		}
+		if plantCropHandler != nil {
+			api.POST("/garden/plants/crop-suggest", plantCropHandler.Suggest)
+		}
 		api.PUT("/garden/plants/:id/photo", gardenHandler.UploadPlantPhoto)
 		api.GET("/garden/plants/:id/photo", gardenHandler.GetPlantPhoto)
+		api.PUT("/garden/plants/:id/model", gardenHandler.UploadPlantModel)
+		api.GET("/garden/plants/:id/model", gardenHandler.GetPlantModel)
+		api.DELETE("/garden/plants/:id/model", gardenHandler.DeletePlantModel)
+		if plantModelGenHandler != nil {
+			api.POST("/garden/plants/:id/model/generate", plantModelGenHandler.Start)
+			api.GET("/garden/plants/:id/model/generate/:taskId", plantModelGenHandler.Check)
+		}
 
 		api.PUT("/garden/plan/photo", gardenHandler.UploadPlanPhoto)
 		api.GET("/garden/plan/photo", gardenHandler.GetPlanPhoto)
 		api.DELETE("/garden/plan/photo", gardenHandler.DeletePlanPhoto)
-
-		api.POST("/garden/viewpoints", gardenHandler.CreateViewpoint)
-		api.PUT("/garden/viewpoints/:id", gardenHandler.UpdateViewpoint)
-		api.DELETE("/garden/viewpoints/:id", gardenHandler.DeleteViewpoint)
-		api.PUT("/garden/viewpoints/:id/panorama", gardenHandler.UploadViewpointPanorama)
-		api.GET("/garden/viewpoints/:id/panorama", gardenHandler.GetViewpointPanorama)
 
 		api.POST("/garden/occupations", gardenHandler.CreateOccupation)
 		api.PUT("/garden/occupations/:id", gardenHandler.UpdateOccupation)
@@ -312,10 +337,41 @@ func main() {
 	}
 }
 
-func seedDevData(authService *service.AuthService, movieService *service.MovieService) {
+// pickModelGenerator chooses how plant photos become 3D models. Meshy wins
+// whenever its key is set. The local TripoSR path is only offered in dev
+// (in-memory mode): it shells out to a script on this machine, which makes no
+// sense on a server, and the script is looked up relative to the repo checkout
+// this API is run from, or at TRIPOSR_SCRIPT.
+func pickModelGenerator(dev bool) modelgen.Generator {
+	if key := os.Getenv("MESHY_API_KEY"); key != "" {
+		return modelgen.NewMeshy(key, service.MaxModelBytes+1)
+	}
+	if !dev {
+		return nil
+	}
+	script := os.Getenv("TRIPOSR_SCRIPT")
+	if script == "" {
+		script = filepath.Join("..", "..", "apps", "garden", "scripts", "photo-to-3d.sh")
+	}
+	if absolute, err := filepath.Abs(script); err == nil {
+		script = absolute
+	}
+	if _, err := os.Stat(script); err != nil {
+		return nil
+	}
+	return modelgen.NewLocal(script)
+}
+
+// The in-memory dev account. Also what /auth/dev-login signs in as.
+const (
+	devUserEmail    = "t@t.com"
+	devUserPassword = "dev12345"
+)
+
+func seedDevData(authService *service.AuthService, movieService *service.MovieService, gardenService *service.GardenService) {
 	resp, err := authService.Register(model.RegisterRequest{
-		Email:    "t@t.com",
-		Password: "dev12345",
+		Email:    devUserEmail,
+		Password: devUserPassword,
 	})
 	if err != nil {
 		log.Printf("Seed: user already exists or error: %v", err)
@@ -352,6 +408,7 @@ func seedDevData(authService *service.AuthService, movieService *service.MovieSe
 	}
 
 	log.Printf("Seed: added %d movies to dev user collection", len(movies))
+	seedDevGarden(gardenService, userID)
 
 	// Second dev user for comparison testing
 	resp2, err := authService.Register(model.RegisterRequest{

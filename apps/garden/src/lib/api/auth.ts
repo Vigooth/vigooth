@@ -26,6 +26,15 @@ export async function register(email: string, password: string): Promise<User> {
   return response.user;
 }
 
+/**
+ * Sign in as the seeded dev account. The route only exists on the in-memory
+ * dev API; anywhere else this rejects with a 404 and the caller shows the form.
+ */
+export async function devLogin(): Promise<User> {
+  const response = await request<AuthResponse>('/auth/dev-login', { method: 'POST' });
+  return response.user;
+}
+
 export function logout(): Promise<void> {
   return requestVoid('/auth/logout', { method: 'POST' });
 }

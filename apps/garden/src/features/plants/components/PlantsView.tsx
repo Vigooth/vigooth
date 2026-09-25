@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CpcButton, CpcMenu, CpcMenuItem } from '@vigooth/ui';
+import { CpcButton, CpcMenu, CpcMenuItem, CpcModal } from '@vigooth/ui';
 import { deletePlant } from '@/lib/api/garden';
 import { useGarden } from '@/stores/GardenStore';
 import type { Occupation, Plant } from '@/types/garden';
@@ -51,6 +51,10 @@ export function PlantsView() {
 
   const handleCancel = () => {
     setEditing({ mode: 'none' });
+  };
+
+  const handleModalOpenChange = (open: boolean) => {
+    if (!open) setEditing({ mode: 'none' });
   };
 
   const handleSaved = async () => {
@@ -117,13 +121,28 @@ export function PlantsView() {
         </div>
       </header>
 
-      {editing.mode !== 'none' && !readOnly && (
-        <PlantForm
-          plant={editing.mode === 'edit' ? editing.plant : undefined}
-          onSaved={handleSaved}
-          onCancel={handleCancel}
-        />
-      )}
+      {/* The form lives in a dialog: editing a plant used to push the whole
+          grid down, and a photo picked mid-form scrolled the card you were
+          editing off screen. */}
+      <CpcModal
+        open={editing.mode !== 'none' && !readOnly}
+        onOpenChange={handleModalOpenChange}
+        title={
+          editing.mode === 'edit'
+            ? `MODIFIER ${editing.plant.name.toUpperCase()}`
+            : 'NOUVELLE PLANTE'
+        }
+        size="lg"
+        draggable
+      >
+        {editing.mode !== 'none' && (
+          <PlantForm
+            plant={editing.mode === 'edit' ? editing.plant : undefined}
+            onSaved={handleSaved}
+            onCancel={handleCancel}
+          />
+        )}
+      </CpcModal>
 
       {actionError && <p className="text-xs text-cpc-red-500">{actionError}</p>}
       {error && <p className="text-xs text-cpc-red-500">{error}</p>}
@@ -144,6 +163,7 @@ export function PlantsView() {
             effect={effect}
             onEdit={readOnly ? undefined : handleEdit}
             onDelete={readOnly ? undefined : handleDelete}
+            onModelGenerated={readOnly ? undefined : reload}
           />
         ))}
       </div>

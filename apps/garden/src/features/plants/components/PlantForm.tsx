@@ -3,13 +3,16 @@ import { CpcButton } from '@vigooth/ui';
 import { NumberField, TextAreaField, TextField } from '@/components/Field';
 import {
   createPlant,
+  deletePlantModel,
   enrichPlant,
   identifyPlant,
   updatePlant,
+  uploadPlantModel,
   uploadPlantPhoto,
 } from '@/lib/api/garden';
 import type { Plant, PlantCandidate, SavePlantInput } from '@/types/garden';
 import { downscaleImage } from '@/utils/downscaleImage';
+import { PhotoCropper } from './PhotoCropper';
 
 interface PlantFormProps {
   /** Absent for a new plant. */
@@ -43,7 +46,16 @@ function initialState(plant?: Plant): FormState {
 export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   const [form, setForm] = useState<FormState>(() => initialState(plant));
   const [photo, setPhoto] = useState<File | null>(null);
+  /** The photo as picked, kept so a crop can be redone from the full frame. */
+  const [originalPhoto, setOriginalPhoto] = useState<File | null>(null);
+  const [cropping, setCropping] = useState(false);
+  /** A .glb picked for the 3D walk; null keeps whatever is stored. */
+  const [model, setModel] = useState<File | null>(null);
+  /** The owner asked for the stored model to go: applied on save. */
+  const [dropModel, setDropModel] = useState(false);
   const [saving, setSaving] = useState(false);
+  /** What the saving step is doing right now, when it is more than one request. */
+  const [savingStep, setSavingStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [identifying, setIdentifying] = useState(false);
   const [candidates, setCandidates] = useState<PlantCandidate[] | null>(null);
@@ -51,17 +63,49 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
   /** Drives the "these came from a model, check them" note under the fields. */
   const [enriched, setEnriched] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const modelFileRef = useRef<HTMLInputElement>(null);
 
-  const update = <K extends keyof FormState>(key: K) => (value: FormState[K]) => {
-    setForm((previous) => ({ ...previous, [key]: value }));
+  const update =
+    <K extends keyof FormState>(key: K) =>
+    (value: FormState[K]) => {
+      setForm((previous) => ({ ...previous, [key]: value }));
+    };
+
+  const handlePickModel = () => {
+    modelFileRef.current?.click();
   };
+
+  const handleModelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setModel(event.target.files?.[0] ?? null);
+    setDropModel(false);
+  };
+
+  const handleDropModel = () => {
+    setModel(null);
+    setDropModel(true);
+  };
+
+  const handleStartCrop = () => setCropping(true);
+
+  const handleCropApplied = (cropped: File) => {
+    setPhoto(cropped);
+    setCropping(false);
+    setCandidates(null);
+  };
+
+  const handleCropCancelled = () => setCropping(false);
 
   const handlePickPhoto = () => {
     fileRef.current?.click();
   };
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoto(event.target.files?.[0] ?? null);
+    const picked = event.target.files?.[0] ?? null;
+    setPhoto(picked);
+    setOriginalPhoto(picked);
+    // Offer the crop straight away: the 3D generators work from this photo,
+    // and a subject alone in the frame is what makes them succeed.
+    setCropping(picked !== null);
     // Suggestions belong to the previous photo; keeping them next to a new one
     // would invite filling the form from the wrong plant.
     setCandidates(null);
@@ -146,36 +190,72 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
       if (photo) {
         await uploadPlantPhoto(saved.id, await downscaleImage(photo));
       }
+      // Same for the 3D model: its own request, so a bad file fails alone. It is
+      // first brought under the walk's triangle and texture budget, in the
+      // browser — the optimiser is a separate chunk, loaded only here.
+      if (model) {
+        setSavingStep('OPTIMISATION DU MODELE 3D...');
+        const { optimizeGlb } = await import('@/lib/three/optimizeGlb');
+        const { blob } = await optimizeGlb(model);
+        setSavingStep('ENVOI DU MODELE 3D...');
+        await uploadPlantModel(saved.id, blob);
+      } else if (dropModel && plant?.has_model) {
+        await deletePlantModel(saved.id);
+      }
 
       onSaved();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Enregistrement impossible');
     } finally {
       setSaving(false);
+      setSavingStep(null);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-2 border-cpc-green-500 p-4">
-      <h2 className="text-sm text-cpc-yellow-500">
-        {plant ? `MODIFIER ${plant.name.toUpperCase()}` : 'NOUVELLE PLANTE'}
-      </h2>
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <TextField label="Nom" value={form.name} onChange={update('name')} placeholder="Tomate cœur de bœuf" />
+        <TextField
+          label="Nom"
+          value={form.name}
+          onChange={update('name')}
+          placeholder="Tomate cœur de bœuf"
+        />
         <TextField
           label="Nom latin"
           value={form.latinName}
           onChange={update('latinName')}
           placeholder="Solanum lycopersicum"
         />
-        <TextField label="Famille" value={form.family} onChange={update('family')} placeholder="Solanacées" />
-        <TextField label="Exposition" value={form.sun} onChange={update('sun')} placeholder="Plein soleil" />
-        <TextField label="Arrosage" value={form.water} onChange={update('water')} placeholder="Régulier" />
-        <NumberField label="Espacement (cm)" value={form.spacingCm} onChange={update('spacingCm')} min={0} />
+        <TextField
+          label="Famille"
+          value={form.family}
+          onChange={update('family')}
+          placeholder="Solanacées"
+        />
+        <TextField
+          label="Exposition"
+          value={form.sun}
+          onChange={update('sun')}
+          placeholder="Plein soleil"
+        />
+        <TextField
+          label="Arrosage"
+          value={form.water}
+          onChange={update('water')}
+          placeholder="Régulier"
+        />
+        <NumberField
+          label="Espacement (cm)"
+          value={form.spacingCm}
+          onChange={update('spacingCm')}
+          min={0}
+        />
       </div>
 
-      {enriching && <p className="text-xs text-cpc-cyan-500">RECHERCHE DES CONSEILS DE CULTURE...</p>}
+      {enriching && (
+        <p className="text-xs text-cpc-cyan-500">RECHERCHE DES CONSEILS DE CULTURE...</p>
+      )}
       {enriched && !enriching && (
         <p className="text-xs text-cpc-yellow-500">
           EXPOSITION, ARROSAGE, ESPACEMENT ET DESCRIPTIF PROPOSES PAR IA — A VERIFIER
@@ -185,10 +265,33 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
       <TextAreaField label="Descriptif" value={form.description} onChange={update('description')} />
 
       <div className="flex flex-wrap items-center gap-2">
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-        <CpcButton type="button" variant="outlined" color="cyan" size="xs" onClick={handlePickPhoto}>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePhotoChange}
+        />
+        <CpcButton
+          type="button"
+          variant="outlined"
+          color="cyan"
+          size="xs"
+          onClick={handlePickPhoto}
+        >
           {plant?.has_photo ? 'REMPLACER LA PHOTO' : 'AJOUTER UNE PHOTO'}
         </CpcButton>
+        {photo && !cropping && (
+          <CpcButton
+            type="button"
+            variant="outlined"
+            color="yellow"
+            size="xs"
+            onClick={handleStartCrop}
+          >
+            {photo === originalPhoto ? 'RECADRER' : 'RECADRER A NOUVEAU'}
+          </CpcButton>
+        )}
         {photo && (
           <CpcButton
             type="button"
@@ -205,6 +308,47 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
           {photo ? photo.name : plant?.has_photo ? 'photo enregistrée' : 'aucune photo'}
         </span>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={modelFileRef}
+          type="file"
+          accept=".glb,model/gltf-binary"
+          className="hidden"
+          onChange={handleModelChange}
+        />
+        <CpcButton
+          type="button"
+          variant="outlined"
+          color="cyan"
+          size="xs"
+          onClick={handlePickModel}
+        >
+          {plant?.has_model ? 'REMPLACER LE MODELE 3D' : 'AJOUTER UN MODELE 3D'}
+        </CpcButton>
+        {plant?.has_model && !dropModel && (
+          <CpcButton type="button" variant="text" color="red" size="xs" onClick={handleDropModel}>
+            SUPPRIMER LE MODELE
+          </CpcButton>
+        )}
+        <span className="text-xs text-cpc-green-900">
+          {model
+            ? model.name
+            : dropModel
+              ? "modèle supprimé à l'enregistrement"
+              : plant?.has_model
+                ? 'modèle 3D enregistré'
+                : 'aucun modèle (.glb) — la balade génère une forme'}
+        </span>
+      </div>
+
+      {cropping && originalPhoto && (
+        <PhotoCropper
+          file={originalPhoto}
+          onApply={handleCropApplied}
+          onCancel={handleCropCancelled}
+        />
+      )}
 
       {candidates?.length === 0 && (
         <p className="text-xs text-cpc-green-900">AUCUNE ESPECE RECONNUE SUR CETTE PHOTO</p>
@@ -253,7 +397,7 @@ export function PlantForm({ plant, onSaved, onCancel }: PlantFormProps) {
 
       <div className="flex gap-2">
         <CpcButton type="submit" variant="filled" color="green" size="sm" disabled={saving}>
-          {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER'}
+          {saving ? (savingStep ?? 'ENREGISTREMENT...') : 'ENREGISTRER'}
         </CpcButton>
         <CpcButton type="button" variant="text" color="red" size="sm" onClick={onCancel}>
           ANNULER

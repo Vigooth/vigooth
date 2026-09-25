@@ -10,9 +10,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@vigooth/config": "workspace:*",
     "@vigooth/styles": "workspace:*",
     "@vigooth/ui": "workspace:*",
+    "meshoptimizer": "^1.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.12.0",

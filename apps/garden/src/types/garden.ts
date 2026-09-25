@@ -22,30 +22,6 @@ export interface Bed {
   updated_at: string;
 }
 
-/**
- * One spot of the 360° tour: an equirectangular panorama, plus where on the plan
- * it was shot from.
- *
- * The plan position is what makes the tour more than a gallery — knowing where
- * the camera stood lets the viewer derive the bearing to every bed centroid and
- * to every other viewpoint, so markers are computed rather than placed by hand.
- */
-export interface Viewpoint {
-  id: string;
-  user_id: string;
-  name: string;
-  /** Undefined until the spot is pinned. Normalised 0..1, same space as `Bed.shape`. */
-  plan_x?: number;
-  plan_y?: number;
-  /** Degrees between the panorama's left seam and the plan's +x axis. */
-  heading_deg: number;
-  has_photo: boolean;
-  photo_mime?: string;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
-
 /** A community photo of a candidate species. CC-BY-SA: the citation must show. */
 export interface PlantReferenceImage {
   thumb: string;
@@ -85,6 +61,8 @@ export interface Plant {
   spacing_cm?: number;
   has_photo: boolean;
   photo_mime?: string;
+  /** A glTF binary the 3D walk stands in place of the generated shape. */
+  has_model: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -125,10 +103,19 @@ export interface Garden {
   occupations: Occupation[];
   /** Computed server-side, so the timeline and any later consumer agree. */
   conflicts: Conflict[];
-  /** Spots of the 360° tour. The tour needs the beds anyway, so they load together. */
-  viewpoints: Viewpoint[];
   /** Whether a plan backdrop is stored, so the plan view can skip fetching it. */
   has_plan_photo: boolean;
+  /** Whether the server can turn a plant photo into a 3D model (Meshy key set). */
+  can_generate_model: boolean;
+  /** Whether a vision model can propose where the plant is in a photo. */
+  can_suggest_crop: boolean;
+}
+
+/** Where a photo-to-3D generation stands. `error` accompanies `failed`. */
+export interface ModelGenerationStatus {
+  status: 'pending' | 'running' | 'succeeded' | 'failed';
+  progress: number;
+  error?: string;
 }
 
 export interface SaveBedInput {
@@ -136,15 +123,6 @@ export interface SaveBedInput {
   kind?: string;
   area_m2?: number | null;
   shape?: Point[];
-  sort_order?: number;
-}
-
-export interface SaveViewpointInput {
-  name: string;
-  /** Null clears the pin; omitting it means the same, so send it explicitly. */
-  plan_x?: number | null;
-  plan_y?: number | null;
-  heading_deg?: number;
   sort_order?: number;
 }
 

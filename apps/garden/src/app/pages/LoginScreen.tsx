@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CpcButton } from '@vigooth/ui';
 import { TextField } from '@/components/Field';
-import { login, register } from '@/lib/api/auth';
+import { devLogin, login, register } from '@/lib/api/auth';
 import { useAuth } from '@/stores/AuthStore';
 
 type Mode = 'login' | 'register';
@@ -13,6 +13,41 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Dev only: true while the automatic sign-in is being tried, or once it has failed. */
+  const [devTried, setDevTried] = useState(false);
+
+  // A `pnpm dev` frontend against the in-memory API lands straight in the
+  // seeded garden. Against any other API the dev-login route is missing, the
+  // call fails quietly and the form below is what the visitor sees.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    let cancelled = false;
+    devLogin()
+      .then((user) => {
+        if (!cancelled) signIn(user);
+      })
+      .catch(() => {
+        // Not a dev API: nothing to do.
+      })
+      .finally(() => {
+        if (!cancelled) setDevTried(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [signIn]);
+
+  const handleDevLogin = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      signIn(await devLogin());
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Compte de dev indisponible');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
@@ -75,6 +110,19 @@ export function LoginScreen() {
         <CpcButton type="submit" variant="filled" color="green" size="sm" disabled={busy} fullWidth>
           {busy ? 'PATIENCE...' : mode === 'login' ? 'SE CONNECTER' : 'CREER LE COMPTE'}
         </CpcButton>
+
+        {import.meta.env.DEV && devTried && (
+          <CpcButton
+            type="button"
+            variant="outlined"
+            color="yellow"
+            size="xs"
+            disabled={busy}
+            onClick={handleDevLogin}
+          >
+            COMPTE DE DEV (JARDIN DE DEMO)
+          </CpcButton>
+        )}
 
         <CpcButton type="button" variant="text" color="cyan" size="xs" onClick={handleToggleMode}>
           {mode === 'login' ? 'PAS DE COMPTE ? EN CREER UN' : "J'AI DEJA UN COMPTE"}

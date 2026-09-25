@@ -10,6 +10,14 @@ type Message struct {
 	Content    string      `json:"content"`
 	ToolCalls  []ToolCall  `json:"tool_calls,omitempty"`
 	ToolResult *ToolResult `json:"tool_result,omitempty"`
+	// Images attached to a user message, sent before its text. Both providers
+	// accept them inline as base64; keep them small (a downscaled JPEG).
+	Images []Image `json:"images,omitempty"`
+}
+
+type Image struct {
+	MimeType string `json:"mime_type"`
+	Data     []byte `json:"data"`
 }
 
 type ToolCall struct {

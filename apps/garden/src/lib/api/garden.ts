@@ -1,6 +1,7 @@
 import type {
   Bed,
   Garden,
+  ModelGenerationStatus,
   Occupation,
   Plant,
   PlantCandidate,
@@ -8,9 +9,8 @@ import type {
   SaveBedInput,
   SaveOccupationInput,
   SavePlantInput,
-  SaveViewpointInput,
-  Viewpoint,
 } from '@/types/garden';
+import type { CropRect } from '@/utils/cropImage';
 import { fetchBlobUrl, postBinary, putBinary, request, requestVoid } from './client';
 
 /** One read for the whole garden — the timeline needs all three lists anyway. */
@@ -59,6 +59,18 @@ export function uploadPlantPhoto(id: string, blob: Blob): Promise<void> {
 }
 
 /**
+ * Ask the vision model where the plant is, as a rectangle to pre-draw in the
+ * cropper. The blob should be a downscaled JPEG; the answer is normalised 0..1.
+ */
+export async function suggestCrop(blob: Blob): Promise<CropRect> {
+  const box = await postBinary<{ x0: number; y0: number; x1: number; y1: number }>(
+    '/api/garden/plants/crop-suggest',
+    blob,
+  );
+  return { from: { x: box.x0, y: box.y0 }, to: { x: box.x1, y: box.y1 } };
+}
+
+/**
  * Ask Pl@ntNet what this photo is. The blob must be JPEG or PNG — the upstream
  * refuses anything else, webp included, which is why callers hand it the output
  * of `downscaleImage` rather than the picked file.
@@ -94,6 +106,41 @@ export function fetchPublicPlantPhotoUrl(userId: string, id: string): Promise<st
   return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/photo`);
 }
 
+// --- Plant 3D model: a .glb the walk stands instead of the generated shape
+
+export function uploadPlantModel(id: string, file: Blob): Promise<void> {
+  return putBinary(`/api/garden/plants/${id}/model`, file);
+}
+
+export function deletePlantModel(id: string): Promise<void> {
+  return requestVoid(`/api/garden/plants/${id}/model`, { method: 'DELETE' });
+}
+
+export function fetchPlantModelUrl(id: string): Promise<string> {
+  return fetchBlobUrl(`/api/garden/plants/${id}/model`);
+}
+
+export function fetchPublicPlantModelUrl(userId: string, id: string): Promise<string> {
+  return fetchBlobUrl(`/public/garden/${userId}/plants/${id}/model`);
+}
+
+// --- Photo → 3D model, generated server-side from the stored photo
+
+/** Start a generation. The task id is what to poll with. */
+export function startPlantModelGeneration(id: string): Promise<{ task_id: string }> {
+  return request<{ task_id: string }>(`/api/garden/plants/${id}/model/generate`, {
+    method: 'POST',
+  });
+}
+
+/** Where the task stands. On `succeeded` the server has already stored the model. */
+export function checkPlantModelGeneration(
+  id: string,
+  taskId: string,
+): Promise<ModelGenerationStatus> {
+  return request<ModelGenerationStatus>(`/api/garden/plants/${id}/model/generate/${taskId}`);
+}
+
 // --- Plan photo: one backdrop per garden
 
 export function uploadPlanPhoto(blob: Blob): Promise<void> {
@@ -112,40 +159,6 @@ export function fetchPlanPhotoUrl(): Promise<string> {
 /** Same, for a visitor with no session. Caller owns and must revoke the URL. */
 export function fetchPublicPlanPhotoUrl(userId: string): Promise<string> {
   return fetchBlobUrl(`/public/garden/${userId}/plan/photo`);
-}
-
-// --- Viewpoints: the 360° tour
-
-export function createViewpoint(input: SaveViewpointInput): Promise<Viewpoint> {
-  return request<Viewpoint>('/api/garden/viewpoints', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-}
-
-export function updateViewpoint(id: string, input: SaveViewpointInput): Promise<Viewpoint> {
-  return request<Viewpoint>(`/api/garden/viewpoints/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(input),
-  });
-}
-
-export function deleteViewpoint(id: string): Promise<void> {
-  return requestVoid(`/api/garden/viewpoints/${id}`, { method: 'DELETE' });
-}
-
-export function uploadViewpointPanorama(id: string, blob: Blob): Promise<void> {
-  return putBinary(`/api/garden/viewpoints/${id}/panorama`, blob);
-}
-
-/** Caller owns the returned blob URL and must revoke it. */
-export function fetchViewpointPanoramaUrl(id: string): Promise<string> {
-  return fetchBlobUrl(`/api/garden/viewpoints/${id}/panorama`);
-}
-
-/** Same, for a visitor with no session. Caller owns and must revoke the URL. */
-export function fetchPublicViewpointPanoramaUrl(userId: string, id: string): Promise<string> {
-  return fetchBlobUrl(`/public/garden/${userId}/viewpoints/${id}/panorama`);
 }
 
 // --- Occupations

@@ -1,15 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   fetchPlanPhotoUrl,
+  fetchPlantModelUrl,
   fetchPlantPhotoUrl,
   fetchPublicPlanPhotoUrl,
+  fetchPublicPlantModelUrl,
   fetchPublicPlantPhotoUrl,
-  fetchPublicViewpointPanoramaUrl,
-  fetchViewpointPanoramaUrl,
   getGarden,
   getPublicGarden,
 } from '@/lib/api/garden';
-import type { Bed, Conflict, Garden, Occupation, Plant, Viewpoint } from '@/types/garden';
+import type { Bed, Conflict, Garden, Occupation, Plant } from '@/types/garden';
 
 interface GardenStore {
   /**
@@ -22,7 +22,6 @@ interface GardenStore {
   plants: Plant[];
   occupations: Occupation[];
   conflicts: Conflict[];
-  viewpoints: Viewpoint[];
   loading: boolean;
   error: string | null;
   /**
@@ -33,12 +32,16 @@ interface GardenStore {
   readOnly: boolean;
   /** Resolves a plant photo through whichever endpoint this view is entitled to. */
   photoUrlFor: (plantId: string) => Promise<string>;
+  /** Resolves a plant's 3D model (.glb) the same way. */
+  modelUrlFor: (plantId: string) => Promise<string>;
   /** True when a plan backdrop exists, so the view can skip a doomed request. */
   hasPlanPhoto: boolean;
+  /** True when the server can generate a 3D model from a plant photo. */
+  canGenerateModel: boolean;
+  /** True when a vision model can propose a crop around the plant. */
+  canSuggestCrop: boolean;
   /** Resolves the plan backdrop through whichever endpoint this view may use. */
   planPhotoUrl: () => Promise<string>;
-  /** Resolves a tour panorama through whichever endpoint this view is entitled to. */
-  panoramaUrlFor: (viewpointId: string) => Promise<string>;
   /** Re-read the whole garden. Every mutation ends with this. */
   reload: () => Promise<void>;
   plantName: (plantId: string) => string;
@@ -56,8 +59,9 @@ const EMPTY_GARDEN: Garden = {
   plants: [],
   occupations: [],
   conflicts: [],
-  viewpoints: [],
   has_plan_photo: false,
+  can_generate_model: false,
+  can_suggest_crop: false,
 };
 
 interface GardenProviderProps {
@@ -107,7 +111,6 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
       plants: data.plants,
       occupations: data.occupations,
       conflicts: data.conflicts,
-      viewpoints: data.viewpoints,
       loading,
       error,
       readOnly: publicUserId !== undefined,
@@ -115,13 +118,15 @@ export function GardenProvider({ children, publicUserId }: GardenProviderProps) 
         publicUserId
           ? fetchPublicPlantPhotoUrl(publicUserId, plantId)
           : fetchPlantPhotoUrl(plantId),
+      modelUrlFor: (plantId) =>
+        publicUserId
+          ? fetchPublicPlantModelUrl(publicUserId, plantId)
+          : fetchPlantModelUrl(plantId),
       hasPlanPhoto: data.has_plan_photo,
+      canGenerateModel: data.can_generate_model && publicUserId === undefined,
+      canSuggestCrop: data.can_suggest_crop && publicUserId === undefined,
       planPhotoUrl: () =>
         publicUserId ? fetchPublicPlanPhotoUrl(publicUserId) : fetchPlanPhotoUrl(),
-      panoramaUrlFor: (viewpointId) =>
-        publicUserId
-          ? fetchPublicViewpointPanoramaUrl(publicUserId, viewpointId)
-          : fetchViewpointPanoramaUrl(viewpointId),
       reload,
       plantName: (plantId) => plantsById.get(plantId)?.name ?? 'Plante inconnue',
       bedName: (bedId) => bedsById.get(bedId)?.name ?? 'Emplacement inconnu',

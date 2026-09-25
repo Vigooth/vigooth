@@ -1,5 +1,8 @@
+import { Suspense, lazy, useState } from 'react';
 import { CpcButton, CpcMatrixImage, CpcVectorImage } from '@vigooth/ui';
 import type { Occupation, Plant } from '@/types/garden';
+import { useGarden } from '@/stores/GardenStore';
+import { useModelGeneration } from '../hooks/useModelGeneration';
 import { usePlantPhoto } from '../hooks/usePlantPhoto';
 import type { PhotoEffect } from '../types/photoEffect';
 
@@ -12,7 +15,14 @@ interface PlantCardProps {
   /** Omitted on a public garden, where the footer is dropped entirely. */
   onEdit?: (plant: Plant) => void;
   onDelete?: (plant: Plant) => void;
+  /** Called once a generated 3D model has been stored, to refresh the list. */
+  onModelGenerated?: () => void;
 }
+
+// three.js only reaches this tab for plants that carry an uploaded model.
+const PlantModelPreview = lazy(() =>
+  import('./PlantModelPreview').then((module) => ({ default: module.PlantModelPreview })),
+);
 
 const frenchDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 
@@ -25,7 +35,9 @@ function formatWindow(startsOn: string, endsOn: string): string {
 /** Every treatment fits the photo whole, so no leaf ever gets cropped away. */
 function PlantPhoto({ url, alt, effect }: { url: string; alt: string; effect: PhotoEffect }) {
   if (effect === 'matrix') {
-    return <CpcMatrixImage src={url} alt={alt} cellSize={8} fit="contain" className="h-52 w-full" />;
+    return (
+      <CpcMatrixImage src={url} alt={alt} cellSize={8} fit="contain" className="h-52 w-full" />
+    );
   }
 
   if (effect === 'photo') {
@@ -37,8 +49,25 @@ function PlantPhoto({ url, alt, effect }: { url: string; alt: string; effect: Ph
   return <CpcVectorImage src={url} alt={alt} levels={5} fit="contain" className="h-52 w-full" />;
 }
 
-export function PlantCard({ plant, placements, effect, onEdit, onDelete }: PlantCardProps) {
+const noop = () => {};
+
+export function PlantCard({
+  plant,
+  placements,
+  effect,
+  onEdit,
+  onDelete,
+  onModelGenerated,
+}: PlantCardProps) {
+  const { canGenerateModel } = useGarden();
   const photoUrl = usePlantPhoto(plant.id, plant.has_photo);
+  const generation = useModelGeneration(plant.id, onModelGenerated ?? noop);
+  const canGenerate = canGenerateModel && plant.has_photo && onModelGenerated !== undefined;
+  // With a model, the 3D view takes the photo's slot; the photo stays a tap away.
+  const [showModel, setShowModel] = useState(plant.has_model);
+
+  const handleShowModel = () => setShowModel(true);
+  const handleShowPhoto = () => setShowModel(false);
 
   const handleEdit = () => {
     onEdit?.(plant);
@@ -50,7 +79,17 @@ export function PlantCard({ plant, placements, effect, onEdit, onDelete }: Plant
 
   return (
     <article className="flex flex-col gap-3 border-2 border-cpc-green-900 p-3">
-      {photoUrl ? (
+      {plant.has_model && showModel ? (
+        <Suspense
+          fallback={
+            <div className="grid h-52 w-full place-items-center border border-cpc-green-900 text-xs text-cpc-green-900">
+              CHARGEMENT DE LA 3D...
+            </div>
+          }
+        >
+          <PlantModelPreview plantId={plant.id} version={plant.updated_at} />
+        </Suspense>
+      ) : photoUrl ? (
         <PlantPhoto url={photoUrl} alt={plant.name} effect={effect} />
       ) : (
         <div className="grid h-52 w-full place-items-center border border-cpc-green-900 text-xs text-cpc-green-900">
@@ -58,8 +97,58 @@ export function PlantCard({ plant, placements, effect, onEdit, onDelete }: Plant
         </div>
       )}
 
+      {(canGenerate || (plant.has_model && (plant.has_photo || !showModel))) && (
+        <div className="flex flex-wrap items-center gap-2">
+          <CpcButton
+            variant={showModel ? 'filled' : 'outlined'}
+            color="cyan"
+            size="xs"
+            onClick={handleShowModel}
+          >
+            3D
+          </CpcButton>
+          {plant.has_photo && (
+            <CpcButton
+              variant={showModel ? 'outlined' : 'filled'}
+              color="cyan"
+              size="xs"
+              onClick={handleShowPhoto}
+            >
+              PHOTO
+            </CpcButton>
+          )}
+          {canGenerate && (
+            <CpcButton
+              variant="outlined"
+              color="yellow"
+              size="xs"
+              disabled={generation.phase === 'starting' || generation.phase === 'running'}
+              onClick={generation.start}
+            >
+              {generation.phase === 'starting'
+                ? 'LANCEMENT...'
+                : generation.phase === 'running'
+                  ? `GENERATION 3D ${generation.progress}%`
+                  : plant.has_model
+                    ? 'REGENERER 3D'
+                    : 'GENERER 3D'}
+            </CpcButton>
+          )}
+          {generation.phase === 'failed' && generation.error && (
+            <span className="text-[10px] text-cpc-red-500">{generation.error}</span>
+          )}
+        </div>
+      )}
+
       <header className="flex flex-col gap-0.5">
-        <h2 className="text-sm text-cpc-green-500">{plant.name.toUpperCase()}</h2>
+        <h2 className="flex items-baseline gap-2 text-sm text-cpc-green-500">
+          {plant.name.toUpperCase()}
+          {plant.has_model && (
+            <span className="border border-cpc-cyan-500 px-1 text-[10px] text-cpc-cyan-500">
+              3D
+            </span>
+          )}
+        </h2>
         {plant.latin_name && (
           <p className="text-xs italic text-cpc-green-900">{plant.latin_name}</p>
         )}

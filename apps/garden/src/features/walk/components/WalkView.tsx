@@ -7,6 +7,10 @@ import { BED_KINDS, BED_KIND_LABELS, PHASE_KINDS, PHASE_LABELS } from '@/types/g
 import type { GardenModel } from '../utils/buildGarden';
 import { buildGarden } from '../utils/buildGarden';
 import { makeFrame } from '../utils/layout';
+import type { CustomModel } from '@/lib/three/customModel';
+import { loadCustomModel } from '@/lib/three/customModel';
+import type { ModelLibrary } from '../utils/modelLibrary';
+import { loadModelLibrary } from '../utils/modelLibrary';
 import type { MoveDirection, WalkApi, WalkMode } from './WalkCanvas';
 import { WalkCanvas } from './WalkCanvas';
 
@@ -59,14 +63,45 @@ const PAD: { direction: MoveDirection; glyph: string; cell: string }[] = [
  * follows without anyone touching a 3D tool.
  */
 export function WalkView() {
-  const { beds, plants, occupations, loading, error, hasPlanPhoto, planPhotoUrl, plantName } =
-    useGarden();
+  const {
+    beds,
+    plants,
+    occupations,
+    loading,
+    error,
+    hasPlanPhoto,
+    planPhotoUrl,
+    plantName,
+    modelUrlFor,
+  } = useGarden();
 
   const [mode, setMode] = useState<WalkMode>('orbit');
   const [widthM, setWidthM] = useState<number>(readStoredWidth);
   const [aspect, setAspect] = useState(1);
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const apiRef = useRef<WalkApi | null>(null);
+  const [library, setLibrary] = useState<ModelLibrary | null>(null);
+  const [libraryReady, setLibraryReady] = useState(false);
+
+  // The low-poly models load once per mount. Until they arrive, or if they
+  // never do, the garden is built from procedural shapes instead — the walk
+  // is never blocked on half a megabyte of trees.
+  useEffect(() => {
+    let cancelled = false;
+    loadModelLibrary()
+      .then((loaded) => {
+        if (!cancelled) setLibrary(loaded);
+      })
+      .catch(() => {
+        // Procedural shapes it is.
+      })
+      .finally(() => {
+        if (!cancelled) setLibraryReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // The plan photo's proportions decide the plot's depth for its width. Without
   // a photo the plot is assumed square, which is the only honest guess.
@@ -101,6 +136,47 @@ export function WalkView() {
     };
   }, [hasPlanPhoto, planPhotoUrl]);
 
+  // Models the owner uploaded for specific plants. Keyed by plant id and
+  // re-fetched when the set of plants carrying one changes; a model that fails
+  // to load is simply absent and the recipe stands in.
+  const [customModels, setCustomModels] = useState<Map<string, CustomModel>>(new Map());
+  const modelledIds = useMemo(
+    () =>
+      plants
+        .filter((plant) => plant.has_model)
+        .map((plant) => `${plant.id}@${plant.updated_at}`)
+        .join(','),
+    [plants],
+  );
+  useEffect(() => {
+    if (modelledIds === '') {
+      setCustomModels(new Map());
+      return;
+    }
+    let cancelled = false;
+    const ids = modelledIds.split(',').map((entry) => entry.split('@')[0]);
+    Promise.all(
+      ids.map(async (id) => {
+        try {
+          const url = await modelUrlFor(id);
+          const loaded = await loadCustomModel(url);
+          URL.revokeObjectURL(url);
+          return [id, loaded] satisfies [string, CustomModel | null];
+        } catch {
+          return [id, null] satisfies [string, CustomModel | null];
+        }
+      }),
+    ).then((entries) => {
+      if (cancelled) return;
+      const next = new Map<string, CustomModel>();
+      for (const [id, loaded] of entries) if (loaded) next.set(id, loaded);
+      setCustomModels(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [modelledIds, modelUrlFor]);
+
   const frame = useMemo(() => makeFrame(widthM, aspect), [widthM, aspect]);
 
   const shapedBeds = useMemo(
@@ -109,9 +185,17 @@ export function WalkView() {
   );
 
   const model = useMemo<GardenModel | null>(() => {
-    if (shapedBeds.length === 0) return null;
-    return buildGarden({ beds: shapedBeds, occupations, plants, frame, today: today() });
-  }, [shapedBeds, occupations, plants, frame]);
+    if (shapedBeds.length === 0 || !libraryReady) return null;
+    return buildGarden({
+      beds: shapedBeds,
+      occupations,
+      plants,
+      frame,
+      today: today(),
+      library,
+      customModels,
+    });
+  }, [shapedBeds, occupations, plants, frame, library, libraryReady, customModels]);
 
   const selectedBed = beds.find((bed) => bed.id === selectedBedId) ?? null;
   const selectedOccupations = useMemo(() => {

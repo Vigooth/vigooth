@@ -13,6 +13,22 @@ import (
 
 type GardenHandler struct {
 	gardenService *service.GardenService
+	// canGenerateModel mirrors whether a model-generation handler is wired.
+	canGenerateModel bool
+	// canSuggestCrop mirrors whether a vision model can propose a crop.
+	canSuggestCrop bool
+}
+
+// EnableCropSuggestion tells owners, through the garden payload, that the
+// cropper can ask for a suggested frame.
+func (h *GardenHandler) EnableCropSuggestion() {
+	h.canSuggestCrop = true
+}
+
+// EnableModelGeneration tells owners, through the garden payload, that the
+// "generate 3D" button will work.
+func (h *GardenHandler) EnableModelGeneration() {
+	h.canGenerateModel = true
 }
 
 func NewGardenHandler(gardenService *service.GardenService) *GardenHandler {
@@ -27,6 +43,12 @@ func respondGardenError(c *gin.Context, err error, fallback string) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 	case errors.Is(err, repository.ErrGardenNoPhoto):
 		c.JSON(http.StatusNotFound, gin.H{"error": "no photo for this plant"})
+	case errors.Is(err, repository.ErrGardenNoModel):
+		c.JSON(http.StatusNotFound, gin.H{"error": "no 3D model for this plant"})
+	case errors.Is(err, service.ErrModelTooLarge):
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
+	case errors.Is(err, service.ErrModelUnsupported):
+		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
 	case errors.Is(err, service.ErrInvalidDate), errors.Is(err, service.ErrDatesReversed):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	case errors.Is(err, service.ErrPhotoTooLarge):
@@ -45,6 +67,8 @@ func (h *GardenHandler) GetGarden(c *gin.Context) {
 		respondGardenError(c, err, "failed to load garden")
 		return
 	}
+	garden.CanGenerateModel = h.canGenerateModel
+	garden.CanSuggestCrop = h.canSuggestCrop
 	c.JSON(http.StatusOK, garden)
 }
 
@@ -200,6 +224,51 @@ func (h *GardenHandler) GetPlantPhoto(c *gin.Context) {
 	c.Data(http.StatusOK, mime, data)
 }
 
+// --- Plant 3D model
+
+// UploadPlantModel takes the raw .glb bytes; the service checks the magic
+// header, so the Content-Type the browser guessed does not matter.
+func (h *GardenHandler) UploadPlantModel(c *gin.Context) {
+	body := http.MaxBytesReader(c.Writer, c.Request.Body, service.MaxModelBytes+1)
+	data, err := io.ReadAll(body)
+	if err != nil {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "3D model exceeds the maximum size"})
+		return
+	}
+	if err := h.gardenService.SetPlantModel(c.GetString("userID"), c.Param("id"), data); err != nil {
+		respondGardenError(c, err, "failed to store 3D model")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "model stored"})
+}
+
+func (h *GardenHandler) GetPlantModel(c *gin.Context) {
+	data, mime, err := h.gardenService.GetPlantModel(c.GetString("userID"), c.Param("id"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load 3D model")
+		return
+	}
+	servePhoto(c, data, mime, false)
+}
+
+// GetPublicPlantModel serves a plant's model to a visitor of a public garden.
+func (h *GardenHandler) GetPublicPlantModel(c *gin.Context) {
+	data, mime, err := h.gardenService.GetPlantModel(c.Param("userId"), c.Param("id"))
+	if err != nil {
+		respondGardenError(c, err, "failed to load 3D model")
+		return
+	}
+	servePhoto(c, data, mime, true)
+}
+
+func (h *GardenHandler) DeletePlantModel(c *gin.Context) {
+	if err := h.gardenService.DeletePlantModel(c.GetString("userID"), c.Param("id")); err != nil {
+		respondGardenError(c, err, "failed to remove 3D model")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "model removed"})
+}
+
 // --- Plan photo
 
 // servePhoto writes image bytes with the right caching for its audience.
@@ -259,83 +328,6 @@ func (h *GardenHandler) DeletePlanPhoto(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "plan photo removed"})
-}
-
-// --- Viewpoints
-
-func (h *GardenHandler) CreateViewpoint(c *gin.Context) {
-	var req model.SaveViewpointRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	viewpoint, err := h.gardenService.CreateViewpoint(c.GetString("userID"), &req)
-	if err != nil {
-		respondGardenError(c, err, "failed to create viewpoint")
-		return
-	}
-	c.JSON(http.StatusCreated, viewpoint)
-}
-
-func (h *GardenHandler) UpdateViewpoint(c *gin.Context) {
-	var req model.SaveViewpointRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	viewpoint, err := h.gardenService.UpdateViewpoint(c.GetString("userID"), c.Param("id"), &req)
-	if err != nil {
-		respondGardenError(c, err, "failed to update viewpoint")
-		return
-	}
-	c.JSON(http.StatusOK, viewpoint)
-}
-
-func (h *GardenHandler) DeleteViewpoint(c *gin.Context) {
-	if err := h.gardenService.DeleteViewpoint(c.GetString("userID"), c.Param("id")); err != nil {
-		respondGardenError(c, err, "failed to delete viewpoint")
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "viewpoint deleted"})
-}
-
-// UploadViewpointPanorama takes raw image bytes with the type in Content-Type,
-// as the plant and plan photo endpoints do.
-func (h *GardenHandler) UploadViewpointPanorama(c *gin.Context) {
-	body := http.MaxBytesReader(c.Writer, c.Request.Body, service.MaxPanoramaBytes+1)
-	data, err := io.ReadAll(body)
-	if err != nil {
-		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "panorama exceeds the maximum size"})
-		return
-	}
-
-	if err := h.gardenService.SetViewpointPhoto(
-		c.GetString("userID"), c.Param("id"), data, c.ContentType(),
-	); err != nil {
-		respondGardenError(c, err, "failed to store the panorama")
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "panorama stored"})
-}
-
-func (h *GardenHandler) GetViewpointPanorama(c *gin.Context) {
-	data, mime, err := h.gardenService.GetViewpointPhoto(c.GetString("userID"), c.Param("id"))
-	if err != nil {
-		respondGardenError(c, err, "failed to load the panorama")
-		return
-	}
-	servePhoto(c, data, mime, false)
-}
-
-// GetPublicViewpointPanorama serves a panorama to a visitor. Without it a shared
-// garden would list the tour's viewpoints and show none of them.
-func (h *GardenHandler) GetPublicViewpointPanorama(c *gin.Context) {
-	data, mime, err := h.gardenService.GetViewpointPhoto(c.Param("userId"), c.Param("id"))
-	if err != nil {
-		respondGardenError(c, err, "failed to load the panorama")
-		return
-	}
-	servePhoto(c, data, mime, true)
 }
 
 // --- Occupations

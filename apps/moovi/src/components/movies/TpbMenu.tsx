@@ -1,22 +1,24 @@
 import {
   CpcButton,
   CpcMenu,
+  CpcMenuGroup,
   CpcMenuItem,
   CpcMenuSeparator,
   CpcSubmenu,
   ChevronDownIcon,
 } from '@vigooth/ui';
-import { useTpbSeason } from '@/hooks/useTpbSeason';
-import type { TpbTorrent } from '@/types/movie';
+import { useTpbSearch } from '@/hooks/useTpbSearch';
+import type { TmdbSeason, TpbTorrent } from '@/types/movie';
 
 interface TpbMenuProps {
   title: string;
-  seasons: number;
+  seasons: TmdbSeason[];
 }
 
-/** Season packs from The Pirate Bay, one submenu per season. */
+/** Torrents from The Pirate Bay: one submenu per season, then per episode. */
 export function TpbMenu({ title, seasons }: TpbMenuProps) {
-  const seasonNumbers = Array.from({ length: seasons }, (_, index) => index + 1);
+  // Season 0 holds the specials, which releases don't number consistently.
+  const numberedSeasons = seasons.filter((season) => season.season_number > 0);
 
   return (
     <CpcMenu
@@ -28,23 +30,36 @@ export function TpbMenu({ title, seasons }: TpbMenuProps) {
         </CpcButton>
       }
     >
-      {seasonNumbers.map((season) => (
-        <CpcSubmenu key={season} label={`Saison ${season}`}>
-          <TpbSeasonItems title={title} season={season} />
+      {numberedSeasons.map((season) => (
+        <CpcSubmenu key={season.season_number} label={`Saison ${season.season_number}`}>
+          <TpbResults title={title} season={season.season_number} />
+          {season.episode_count > 0 && (
+            <>
+              <CpcMenuSeparator />
+              <CpcMenuGroup label="Épisodes">
+                {episodeNumbers(season.episode_count).map((episode) => (
+                  <CpcSubmenu key={episode} label={`Épisode ${episode}`}>
+                    <TpbResults title={title} season={season.season_number} episode={episode} />
+                  </CpcSubmenu>
+                ))}
+              </CpcMenuGroup>
+            </>
+          )}
         </CpcSubmenu>
       ))}
     </CpcMenu>
   );
 }
 
-interface TpbSeasonItemsProps {
+interface TpbResultsProps {
   title: string;
   season: number;
+  episode?: number;
 }
 
-/** Mounted when its submenu opens, so each season is only searched on demand. */
-function TpbSeasonItems({ title, season }: TpbSeasonItemsProps) {
-  const { data, isPending, isError } = useTpbSeason(title, season);
+/** Mounted when its submenu opens, so each search only runs on demand. */
+function TpbResults({ title, season, episode }: TpbResultsProps) {
+  const { data, isPending, isError } = useTpbSearch(title, season, episode);
 
   if (isPending) return <CpcMenuItem disabled>Recherche…</CpcMenuItem>;
   if (isError) return <CpcMenuItem disabled>The Pirate Bay injoignable</CpcMenuItem>;
@@ -65,10 +80,13 @@ function TpbSeasonItems({ title, season }: TpbSeasonItemsProps) {
         </CpcMenuItem>
       ))}
       {!data.found && <CpcMenuItem disabled>Aucun torrent</CpcMenuItem>}
-      <CpcMenuSeparator />
       <CpcMenuItem onClick={() => window.open(data.url, '_blank')}>Chercher sur TPB</CpcMenuItem>
     </>
   );
+}
+
+function episodeNumbers(count: number): number[] {
+  return Array.from({ length: count }, (_, index) => index + 1);
 }
 
 function openMagnet(torrent: TpbTorrent) {

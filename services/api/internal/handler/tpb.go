@@ -32,8 +32,8 @@ type tpbResult struct {
 }
 
 // TpbSearch looks up TV torrents on The Pirate Bay through its unofficial
-// apibay.org JSON API. It takes the show title and an optional season, and
-// returns the best seeded releases first.
+// apibay.org JSON API. It takes the show title, an optional season and an
+// optional episode within it, and returns the best seeded releases first.
 func (h *ProxyHandler) TpbSearch(c *gin.Context) {
 	title := strings.TrimSpace(c.Query("q"))
 	if title == "" {
@@ -41,16 +41,26 @@ func (h *ProxyHandler) TpbSearch(c *gin.Context) {
 		return
 	}
 
+	season, err := optionalPositiveInt(c.Query("season"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'season' must be a positive integer"})
+		return
+	}
+	episode, err := optionalPositiveInt(c.Query("episode"))
+	if err != nil || (episode > 0 && season == 0) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'episode' must be a positive integer and requires 'season'"})
+		return
+	}
+
 	query := title
-	var seasonRe *regexp.Regexp
-	if s := c.Query("season"); s != "" {
-		season, err := strconv.Atoi(s)
-		if err != nil || season < 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'season' must be a positive integer"})
-			return
-		}
+	var releaseRe *regexp.Regexp
+	switch {
+	case episode > 0:
+		query = fmt.Sprintf("%s S%02dE%02d", title, season, episode)
+		releaseRe = regexp.MustCompile(fmt.Sprintf(`(?i)\b(s0*%d\s*e0*%d|0*%dx0*%d)\b`, season, episode, season, episode))
+	case season > 0:
 		query = fmt.Sprintf("%s S%02d", title, season)
-		seasonRe = regexp.MustCompile(fmt.Sprintf(`(?i)\b(s0*%d|season\s*0*%d)(\b|e)`, season, season))
+		releaseRe = regexp.MustCompile(fmt.Sprintf(`(?i)\b(s0*%d|season\s*0*%d)(\b|e)`, season, season))
 	}
 
 	// Category 200 is "Video"; results are narrowed to the TV categories below.
@@ -85,7 +95,7 @@ func (h *ProxyHandler) TpbSearch(c *gin.Context) {
 		if r.ID == "0" || !tpbTvCategories[r.Category] {
 			continue
 		}
-		if seasonRe != nil && !seasonRe.MatchString(r.Name) {
+		if releaseRe != nil && !releaseRe.MatchString(r.Name) {
 			continue
 		}
 		seeders, _ := strconv.Atoi(r.Seeders)
@@ -131,6 +141,18 @@ func (h *ProxyHandler) TpbSearch(c *gin.Context) {
 		"url":      searchURL,
 		"torrents": torrents,
 	})
+}
+
+// optionalPositiveInt parses a query parameter that may be absent (0).
+func optionalPositiveInt(value string) (int, error) {
+	if value == "" {
+		return 0, nil
+	}
+	n, err := strconv.Atoi(value)
+	if err != nil || n < 1 {
+		return 0, fmt.Errorf("not a positive integer: %q", value)
+	}
+	return n, nil
 }
 
 func formatBytes(n int64) string {

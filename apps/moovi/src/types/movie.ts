@@ -110,6 +110,11 @@ export interface TmdbMovieDetail {
   vote_average: number;
 }
 
+export interface TmdbSeason {
+  season_number: number;
+  episode_count: number;
+}
+
 export interface TmdbTvDetail {
   id: number;
   name: string;
@@ -121,6 +126,7 @@ export interface TmdbTvDetail {
   genres: TmdbGenre[];
   number_of_seasons: number;
   number_of_episodes: number;
+  seasons?: TmdbSeason[];
   episode_run_time: number[];
   created_by: { id: number; name: string }[];
   vote_average: number;

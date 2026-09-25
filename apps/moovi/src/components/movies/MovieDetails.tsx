@@ -249,7 +249,7 @@ export function MovieDetails({
               title={title}
               originalTitle={originalTitle}
               year={year}
-              seasons={tvDetails?.number_of_seasons}
+              seasons={tvDetails?.seasons}
               allocineId={allocine?.allocine_id}
               mediaType={mediaType}
             />

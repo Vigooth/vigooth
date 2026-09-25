@@ -133,6 +133,7 @@ export function PlantsView() {
             : 'NOUVELLE PLANTE'
         }
         size="lg"
+        draggable
       >
         {editing.mode !== 'none' && (
           <PlantForm

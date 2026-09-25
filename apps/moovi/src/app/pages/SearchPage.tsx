@@ -20,7 +20,7 @@ type ViewMode = 'grid' | 'list' | 'compact';
 const gridClasses: Record<ViewMode, string> = {
   grid: 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3',
   list: 'flex flex-col gap-2',
-  compact: 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2',
+  compact: 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2',
 };
 
 export function SearchPage() {

@@ -96,10 +96,20 @@ export interface TmdbNowPlayingResponse extends TmdbSearchResponse {
   dates: { minimum: string; maximum: string };
 }
 
+/** The next screening of a film in one version. */
+export interface NextShowtime {
+  /** Paris time, "HH:MM". */
+  time: string;
+  version: 'VO' | 'VF';
+  theater: string;
+}
+
 export interface NearbyMovie {
   result: TmdbSearchResult;
   /** Cinemas showing the film today. */
   theaters: string[];
+  /** Earliest upcoming screening per version, soonest first. */
+  next_showtimes: NextShowtime[];
 }
 
 export interface NearbyMoviesResponse {

@@ -60,12 +60,15 @@ export function NearbyMoviesSection({
 
       {visibleMovies.length > 0 && (
         <div className={gridClassName}>
-          {visibleMovies.map(({ result, theaters }) => (
+          {visibleMovies.map(({ result, theaters, next_showtimes }) => (
             <div key={`nearby-${result.id}`} className="flex flex-col gap-1 min-w-0">
               <SearchResultCard
                 result={result}
                 viewMode={viewMode}
                 inCollection={collectionKeys.has(`movie:${result.id}`)}
+                posterTags={next_showtimes.map(
+                  (showtime) => `${showtime.time} ${showtime.version}`,
+                )}
               />
               <div className="text-cpc-green-900 text-[10px] truncate" title={theaters.join(', ')}>
                 {theaters.length} cinéma{theaters.length > 1 ? 's' : ''} · {theaters.join(', ')}

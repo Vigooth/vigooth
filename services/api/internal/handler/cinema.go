@@ -12,6 +12,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	// Embeds the timezone database: showtimes are compared in Paris time
+	// even where the system has none, as in slim containers.
+	_ "time/tzdata"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +26,16 @@ const (
 	maxNearbyTheaters = 15
 	nearbyCacheTTL    = time.Hour
 )
+
+var parisTime = mustLoadLocation("Europe/Paris")
+
+func mustLoadLocation(name string) *time.Location {
+	loc, err := time.LoadLocation(name)
+	if err != nil {
+		panic(err)
+	}
+	return loc
+}
 
 var allocineTheaterRe = regexp.MustCompile(`data-theater="\{&quot;id&quot;:&quot;([A-Z0-9]+)&quot;,&quot;name&quot;:&quot;(.*?)&quot;\}`)
 
@@ -62,9 +75,25 @@ func (m allocineMovie) year() int {
 	return m.Data.ProductionYear
 }
 
+type showtime struct {
+	startsAt time.Time
+	version  string
+	theater  string
+}
+
+// nextShowtime is the next screening in one version (VO or VF).
+type nextShowtime struct {
+	Time    string `json:"time"`
+	Version string `json:"version"`
+	Theater string `json:"theater"`
+}
+
 type nearbyMovie struct {
-	TmdbResult json.RawMessage `json:"result"`
-	Theaters   []string        `json:"theaters"`
+	TmdbResult    json.RawMessage `json:"result"`
+	Theaters      []string        `json:"theaters"`
+	NextShowtimes []nextShowtime  `json:"next_showtimes"`
+	// All of today's showtimes, kept in the cache to work out the next ones.
+	showtimes []showtime
 }
 
 type nearbyResponse struct {
@@ -113,7 +142,7 @@ func (h *ProxyHandler) NearbyMovies(c *gin.Context) {
 	cached, ok := nearbyCache[city.ID]
 	nearbyCacheMu.Unlock()
 	if ok && time.Now().Before(cached.expires) {
-		c.JSON(http.StatusOK, cached.response)
+		c.JSON(http.StatusOK, withUpcomingShowtimes(cached.response, time.Now()))
 		return
 	}
 
@@ -138,21 +167,55 @@ func (h *ProxyHandler) NearbyMovies(c *gin.Context) {
 	nearbyCache[city.ID] = nearbyCacheEntry{response: response, expires: time.Now().Add(nearbyCacheTTL)}
 	nearbyCacheMu.Unlock()
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, withUpcomingShowtimes(response, time.Now()))
+}
+
+// withUpcomingShowtimes fills each film's next showtime per version, and
+// leaves out the films with no screening left today.
+func withUpcomingShowtimes(response nearbyResponse, now time.Time) nearbyResponse {
+	movies := make([]nearbyMovie, 0, len(response.Movies))
+	for _, m := range response.Movies {
+		next := map[string]showtime{}
+		for _, s := range m.showtimes {
+			if s.startsAt.Before(now) {
+				continue
+			}
+			if current, ok := next[s.version]; !ok || s.startsAt.Before(current.startsAt) {
+				next[s.version] = s
+			}
+		}
+		if len(next) == 0 {
+			continue
+		}
+		m.NextShowtimes = make([]nextShowtime, 0, len(next))
+		for _, s := range next {
+			m.NextShowtimes = append(m.NextShowtimes, nextShowtime{
+				Time:    s.startsAt.Format("15:04"),
+				Version: s.version,
+				Theater: s.theater,
+			})
+		}
+		sort.Slice(m.NextShowtimes, func(i, j int) bool {
+			return m.NextShowtimes[i].Time < m.NextShowtimes[j].Time
+		})
+		movies = append(movies, m)
+	}
+	return nearbyResponse{City: response.City, Movies: movies}
 }
 
 // moviesShowingIn gathers today's films across the cinemas and matches them to TMDB.
 func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie {
 	type showing struct {
-		movie    allocineMovie
-		theaters []string
+		movie     allocineMovie
+		theaters  []string
+		showtimes []showtime
 	}
 	var (
 		mu      sync.Mutex
 		wg      sync.WaitGroup
 		byID    = map[int]*showing{}
 		order   []int
-		today   = time.Now().Format("2006-01-02")
+		today   = time.Now().In(parisTime).Format("2006-01-02")
 		limiter = make(chan struct{}, 5)
 	)
 	for _, theater := range theaters {
@@ -162,20 +225,24 @@ func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie
 			limiter <- struct{}{}
 			defer func() { <-limiter }()
 
-			movies, err := h.allocineShowtimes(theater.ID, today)
+			screenings, err := h.allocineShowtimes(theater.ID, today)
 			if err != nil {
 				return
 			}
 			mu.Lock()
 			defer mu.Unlock()
-			for _, m := range movies {
-				s, ok := byID[m.InternalID]
+			for _, sc := range screenings {
+				s, ok := byID[sc.movie.InternalID]
 				if !ok {
-					s = &showing{movie: m}
-					byID[m.InternalID] = s
-					order = append(order, m.InternalID)
+					s = &showing{movie: sc.movie}
+					byID[sc.movie.InternalID] = s
+					order = append(order, sc.movie.InternalID)
 				}
 				s.theaters = append(s.theaters, theater.Name)
+				for _, st := range sc.showtimes {
+					st.theater = theater.Name
+					s.showtimes = append(s.showtimes, st)
+				}
 			}
 		}(theater)
 	}
@@ -198,7 +265,11 @@ func (h *ProxyHandler) moviesShowingIn(theaters []allocineTheater) []nearbyMovie
 			defer func() { <-limiter }()
 
 			sort.Strings(s.theaters)
-			matched[i] = nearbyMovie{TmdbResult: h.matchTmdbMovie(s.movie), Theaters: s.theaters}
+			matched[i] = nearbyMovie{
+				TmdbResult: h.matchTmdbMovie(s.movie),
+				Theaters:   s.theaters,
+				showtimes:  s.showtimes,
+			}
 		}(i, s)
 	}
 	wg.Wait()
@@ -293,36 +364,59 @@ func appendNewTheaters(theaters, more []allocineTheater) []allocineTheater {
 	return theaters
 }
 
-// allocineShowtimes returns the films with at least one showtime in a cinema on a day.
-func (h *ProxyHandler) allocineShowtimes(theaterID, day string) ([]allocineMovie, error) {
+type allocineScreening struct {
+	movie     allocineMovie
+	showtimes []showtime
+}
+
+// allocineShowtimes returns the films screened in a cinema on a day, with their showtimes.
+func (h *ProxyHandler) allocineShowtimes(theaterID, day string) ([]allocineScreening, error) {
 	var body struct {
 		Results []struct {
-			Movie     allocineMovie              `json:"movie"`
-			Showtimes map[string]json.RawMessage `json:"showtimes"`
+			Movie     allocineMovie `json:"movie"`
+			Showtimes map[string][]struct {
+				StartsAt         string `json:"startsAt"`
+				DiffusionVersion string `json:"diffusionVersion"`
+			} `json:"showtimes"`
 		} `json:"results"`
 	}
 	u := fmt.Sprintf("https://www.allocine.fr/_/showtimes/theater-%s/d-%s/", theaterID, day)
 	if err := h.getJSON(u, &body); err != nil {
 		return nil, err
 	}
-	movies := make([]allocineMovie, 0, len(body.Results))
+	screenings := make([]allocineScreening, 0, len(body.Results))
 	for _, r := range body.Results {
-		if r.Movie.InternalID == 0 || !hasShowtime(r.Showtimes) {
+		if r.Movie.InternalID == 0 {
 			continue
 		}
-		movies = append(movies, r.Movie)
-	}
-	return movies, nil
-}
-
-func hasShowtime(showtimes map[string]json.RawMessage) bool {
-	for _, raw := range showtimes {
-		var list []json.RawMessage
-		if json.Unmarshal(raw, &list) == nil && len(list) > 0 {
-			return true
+		var showtimes []showtime
+		for _, list := range r.Showtimes {
+			for _, st := range list {
+				startsAt, err := time.ParseInLocation("2006-01-02T15:04:05", st.StartsAt, parisTime)
+				if err != nil {
+					continue
+				}
+				showtimes = append(showtimes, showtime{
+					startsAt: startsAt,
+					version:  showtimeVersion(st.DiffusionVersion),
+				})
+			}
+		}
+		if len(showtimes) > 0 {
+			screenings = append(screenings, allocineScreening{movie: r.Movie, showtimes: showtimes})
 		}
 	}
-	return false
+	return screenings, nil
+}
+
+// showtimeVersion labels a screening VO or VF. Subtitles aren't told apart:
+// not every cinema reports them, and a VO screening in France is subtitled.
+// French films (LOCAL) and dubbed ones are both shown in French.
+func showtimeVersion(diffusionVersion string) string {
+	if diffusionVersion == "ORIGINAL" {
+		return "VO"
+	}
+	return "VF"
 }
 
 // matchTmdbMovie finds the TMDB search result for an Allociné film, or nil.

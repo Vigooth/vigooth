@@ -9,6 +9,7 @@ import { StarOutlined, StarFilled } from './svg/Star';
 import { List } from './svg/List';
 import { GridCompact } from './svg/GridCompact';
 import { Spinner } from './svg/Spinner';
+import { Plus } from './svg/Plus';
 
 export const ChevronDownIcon = createIcon('ChevronDown', {
   default: { size: 'md', variant: 'outlined' },
@@ -61,4 +62,9 @@ export const GridCompactIcon = createIcon('GridCompact', {
 export const SpinnerIcon = createIcon('Spinner', {
   default: { size: 'md', variant: 'outlined' },
   variants: [{ size: 'md', variant: 'outlined', component: Spinner }],
+});
+
+export const PlusIcon = createIcon('Plus', {
+  default: { size: 'md', variant: 'outlined' },
+  variants: [{ size: 'md', variant: 'outlined', component: Plus }],
 });

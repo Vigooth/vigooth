@@ -11,4 +11,5 @@ export {
   ListIcon,
   GridCompactIcon,
   SpinnerIcon,
+  PlusIcon,
 } from './icons';

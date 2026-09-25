@@ -96,6 +96,17 @@ export interface TmdbNowPlayingResponse extends TmdbSearchResponse {
   dates: { minimum: string; maximum: string };
 }
 
+export interface NearbyMovie {
+  result: TmdbSearchResult;
+  /** Cinemas showing the film today. */
+  theaters: string[];
+}
+
+export interface NearbyMoviesResponse {
+  city: string;
+  movies: NearbyMovie[];
+}
+
 export interface TmdbGenre {
   id: number;
   name: string;

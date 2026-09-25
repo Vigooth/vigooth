@@ -13,6 +13,7 @@ import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { Header } from '@/components/layout/Header';
 import { SearchBar } from '@/components/search/SearchBar';
 import { SearchResultCard } from '@/components/search/SearchResultCard';
+import { NearbyMoviesSection } from '@/components/search/NearbyMoviesSection';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
@@ -154,35 +155,42 @@ export function SearchPage() {
 
         <div ref={scrollRef} className="flex-1 overflow-auto px-3 pb-3">
           {!isSearching ? (
-            loadingNowPlaying ? (
-              <div className="text-center py-12 text-cpc-cyan-500">LOADING...</div>
-            ) : nowPlayingResults.length > 0 ? (
-              <div>
-                <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
-                  SORTIES RÉCENTES
+            <div className="flex flex-col gap-6">
+              <NearbyMoviesSection
+                viewMode={viewMode}
+                gridClassName={gridClasses[viewMode]}
+                collectionKeys={collectionKeys}
+              />
+              {loadingNowPlaying ? (
+                <div className="text-center py-12 text-cpc-cyan-500">LOADING...</div>
+              ) : nowPlayingResults.length > 0 ? (
+                <div>
+                  <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
+                    SORTIES RÉCENTES
+                  </div>
+                  <div className={gridClasses[viewMode]}>
+                    {nowPlayingResults.map((result) => (
+                      <SearchResultCard
+                        key={`now-playing-${result.id}`}
+                        result={result}
+                        viewMode={viewMode}
+                        inCollection={collectionKeys.has(`movie:${result.id}`)}
+                      />
+                    ))}
+                  </div>
+                  <div ref={nowPlayingSentinelRef} className="h-8 flex items-center justify-center">
+                    {isFetchingNextNowPlayingPage && (
+                      <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
+                    )}
+                  </div>
                 </div>
-                <div className={gridClasses[viewMode]}>
-                  {nowPlayingResults.map((result) => (
-                    <SearchResultCard
-                      key={`now-playing-${result.id}`}
-                      result={result}
-                      viewMode={viewMode}
-                      inCollection={collectionKeys.has(`movie:${result.id}`)}
-                    />
-                  ))}
+              ) : (
+                <div className="text-center py-12 text-cpc-green-900">
+                  <div className="text-lg mb-2">SEARCH MOVIES</div>
+                  <div className="text-sm">Type a movie title or director name to search TMDB</div>
                 </div>
-                <div ref={nowPlayingSentinelRef} className="h-8 flex items-center justify-center">
-                  {isFetchingNextNowPlayingPage && (
-                    <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12 text-cpc-green-900">
-                <div className="text-lg mb-2">SEARCH MOVIES</div>
-                <div className="text-sm">Type a movie title or director name to search TMDB</div>
-              </div>
-            )
+              )}
+            </div>
           ) : searching ? (
             <div className="text-center py-12 text-cpc-cyan-500">SEARCHING...</div>
           ) : (

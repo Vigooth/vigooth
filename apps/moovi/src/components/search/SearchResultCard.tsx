@@ -374,7 +374,7 @@ function RatingBadge({ rating, className }: { rating: number | null; className: 
       className={`absolute bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 ${className}`}
       title={rating === null ? 'Dans ta collection, pas encore noté' : `Ta note : ${rating}/10`}
     >
-      ★ {rating ?? '—'}
+      {rating ?? '—'}
     </div>
   );
 }

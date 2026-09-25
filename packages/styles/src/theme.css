@@ -452,8 +452,8 @@
     /* The drag offset folds into the centring transform, so moving the panel
        never fights the translate that centres it. */
     transform: translate(
-      calc(-50% + var(--cpc-modal-dx, 0px)),
-      calc(-50% + var(--cpc-modal-dy, 0px))
+      calc(-50% + var(--drag-x, 0px)),
+      calc(-50% + var(--drag-y, 0px))
     );
     transition:
       opacity 200ms ease,
@@ -468,16 +468,16 @@
   .cpc-modal-popup[data-open] {
     opacity: 1;
     transform: translate(
-        calc(-50% + var(--cpc-modal-dx, 0px)),
-        calc(-50% + var(--cpc-modal-dy, 0px))
+        calc(-50% + var(--drag-x, 0px)),
+        calc(-50% + var(--drag-y, 0px))
       )
       scale(1);
   }
   .cpc-modal-popup[data-closed] {
     opacity: 0;
     transform: translate(
-        calc(-50% + var(--cpc-modal-dx, 0px)),
-        calc(-50% + var(--cpc-modal-dy, 0px))
+        calc(-50% + var(--drag-x, 0px)),
+        calc(-50% + var(--drag-y, 0px))
       )
       scale(0.97);
   }

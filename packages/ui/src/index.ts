@@ -32,4 +32,6 @@ export type {
   LuminanceField,
   TraceOptions,
 } from './VectorImage';
+export { useDraggable } from './hooks';
+export type { UseDraggableOptions, UseDraggableResult, DraggableHandleProps } from './hooks';
 export { cn } from './utils/cn';

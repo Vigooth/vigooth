@@ -8,6 +8,7 @@ import {
   updateBed,
   uploadPlanPhoto,
 } from '@/lib/api/garden';
+import { useBlobUrl } from '@/hooks/useBlobUrl';
 import { useGarden } from '@/stores/GardenStore';
 import type { Bed, BedKind, Point } from '@/types/garden';
 import { BED_KIND_LABELS, BED_KINDS } from '@/types/garden';
@@ -32,12 +33,7 @@ export function PlanView() {
     planPhotoUrl,
   } = useGarden();
 
-  /**
-   * The backdrop is fetched as a blob URL rather than pointed at directly: the
-   * tracer reads its pixels off a canvas, and a cross-origin image response would
-   * taint it. Same reason as the plant photos.
-   */
-  const [planPhoto, setPlanPhoto] = useState<string | null>(null);
+  const planPhoto = useBlobUrl(hasPlanPhoto ? planPhotoUrl : null);
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Point[] | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -50,33 +46,6 @@ export function PlanView() {
     () => beds.filter((bed) => bed.shape && bed.shape.length >= 3),
     [beds],
   );
-
-  // Resolve the stored backdrop, revoking the blob URL on unmount or replacement.
-  useEffect(() => {
-    if (!hasPlanPhoto) {
-      setPlanPhoto(null);
-      return;
-    }
-
-    let revoked = false;
-    let created: string | null = null;
-
-    planPhotoUrl()
-      .then((url) => {
-        if (revoked) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-        created = url;
-        setPlanPhoto(url);
-      })
-      .catch(() => setPlanPhoto(null));
-
-    return () => {
-      revoked = true;
-      if (created) URL.revokeObjectURL(created);
-    };
-  }, [hasPlanPhoto, planPhotoUrl]);
 
   const handlePickPhoto = () => {
     fileRef.current?.click();

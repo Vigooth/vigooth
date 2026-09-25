@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CpcButton } from '@vigooth/ui';
+import { useObjectUrl } from '@/hooks/useBlobUrl';
 import { suggestCrop } from '@/lib/api/garden';
 import { useGarden } from '@/stores/GardenStore';
 import type { Point } from '@/types/garden';
@@ -28,7 +29,7 @@ const MIN_SIDE = 0.03;
 export function PhotoCropper({ file, onApply, onCancel }: PhotoCropperProps) {
   const { canSuggestCrop } = useGarden();
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [url, setUrl] = useState<string | null>(null);
+  const url = useObjectUrl(file);
   const [rect, setRect] = useState<CropRect | null>(null);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,12 +38,8 @@ export function PhotoCropper({ file, onApply, onCancel }: PhotoCropperProps) {
   /** Bumps to re-run the suggestion on demand. */
   const [suggestionRun, setSuggestionRun] = useState(0);
 
-  useEffect(() => {
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    setRect(null);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
+  // A new photo drops whatever box was drawn on the previous one.
+  useEffect(() => setRect(null), [file]);
 
   // Ask the vision model for a first box as soon as the photo is in. A drawn
   // box replaces it; a failed suggestion just leaves the photo bare.

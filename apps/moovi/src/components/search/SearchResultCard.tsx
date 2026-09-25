@@ -1,30 +1,41 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CpcButton } from '@vigooth/ui';
+import { CpcButton, CpcTooltip, StarIcon } from '@vigooth/ui';
 import type { TmdbSearchResult } from '@/types/movie';
 import { getPosterUrl } from '@/utils/tmdbImage';
 import { getMovieDetails, getMovieCredits, getTvDetails, getTvCredits } from '@/lib/api/tmdb';
 import { getOmdbRatings, parseOmdbRatings } from '@/lib/api/omdb';
 import { useAddMovie } from '@/hooks/useMoviesQuery';
-import {
-  useIsInWishlist,
-  useAddToWishlist,
-  useRemoveFromWishlist,
-} from '@/hooks/useWishlist';
+import { useIsInWishlist, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/useWishlist';
 import type { AddMoviePayload } from '@/types/movie';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
+// On hover or focus, the card's actions take the place of its title, which
+// only turns invisible so the card keeps its size. Devices that cannot hover
+// show both, the actions below the title.
+const ACTIONS_ON_HOVER =
+  'hidden group-hover:flex group-focus-within:flex [@media(hover:none)]:flex [@media(hover:none)]:static';
+const ACTIONS_SHOWN = 'flex [@media(hover:none)]:static';
+const TITLE_ON_HOVER = 'group-hover:invisible [@media(hover:hover)]:group-focus-within:invisible';
+const TITLE_HIDDEN = '[@media(hover:hover)]:invisible';
+
 interface SearchResultCardProps {
   result: TmdbSearchResult;
   inCollection: boolean;
+  /** The user's rating, out of 10, of a film in the collection. */
+  personalRating?: number | null;
   viewMode?: ViewMode;
+  /** Short labels pinned to the poster's top-left corner, e.g. showtimes. */
+  posterTags?: string[];
 }
 
 export function SearchResultCard({
   result,
   inCollection,
+  personalRating = null,
   viewMode = 'grid',
+  posterTags = [],
 }: SearchResultCardProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
@@ -160,7 +171,7 @@ export function SearchResultCard({
         onClick={goToDetails}
         className="group border-2 border-cpc-green-900 flex hover:border-cpc-cyan-500 transition-colors cursor-pointer"
       >
-        <div className="w-20 flex-shrink-0 bg-cpc-grey-900 transition-[width] duration-400 group-hover:w-32">
+        <div className="w-20 flex-shrink-0 bg-cpc-grey-900 transition-[width] duration-400 group-hover:w-32 relative">
           {posterUrl ? (
             <img src={posterUrl} alt={displayTitle} className="w-full h-full object-cover" />
           ) : (
@@ -168,6 +179,7 @@ export function SearchResultCard({
               N/A
             </div>
           )}
+          <PosterTags tags={posterTags} className="top-1 left-1" />
         </div>
 
         <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
@@ -229,17 +241,48 @@ export function SearchResultCard({
               NO POSTER
             </div>
           )}
-          {added && (
-            <div className="absolute top-1 right-1 bg-black/80 border border-cpc-green-500 text-cpc-green-500 font-bold px-1 py-0.5 text-[9px]">
-              IN
-            </div>
+          <PosterTags tags={posterTags} className="top-1 left-1" />
+          {added && personalRating !== null && (
+            <CpcTooltip content={`Ma note perso : ${personalRating}`} color="cyan">
+              <div className="absolute top-1 right-1 bg-black/80 border border-cpc-cyan-500 text-cpc-cyan-500 font-bold px-1 py-0.5 text-[10px]">
+                {personalRating}
+              </div>
+            </CpcTooltip>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
-            <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
-              {displayTitle}
-              {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+            <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
+              <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
+                {displayTitle}
+                {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+              </div>
+              <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
             </div>
-            <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
+            {!added && (
+              <div
+                className={`absolute inset-0 px-1.5 items-center gap-1 [@media(hover:none)]:px-0 [@media(hover:none)]:mt-1 ${adding ? ACTIONS_SHOWN : ACTIONS_ON_HOVER}`}
+              >
+                <CpcButton
+                  size="xs"
+                  fullWidth
+                  color={adding ? 'yellow' : 'cyan'}
+                  className="justify-center"
+                  onClick={handleAdd}
+                  disabled={adding}
+                >
+                  {adding ? '...' : 'ADD'}
+                </CpcButton>
+                <CpcButton
+                  size="xs"
+                  color="yellow"
+                  variant={isWishlisted ? 'filled' : 'outlined'}
+                  onClick={handleWishlist}
+                  disabled={wishlistPending}
+                  aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
+                >
+                  <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
+                </CpcButton>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -265,33 +308,43 @@ export function SearchResultCard({
             NO POSTER
           </div>
         )}
-        {isTv && (
+        {isTv ? (
           <div className="absolute top-2 left-2 bg-black/80 border border-cpc-yellow-500 text-cpc-yellow-500 font-bold px-1.5 py-0.5 text-[10px]">
             SERIE
           </div>
+        ) : (
+          <PosterTags tags={posterTags} className="top-2 left-2" />
+        )}
+        {added && personalRating !== null && (
+          <CpcTooltip content={`Ma note perso : ${personalRating}`} color="cyan">
+            <div className="absolute top-2 right-2 bg-black bg-opacity-80 border-2 border-cpc-cyan-500 text-cpc-cyan-500 font-bold px-2 py-1 text-sm">
+              {personalRating}/10
+            </div>
+          </CpcTooltip>
         )}
       </div>
 
-      <div className="p-2 flex flex-col gap-1.5 flex-1">
-        <div>
+      <div className="p-2 relative">
+        <div className={added ? '' : adding ? TITLE_HIDDEN : TITLE_ON_HOVER}>
           <div className="text-cpc-cyan-500 text-sm font-bold truncate group-hover:text-cpc-yellow-500 transition-colors">
             {displayTitle}
           </div>
           <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
         </div>
-
-        <div className="flex flex-col gap-1.5 mt-auto">
-          <CpcButton
-            size="xs"
-            fullWidth
-            color={added ? 'green' : adding ? 'yellow' : 'cyan'}
-            className="justify-center"
-            onClick={handleAdd}
-            disabled={added || adding}
+        {!added && (
+          <div
+            className={`absolute inset-0 px-2 items-center gap-1 [@media(hover:none)]:px-0 [@media(hover:none)]:mt-1.5 ${adding ? ACTIONS_SHOWN : ACTIONS_ON_HOVER}`}
           >
-            {added ? 'IN COLLECTION' : adding ? 'ADDING...' : 'ADD'}
-          </CpcButton>
-          {!added && (
+            <CpcButton
+              size="xs"
+              fullWidth
+              color={adding ? 'yellow' : 'cyan'}
+              className="justify-center"
+              onClick={handleAdd}
+              disabled={adding}
+            >
+              {adding ? 'ADDING...' : 'ADD'}
+            </CpcButton>
             <CpcButton
               size="xs"
               fullWidth
@@ -303,9 +356,25 @@ export function SearchResultCard({
             >
               {isWishlisted ? 'WISHLISTED' : 'WISHLIST'}
             </CpcButton>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+function PosterTags({ tags, className }: { tags: string[]; className: string }) {
+  if (tags.length === 0) return null;
+  return (
+    <div className={`absolute flex flex-col items-start gap-0.5 ${className}`}>
+      {tags.map((tag) => (
+        <div
+          key={tag}
+          className="bg-black/80 border border-cpc-cyan-500 text-cpc-cyan-500 font-bold px-1 py-0.5 text-[9px] leading-none whitespace-nowrap"
+        >
+          {tag}
+        </div>
+      ))}
     </div>
   );
 }

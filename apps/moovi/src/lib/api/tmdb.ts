@@ -1,6 +1,7 @@
 import { request } from './client';
 import type {
   TmdbSearchResponse,
+  TmdbNowPlayingResponse,
   TmdbMovieDetail,
   TmdbTvDetail,
   TmdbCredits,
@@ -43,4 +44,8 @@ export async function discoverByPerson(
   return request<TmdbSearchResponse>(
     `/api/tmdb/discover/movie?with_crew=${personId}&page=${page}&sort_by=${sortBy}`,
   );
+}
+
+export async function getNowPlaying(page = 1): Promise<TmdbNowPlayingResponse> {
+  return request<TmdbNowPlayingResponse>(`/api/tmdb/now-playing?page=${page}`);
 }

@@ -91,6 +91,34 @@ export interface TmdbSearchResponse {
   total_results: number;
 }
 
+export interface TmdbNowPlayingResponse extends TmdbSearchResponse {
+  /** Release window of the films in cinemas; older dates are re-releases. */
+  dates: { minimum: string; maximum: string };
+}
+
+/** The next screening of a film in one version. */
+export interface NextShowtime {
+  /** Paris date, "YYYY-MM-DD". */
+  date: string;
+  /** Paris time, "HH:MM". */
+  time: string;
+  version: 'VO' | 'VF';
+  theater: string;
+}
+
+export interface NearbyMovie {
+  result: TmdbSearchResult;
+  /** Cinemas showing the film today. */
+  theaters: string[];
+  /** Earliest upcoming screening per version, soonest first. */
+  next_showtimes: NextShowtime[];
+}
+
+export interface NearbyMoviesResponse {
+  city: string;
+  movies: NearbyMovie[];
+}
+
 export interface TmdbGenre {
   id: number;
   name: string;

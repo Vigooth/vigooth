@@ -2,11 +2,18 @@ import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import { CpcButton, CpcLayout, ListIcon, GridCompactIcon } from '@vigooth/ui';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useQueryParam } from '@/hooks/useQueryParam';
-import { useTmdbSearch, useTmdbSearchPerson, useTmdbDiscoverByPerson } from '@/hooks/useTmdbSearch';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import {
+  useTmdbSearch,
+  useTmdbSearchPerson,
+  useTmdbDiscoverByPerson,
+  useTmdbNowPlaying,
+} from '@/hooks/useTmdbSearch';
 import { useMoviesQuery } from '@/hooks/useMoviesQuery';
 import { Header } from '@/components/layout/Header';
 import { SearchBar } from '@/components/search/SearchBar';
 import { SearchResultCard } from '@/components/search/SearchResultCard';
+import { NearbyMoviesSection } from '@/components/search/NearbyMoviesSection';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
@@ -20,6 +27,7 @@ export function SearchPage() {
   const [query, setQuery] = useQueryParam('q');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const debouncedQuery = useDebounce(query, 300);
+  const isSearching = debouncedQuery.length >= 2;
 
   const {
     data: searchData,
@@ -44,10 +52,26 @@ export function SearchPage() {
     isFetchingNextPage: isFetchingNextDirectorPage,
   } = useTmdbDiscoverByPerson(director?.id ?? null);
 
+  // Recent releases fill the page until a search is typed.
+  const {
+    data: nowPlayingData,
+    isLoading: loadingNowPlaying,
+    fetchNextPage: fetchNextNowPlayingPage,
+    hasNextPage: hasNextNowPlayingPage,
+    isFetchingNextPage: isFetchingNextNowPlayingPage,
+  } = useTmdbNowPlaying(!isSearching);
+  const nowPlayingResults = nowPlayingData?.pages.flatMap((page) => page.results) ?? [];
+  const { scrollRef, sentinelRef: nowPlayingSentinelRef } = useInfiniteScroll({
+    hasNextPage: hasNextNowPlayingPage,
+    isFetchingNextPage: isFetchingNextNowPlayingPage,
+    fetchNextPage: fetchNextNowPlayingPage,
+  });
+
   const { data: collectionData } = useMoviesQuery();
 
-  const collectionKeys = new Set(
-    (collectionData?.movies ?? []).map((m) => `${m.media_type}:${m.tmdb_id}`),
+  // Personal rating of each film in the collection, keyed "media_type:tmdb_id".
+  const collectionRatings = new Map(
+    (collectionData?.movies ?? []).map((m) => [`${m.media_type}:${m.tmdb_id}`, m.personal_rating]),
   );
 
   const results = (searchData?.pages.flatMap((page) => page.results) ?? []).filter(
@@ -122,19 +146,52 @@ export function SearchPage() {
             </CpcButton>
             <CpcButton
               size="xs"
-              color={viewMode === 'compact' ? 'cyan' : 'green'}
-              onClick={() => setViewMode(viewMode === 'compact' ? 'grid' : 'compact')}
+              color={viewMode === 'grid' ? 'cyan' : 'green'}
+              onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
             >
               <GridCompactIcon size="sm" />
             </CpcButton>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto px-3 pb-3">
-          {!debouncedQuery || debouncedQuery.length < 2 ? (
-            <div className="text-center py-12 text-cpc-green-900">
-              <div className="text-lg mb-2">SEARCH MOVIES</div>
-              <div className="text-sm">Type a movie title or director name to search TMDB</div>
+        <div ref={scrollRef} className="flex-1 overflow-auto px-3 pb-3">
+          {!isSearching ? (
+            <div className="flex flex-col gap-6">
+              <NearbyMoviesSection
+                viewMode={viewMode}
+                gridClassName={gridClasses[viewMode]}
+                collectionRatings={collectionRatings}
+              />
+              {loadingNowPlaying ? (
+                <div className="text-center py-12 text-cpc-cyan-500">LOADING...</div>
+              ) : nowPlayingResults.length > 0 ? (
+                <div>
+                  <div className="text-cpc-cyan-500 text-xs font-bold mb-2 tracking-wider">
+                    SORTIES RÉCENTES
+                  </div>
+                  <div className={gridClasses[viewMode]}>
+                    {nowPlayingResults.map((result) => (
+                      <SearchResultCard
+                        key={`now-playing-${result.id}`}
+                        result={result}
+                        viewMode={viewMode}
+                        inCollection={collectionRatings.has(`movie:${result.id}`)}
+                        personalRating={collectionRatings.get(`movie:${result.id}`) ?? null}
+                      />
+                    ))}
+                  </div>
+                  <div ref={nowPlayingSentinelRef} className="h-8 flex items-center justify-center">
+                    {isFetchingNextNowPlayingPage && (
+                      <span className="text-cpc-cyan-500 text-xs">LOADING MORE...</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-cpc-green-900">
+                  <div className="text-lg mb-2">SEARCH MOVIES</div>
+                  <div className="text-sm">Type a movie title or director name to search TMDB</div>
+                </div>
+              )}
             </div>
           ) : searching ? (
             <div className="text-center py-12 text-cpc-cyan-500">SEARCHING...</div>
@@ -152,9 +209,13 @@ export function SearchPage() {
                         key={`director-${result.id}`}
                         result={result}
                         viewMode={viewMode}
-                        inCollection={collectionKeys.has(
+                        inCollection={collectionRatings.has(
                           `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
+                        personalRating={
+                          collectionRatings.get(`${result.media_type ?? 'movie'}:${result.id}`) ??
+                          null
+                        }
                       />
                     ))}
                   </div>
@@ -186,9 +247,13 @@ export function SearchPage() {
                         key={result.id}
                         result={result}
                         viewMode={viewMode}
-                        inCollection={collectionKeys.has(
+                        inCollection={collectionRatings.has(
                           `${result.media_type ?? 'movie'}:${result.id}`,
                         )}
+                        personalRating={
+                          collectionRatings.get(`${result.media_type ?? 'movie'}:${result.id}`) ??
+                          null
+                        }
                       />
                     ))}
                   </div>

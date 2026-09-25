@@ -11,10 +11,9 @@ import type { AddMoviePayload } from '@/types/movie';
 
 type ViewMode = 'grid' | 'list' | 'compact';
 
-// Card actions show on hover, or while focused, on devices that can hover;
-// touch screens keep them visible.
-const HOVER_ONLY =
-  '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity';
+// Card actions overlay the poster on hover, or while focused, on devices
+// that can hover; touch screens keep them shown. Hidden, they take no room.
+const HOVER_ONLY = 'hidden group-hover:flex group-focus-within:flex [@media(hover:none)]:flex';
 
 interface SearchResultCardProps {
   result: TmdbSearchResult;
@@ -236,37 +235,39 @@ export function SearchResultCard({
           )}
           <PosterTags tags={posterTags} className="top-1 left-1" />
           {added && <InCollectionBadge className="top-1 right-1 text-[9px]" />}
-          <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1">
-            <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
-              {displayTitle}
-              {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1.5 py-1 flex flex-col gap-1">
+            {!added && (
+              <div className={`gap-1 ${adding ? 'flex' : HOVER_ONLY}`}>
+                <CpcButton
+                  size="xs"
+                  fullWidth
+                  color={adding ? 'yellow' : 'cyan'}
+                  className="justify-center"
+                  onClick={handleAdd}
+                  disabled={adding}
+                >
+                  {adding ? '...' : 'ADD'}
+                </CpcButton>
+                <CpcButton
+                  size="xs"
+                  color="yellow"
+                  variant={isWishlisted ? 'filled' : 'outlined'}
+                  onClick={handleWishlist}
+                  disabled={wishlistPending}
+                  aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
+                >
+                  <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
+                </CpcButton>
+              </div>
+            )}
+            <div>
+              <div className="text-cpc-cyan-500 text-[10px] font-bold truncate">
+                {displayTitle}
+                {isTv && <span className="text-cpc-yellow-500 ml-1">TV</span>}
+              </div>
+              <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
             </div>
-            <div className="text-cpc-green-900 text-[9px] truncate">{year || '—'}</div>
           </div>
-        </div>
-        <div className={`flex gap-1 p-1 ${adding ? '' : HOVER_ONLY}`}>
-          <CpcButton
-            size="xs"
-            fullWidth
-            color={added ? 'green' : adding ? 'yellow' : 'cyan'}
-            className="justify-center"
-            onClick={handleAdd}
-            disabled={added || adding}
-          >
-            {added ? 'IN' : adding ? '...' : 'ADD'}
-          </CpcButton>
-          {!added && (
-            <CpcButton
-              size="xs"
-              color="yellow"
-              variant={isWishlisted ? 'filled' : 'outlined'}
-              onClick={handleWishlist}
-              disabled={wishlistPending}
-              aria-label={isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
-            >
-              <StarIcon size="sm" variant={isWishlisted ? 'filled' : 'outlined'} />
-            </CpcButton>
-          )}
         </div>
       </div>
     );
@@ -299,28 +300,20 @@ export function SearchResultCard({
           <PosterTags tags={posterTags} className="top-2 left-2" />
         )}
         {added && <InCollectionBadge className="top-2 right-2 text-[10px]" />}
-      </div>
-
-      <div className="p-2 flex flex-col gap-1.5 flex-1">
-        <div>
-          <div className="text-cpc-cyan-500 text-sm font-bold truncate group-hover:text-cpc-yellow-500 transition-colors">
-            {displayTitle}
-          </div>
-          <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
-        </div>
-
-        <div className={`flex flex-col gap-1.5 mt-auto ${adding ? '' : HOVER_ONLY}`}>
-          <CpcButton
-            size="xs"
-            fullWidth
-            color={added ? 'green' : adding ? 'yellow' : 'cyan'}
-            className="justify-center"
-            onClick={handleAdd}
-            disabled={added || adding}
+        {!added && (
+          <div
+            className={`absolute bottom-0 inset-x-0 bg-black/70 p-1.5 flex-col gap-1 ${adding ? 'flex' : HOVER_ONLY}`}
           >
-            {added ? 'IN COLLECTION' : adding ? 'ADDING...' : 'ADD'}
-          </CpcButton>
-          {!added && (
+            <CpcButton
+              size="xs"
+              fullWidth
+              color={adding ? 'yellow' : 'cyan'}
+              className="justify-center"
+              onClick={handleAdd}
+              disabled={adding}
+            >
+              {adding ? 'ADDING...' : 'ADD'}
+            </CpcButton>
             <CpcButton
               size="xs"
               fullWidth
@@ -332,8 +325,15 @@ export function SearchResultCard({
             >
               {isWishlisted ? 'WISHLISTED' : 'WISHLIST'}
             </CpcButton>
-          )}
+          </div>
+        )}
+      </div>
+
+      <div className="p-2">
+        <div className="text-cpc-cyan-500 text-sm font-bold truncate group-hover:text-cpc-yellow-500 transition-colors">
+          {displayTitle}
         </div>
+        <div className="text-cpc-green-900 text-xs">{year || '—'}</div>
       </div>
     </div>
   );
